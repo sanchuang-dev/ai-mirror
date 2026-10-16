@@ -13,7 +13,7 @@ on:
         description: Official native OpenCode free model (no paid fallback)
         required: true
         type: choice
-        default: mimo-v2.6-flash-free
+        default: deepseek-v4.1-flash-free
         options:
           - mimo-v2.6-flash-free
           - deepseek-v4.1-flash-free
