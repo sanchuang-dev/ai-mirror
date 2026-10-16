@@ -1,0 +1,41 @@
+/* Original OpenDesign values from design.md §3 and design/prototypes/jianqu-v02/assets/app.css.
+   No new theme, third-party tokens or duplicated A/B markup. */
+:root,
+[data-dir='a'] {
+  --bg: #f5f6f8;
+  --surface: #ffffff;
+  --surface-2: #eceff3;
+  --ink: #1b1e23;
+  --muted: #5c6470;
+  --border: #e3e6eb;
+  --accent: #e4572e;
+  --accent-strong: #c9401b;
+  --accent-ink: #ffffff;
+  --accent-2: #1f9e8f;
+  --orb-core: #ffd9c9;
+  --orb-edge: #e4572e;
+  --font-body:
+    'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans CJK SC', system-ui,
+    -apple-system, sans-serif;
+  --font-display: 'Songti SC', 'STSong', 'Noto Serif CJK SC', 'Source Han Serif SC', serif;
+}
+
+[data-dir='b'] {
+  --bg: #16141c;
+  --surface: #211e2a;
+  --surface-2: #2a2635;
+  --ink: #f3efe8;
+  --muted: #a9a2b5;
+  --border: #35303f;
+  --accent: #e9b25c;
+  --accent-strong: #e9b25c;
+  --accent-ink: #1a1520;
+  --accent-2: #4fc3b5;
+  --orb-core: #fff3d8;
+  --orb-edge: #e9b25c;
+  --font-body:
+    'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans CJK SC', system-ui,
+    -apple-system, sans-serif;
+  --font-display:
+    'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans CJK SC', system-ui, sans-serif;
+}
