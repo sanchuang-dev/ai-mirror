@@ -43,7 +43,7 @@ jobs:
       contents: write
       issues: read
       pull-requests: write
-    uses: sanchuang-dev/.github/.github/workflows/sanchuang-free-worker-v2.yml@e674b40b4a8f9df93e6254eb14d7b5c85ddb077b
+    uses: sanchuang-dev/.github/.github/workflows/sanchuang-free-worker-v2.yml@0118f124b7bb95d75273f377b69dbab9ca050750
     with:
       issue_number: ${{ fromJSON(inputs.issue_number) }}
       model: ${{ inputs.model }}
