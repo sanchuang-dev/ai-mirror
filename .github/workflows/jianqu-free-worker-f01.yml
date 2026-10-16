@@ -1,0 +1,66 @@
+name: Jianqu Free Worker F01 (Docs-Only)
+
+# Bootstrap exception: only Issue #4 may create a doc-only Draft PR against main.
+# Do not reuse for F02 or feature work; its delivery branch is not yet approved.
+on:
+  workflow_dispatch:
+    inputs:
+      issue_number:
+        description: Authorized existing Issue number (F01 only, #4)
+        required: true
+        type: number
+      model:
+        description: Verified official OpenCode free model
+        required: true
+        type: choice
+        default: mimo-v2.6-flash-free
+        options:
+          - mimo-v2.6-flash-free
+          - deepseek-v4.1-flash-free
+
+permissions:
+  contents: read
+
+jobs:
+  guard-f01:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Enforce F01 bootstrap-only permission
+        shell: bash
+        env:
+          ISSUE_NUMBER: ${{ inputs.issue_number }}
+          DISPATCH_REF: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          test "$ISSUE_NUMBER" = "4"
+          test "$DISPATCH_REF" = "main"
+
+  free-worker:
+    needs: guard-f01
+    permissions:
+      contents: write
+      issues: read
+      pull-requests: write
+    uses: sanchuang-dev/.github/.github/workflows/sanchuang-free-worker-v2.yml@e674b40b4a8f9df93e6254eb14d7b5c85ddb077b
+    with:
+      issue_number: ${{ inputs.issue_number }}
+      model: ${{ inputs.model }}
+      base_branch: main
+      verification_command: |
+        git diff --cached --check
+        python3 - <<'PY'
+        import pathlib
+        import subprocess
+        paths = [x.decode() for x in subprocess.check_output(
+            ['git', 'diff', '--cached', '--name-only', '-z']
+        ).split(b'\0') if x]
+        assert paths, 'F01 must produce an actual doc change'
+        for p in paths:
+            assert p in {'AGENTS.md', 'README.md'} or p.startswith('docs/engineering/'), (
+                f'F01 bootstrap forbids editing {p}'
+            )
+        assert pathlib.Path('design.md').is_file(), 'Design source is required'
+        print('F01 documentation scope and immutable design source: PASS')
+        PY
