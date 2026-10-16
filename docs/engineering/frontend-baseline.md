@@ -156,11 +156,11 @@ web/                     # 首期实现根，零构建，可作为 Pages 发布�
 
 ## 7. 分支、环境与 Pages 权限契约
 
-### 7.1 现状（技术现实）
+### 7.1 环境状态（更新于 2026-10-16）
 
 - `main`：产品定义阶段的**文档基线**，`main` **不是工程环境**，不得作为实现开发或发布的落点。
 - `feat/jianqu-opendesign-v02`：承载未合并的 OpenDesign 改造原型（Draft PR #1）；**PR #1 未合并，不得视为 main 已有代码**。
-- 当前**没有** `dev` / `test` / `prod`。
+- `dev` / `test` / `prod` 已基于已验收 ENG-01 文档基线 `03f3ce1375403342ae59ccc3dd6f7200cebabb91` 建立。`dev` 随后合入 Review Profile；ENG-02 仅在 `dev` 上独立实施。分支存在不代表环境部署或发布。
 - `.github/workflows/pages.yml`：从 `feat/jianqu-opendesign-v02` 取静态文件发布到公开 GitHub Pages，是**设计评审演示站**，不是产品生产环境。
 
 ### 7.2 组织默认与仓库例外
@@ -176,7 +176,7 @@ web/                     # 首期实现根，零构建，可作为 Pages 发布�
 
 ### 7.3 后续实现基线（ENG-02 起）
 
-- ENG-02 必须先建立 `dev`（并按环境模型建立 `test` / `prod`），或记录一份与组织惯例不同的正式例外，之后才能施工。
+- ENG-02 开工前已建立 `dev`、`test`、`prod`；后续功能施工必须以当前受控的 `dev` 为基线，并保留单独的环境晋级权限边界。
 - 实现工作一律基于 `dev` 开 `feat/*`，走 PR；**不得用默认 `main` 代替工程环境**。
 - `main` 的定位保持为文档/历史基线；发布只能在获授权环境分支上进行。
 
@@ -190,7 +190,7 @@ web/                     # 首期实现根，零构建，可作为 Pages 发布�
 
 - 仅 `.github/workflows/pages.yml` 持有 `pages: write` 与 `id-token: write`；ENG-01 Worker 工作流的守卫作业只有 `contents: read`，产出 PR 的作业授予 `contents: write` + `pull-requests: write`，且其校验脚本把可改动路径限制在 `AGENTS.md`、`README.md`、`docs/engineering/*`。
 - 当前发布源是设计分支，属评审演示；**Pages 可访问 ≠ 产品通过验收**。
-- 待 `dev` 存在且实现可评审后，才可**经评审修改工作流**把 Pages 发布源切到获授权的环境分支。**ENG-01 不改动任何发布工作流，也不授权任何自动发布。**
+- 虽然 `dev` 已建立，Pages 仍只发布设计分支；只有日后获单独授权并经评审，才可修改 Pages 发布源。**ENG-01 / ENG-02 均不授权自动部署或发布工作流改动。**
 
 ## 8. 变更与评审入口
 
