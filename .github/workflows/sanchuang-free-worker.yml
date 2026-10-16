@@ -1,0 +1,83 @@
+# Jianqu opt-in caller: register on default branch main; implement and deliver only against dev.
+# Trust the immutable Organization V2 workflow and the repository's actual quality gate.
+name: Sanchuang Free Worker (opt-in)
+
+on:
+  workflow_dispatch:
+    inputs:
+      issue_number:
+        description: Existing explicitly authorized OPEN Issue number
+        required: true
+        type: number
+      model:
+        description: Official native OpenCode free model (no paid fallback)
+        required: true
+        type: choice
+        default: deepseek-v4.1-flash-free
+        options:
+          - mimo-v2.6-flash-free
+          - deepseek-v4.1-flash-free
+
+permissions:
+  contents: read
+
+jobs:
+  enrollment:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      engineering_base: ${{ steps.guard.outputs.engineering_base }}
+    steps:
+      - name: Enforce repository-specific opt-in and delivery base
+        id: guard
+        shell: bash
+        env:
+          # Repository maintainer must change these in an independently reviewed PR.
+          ENROLLED: "true"
+          ENGINEERING_BASE: "dev"
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          if test "$GITHUB_REF_NAME" != "$DEFAULT_BRANCH"; then
+            echo "::error::Dispatch must run from the repository default branch."
+            exit 1
+          fi
+          if test "$ENROLLED" != "true" || test "$ENGINEERING_BASE" = "__SET_APPROVED_ENGINEERING_BASE__"; then
+            echo "::error::Review enrollment and configure engineering base and verification before dispatch."
+            exit 1
+          fi
+          case "$ENGINEERING_BASE" in
+            main|master|test|prod)
+              echo "::error::Standard Worker cannot target a documentation/default or release branch. Use a separately reviewed exception caller."
+              exit 1
+              ;;
+          esac
+          git check-ref-format --branch "$ENGINEERING_BASE"
+          gh api "repos/$GITHUB_REPOSITORY/branches/$ENGINEERING_BASE" --jq '.name' >/dev/null
+          echo "engineering_base=$ENGINEERING_BASE" >> "$GITHUB_OUTPUT"
+
+  worker:
+    needs: enrollment
+    permissions:
+      contents: write
+      issues: read
+      pull-requests: write
+    uses: sanchuang-dev/.github/.github/workflows/sanchuang-free-worker-v2.yml@985ff50c297b844af65a920bd38f9c0b1ae31098
+    with:
+      issue_number: ${{ fromJSON(inputs.issue_number) }}
+      model: ${{ inputs.model }}
+      base_branch: ${{ needs.enrollment.outputs.engineering_base }}
+      verification_command: |
+        set -euo pipefail
+        git diff --cached --check
+        # ENG-02 was accepted into dev; require its real source and quality gate.
+        test -s package.json
+        test -s package-lock.json
+        test -s web/index.html
+        test -s web/assets/app.js
+        test -s web/assets/tokens.css
+        node -e 'const p=require("./package.json"); for(const k of ["lint","format:check","typecheck","syntax","test","check"]) if(typeof p.scripts?.[k]!=="string" || !p.scripts[k].trim() || /^(:|true|echo|exit 0)/.test(p.scripts[k].trim())) throw Error("Missing meaningful quality check: "+k)'
+        npm ci --no-audit --no-fund
+        npm run check
