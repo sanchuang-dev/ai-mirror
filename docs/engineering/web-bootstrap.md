@@ -1,0 +1,40 @@
+# 见趣 ENG-02 · 最小 Web 工程启动说明
+
+工作项：[Issue #5](https://github.com/sanchuang-dev/ai-mirror/issues/5)。本任务实现 [ENG-01 工程基线](frontend-baseline.md)，只提供开发骨架，**不是完成的闺蜜机 UI**。
+
+## 从新检出到本地运行
+
+使用 Node.js **22 LTS**（CI 固定 22）和 npm，唯一锁文件为 `package-lock.json`。
+
+1. `npm ci --no-audit --no-fund`：从锁文件安装校验工具。
+2. `npm run preview`：在 `http://127.0.0.1:4173/` 预览真实 `web/index.html`。
+3. `npm run check`：依次执行 ESLint、Prettier、JS+JSDoc 类型检查、原生语法检查和 Node 内建测试器。
+
+可单独运行 `npm run lint`、`npm run format:check`、`npm run typecheck`、`npm run syntax`、`npm test`，用于定位失败。
+
+**零构建**：`web/` 即可由静态服务提供，不安装运行时框架，不生成 `dist/`。所以**不设置虚假的 `npm run build`**。本地预览服务器监听 `127.0.0.1`，不能用于生产部署。
+
+## 文件与职责
+
+| 位置 | 职责 |
+| --- | --- |
+| `web/index.html` | 唯一正式前端入口，明确展示业务尚未接入 |
+| `web/assets/tokens.css` | 从 `design.md`、OpenDesign CSS 逐项提取的 A/B 颜色与字体 |
+| `web/assets/base.css` | 工程占位页的最小排版，不是新的 UI 语言 |
+| `web/assets/app.js` | 可测试的原生 ES Module 挂载入口 |
+| `scripts/preview.mjs` | 开发期 Node 静态文件服务 |
+| `tests/*.test.mjs` | 检查实际挂载、错误分支和真实 HTTP 资源访问 |
+| `.github/workflows/web-baseline.yml` | `dev` PR / push 的只读质量检查 |
+
+后续在有真实业务需求时才建立 `web/pages/`、`web/components/`、`web/data/api.js` 和 `web/data/fixtures/`；不为目录完整性提前造空壳。后续页面的数据访问须统一经 `data/api.js` 适配，Mock 与真实行为分隔。演示订单、AI、报名必须明确标识，不得伪装真实结果。
+
+## 分支与 Pages
+
+- 工程基础：本任务从 `dev` 的 `4d03709ea6572ce3fe76090bd21785b6035d7819` 创建 `feat/eng-02-web-baseline`，仅提 PR 到 `dev`。
+- `dev`、`test`、`prod` 最初均来自已验收的 ENG-01 文档基线 `03f3ce1375403342ae59ccc3dd6f7200cebabb91`；随后 `dev` 单独合入 Review Profile。
+- 晋级规则：`feat/* → dev → test → prod`。晋级、发布、保护策略均是另外的授权动作，本卡不改。
+- 公开 Pages 工作流仍从 `feat/jianqu-opendesign-v02` 发布**视觉评审样稿**。本卡不改动 `pages.yml`、OpenDesign 文件或 Draft PR #1。
+
+## 检查边界
+
+`npm test` 检查真实入口的挂载逻辑、本地静态服务器返回的页面、JS 与 Token 以及缺失/越界文件。它不等于浏览器视觉验收，也不能证明真实 AI、交易、报名或 Android WebView 已可用。真实大屏触摸、竖屏及 WebView 兼容性留待对应功能卡实测。
