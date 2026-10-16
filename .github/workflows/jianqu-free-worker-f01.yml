@@ -45,7 +45,7 @@ jobs:
       pull-requests: write
     uses: sanchuang-dev/.github/.github/workflows/sanchuang-free-worker-v2.yml@e674b40b4a8f9df93e6254eb14d7b5c85ddb077b
     with:
-      issue_number: ${{ inputs.issue_number }}
+      issue_number: ${{ fromJSON(inputs.issue_number) }}
       model: ${{ inputs.model }}
       base_branch: main
       verification_command: |
