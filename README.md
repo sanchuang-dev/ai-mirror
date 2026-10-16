@@ -20,6 +20,7 @@
 - [功能评审与两周原型裁剪 V0.2](docs/product/elder-companion-functional-review-v0.2.md) — 原型优先级、风险与验收标准。
 - [信息架构与关键交互 V0.1](docs/design/elder-companion-ia-v0.1.md) — 五大内容去向、公共/个人模式、五条核心流程及异常状态。
 - [可点击交互草图（HTML）](docs/design/prototypes/elder-companion-wireflow-v0.1.html) — **非生产级**本地设计评审样稿，不部署、不接真实 AI/支付/内容。下载 HTML 后在浏览器打开；所有业务结果为示例。
+- [见趣 · 闺蜜机 OpenDesign 改造 V0.2](design/prototypes/jianqu-v02/README.md) — A/B 视觉延续、可操作流程、手机 H5 接力（设计原型，待产品验收）。
 - [项目协作边界](AGENTS.md) — 继承三创组织宪法，规定文档与原型的事实来源。
 
 > 三份文档有不同职责：功能基线记产品已确认决策；评审稿定义原型深度；信息架构定义页面去向与流程；HTML 仅作为可视化评审工件。
