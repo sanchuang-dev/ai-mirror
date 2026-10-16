@@ -18,11 +18,27 @@ test('real HTTP preview serves HTML, module and tokens, rejects missing/outside 
     const module = await fetch(base + '/assets/app.js');
     assert.equal(module.status, 200);
     assert.match(module.headers.get('content-type'), /text\/javascript/);
-    assert.match(await module.text(), /mountShell/);
+    assert.match(await module.text(), /mountHome/);
 
     const style = await fetch(base + '/assets/tokens.css');
     assert.equal(style.status, 200);
     assert.match(await style.text(), /data-dir='b'/);
+
+    const components = await fetch(base + '/assets/components.css');
+    assert.equal(components.status, 200);
+    assert.match(components.headers.get('content-type'), /text\/css/);
+
+    const homePage = await fetch(base + '/pages/home.js');
+    assert.equal(homePage.status, 200);
+    assert.match(await homePage.text(), /renderHome/);
+
+    const api = await fetch(base + '/data/api.js');
+    assert.equal(api.status, 200);
+    assert.match(await api.text(), /getHomeContent/);
+
+    const fixture = await fetch(base + '/data/fixtures/home.fixture.js');
+    assert.equal(fixture.status, 200);
+    assert.match(await fixture.text(), /homeFixture/);
 
     const missing = await fetch(base + '/this-does-not-exist');
     assert.equal(missing.status, 404);

@@ -1,5 +1,17 @@
 /* Original OpenDesign values from design.md §3 and design/prototypes/jianqu-v02/assets/app.css.
-   No new theme, third-party tokens or duplicated A/B markup. */
+   No new theme, third-party tokens or duplicated A/B markup.
+   The A/B block is the single source of theme truth: switching `data-dir` on the root only
+   swaps these variables and never touches the page DOM (design.md §4, ENG-01 §3). */
+:root {
+  /* Theme-independent decorative tints for the sample-media placeholders.
+     Colours are taken from the OpenDesign palette (accent #e4572e, accent-2 #1f9e8f,
+     gold #e9b25c) — no new brand colour is introduced. */
+  --media-warm: linear-gradient(150deg, rgba(228, 87, 46, 0.38), rgba(233, 178, 92, 0.28));
+  --media-calm: linear-gradient(150deg, rgba(31, 158, 143, 0.34), rgba(79, 195, 181, 0.26));
+  --media-gold: linear-gradient(150deg, rgba(233, 178, 92, 0.42), rgba(228, 87, 46, 0.22));
+  --media-cool: linear-gradient(150deg, rgba(31, 158, 143, 0.3), rgba(233, 178, 92, 0.3));
+}
+
 :root,
 [data-dir='a'] {
   --bg: #f5f6f8;
@@ -12,8 +24,18 @@
   --accent-strong: #c9401b;
   --accent-ink: #ffffff;
   --accent-2: #1f9e8f;
+  /* Free/available state colour, extracted from the prototype `.a-chip-free` text. */
+  --ok: #0f7a6b;
   --orb-core: #ffd9c9;
   --orb-edge: #e4572e;
+  /* Derived from the OpenDesign prototype (app.css) so theme differences stay in tokens. */
+  --orb-ring: rgba(228, 87, 46, 0.14);
+  --orb-glow: rgba(228, 87, 46, 0.32);
+  --accent-soft: #fde9e2;
+  --accent-soft-border: #f6d3c5;
+  --shadow: 0 12px 34px rgba(20, 24, 32, 0.07);
+  --shadow-sm: 0 4px 14px rgba(20, 24, 32, 0.06);
+  --media-scrim: linear-gradient(90deg, rgba(20, 24, 32, 0.08), rgba(20, 24, 32, 0));
   --font-body:
     'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans CJK SC', system-ui,
     -apple-system, sans-serif;
@@ -31,8 +53,17 @@
   --accent-strong: #e9b25c;
   --accent-ink: #1a1520;
   --accent-2: #4fc3b5;
+  /* Free/available state colour, extracted from the prototype `[data-dir="b"] .is-signed`. */
+  --ok: #7fe0d2;
   --orb-core: #fff3d8;
   --orb-edge: #e9b25c;
+  --orb-ring: rgba(233, 178, 92, 0.16);
+  --orb-glow: rgba(233, 178, 92, 0.4);
+  --accent-soft: rgba(233, 178, 92, 0.16);
+  --accent-soft-border: rgba(233, 178, 92, 0.3);
+  --shadow: 0 18px 50px rgba(0, 0, 0, 0.5);
+  --shadow-sm: 0 10px 30px rgba(0, 0, 0, 0.4);
+  --media-scrim: linear-gradient(0deg, rgba(22, 20, 28, 0.9), rgba(22, 20, 28, 0.15));
   --font-body:
     'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans CJK SC', system-ui,
     -apple-system, sans-serif;
