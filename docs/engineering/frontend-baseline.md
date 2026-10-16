@@ -1,9 +1,10 @@
-# 见趣 F01 · 前端技术栈与工程环境基线契约
+# 见趣 ENG-01 · 前端技术栈与工程环境基线契约
 
 > 状态：**已定基线（工程决策文档）** · 决策日期：2026-10-16 · 适用：闺蜜机首期，五端复用
 > 工作项：[Issue #4](https://github.com/sanchuang-dev/ai-mirror/issues/4)（父：[Issue #3](https://github.com/sanchuang-dev/ai-mirror/issues/3)）
+> 工程阶段编号：**ENG-01**（Issue #4 的历史标题仍称「F01」）；下一工程卡为 **ENG-02**。这两个工程编号与 [产品功能 F01（娱乐到交易）、F02（AI 购物）](../product/elder-companion-v0.1.md) 完全独立，后续派工以 **Issue 编号** 为准。
 > 上游约束：[design.md](../../design.md)（视觉基线，唯一事实源）· [仓库 AGENTS.md](../../AGENTS.md) · [组织环境模型](https://github.com/sanchuang-dev/.github/blob/main/docs/engineering/environment-model.md)
-> 本文是**当前阶段的工程决定**，不是脚手架，也不创建任何实现代码。它约束首期能力，供 F02 起施工时执行。
+> 本文是**当前阶段的工程决定**，不是脚手架，也不创建任何实现代码。它约束首期能力，供 ENG-02 起施工时执行。
 
 ## 0. 范围与不做什么
 
@@ -52,9 +53,9 @@
 
 ## 2. 文件、组件与命名边界
 
-施工开始后（F02+），实现代码与评审原型**分离存放**，评审原型继续留在 `design/prototypes/`，不得当作生产源码。
+施工开始后（ENG-02+），实现代码与评审原型**分离存放**，评审原型继续留在 `design/prototypes/`，不得当作生产源码。
 
-目标源码布局（F02 建立，本卡不创建）：
+目标源码布局（ENG-02 建立，本卡不创建）：
 
 ```text
 web/                     # 首期实现根，零构建，可作为 Pages 发布根
@@ -87,7 +88,7 @@ web/                     # 首期实现根，零构建，可作为 Pages 发布�
 
 ## 3. 主题 Token 契约
 
-**Token 的唯一事实源**是 `assets/tokens.css`（F02 建立），其初始值**只能从 [design.md](../../design.md) 与已实现原型 `assets/app.css` 提取**，不得凭空新造品牌色、字体家族、间距量表、固定栅格或大圆角（design.md §6）。
+**Token 的唯一事实源**是 `assets/tokens.css`（ENG-02 建立），其初始值**只能从 [design.md](../../design.md) 与已实现原型 `assets/app.css` 提取**，不得凭空新造品牌色、字体家族、间距量表、固定栅格或大圆角（design.md §6）。
 
 首期主题 Token＝现有 CSS 自定义属性，两套主题值如下（来源：`design/prototypes/jianqu-v02/assets/app.css`）：
 
@@ -144,7 +145,7 @@ web/                     # 首期实现根，零构建，可作为 Pages 发布�
 
 ## 6. Lint / Format / 类型要求
 
-施工开始时（F02）仓库必须提供以下质量门槛；本卡只定义，不安装：
+施工开始时（ENG-02）仓库必须提供以下质量门槛；本卡只定义，不安装：
 
 - **Format**：Prettier 为唯一格式化事实源；CI 执行 `format:check`，失败即阻塞。
 - **Lint**：ESLint 扁平配置（`eslint.config.js`），`eslint:recommended` + 浏览器全局；不安装框架插件（首期无框架）。
@@ -166,16 +167,16 @@ web/                     # 首期实现根，零构建，可作为 Pages 发布�
 
 组织默认流程为 `feat/* -> dev -> test -> prod`（`main` 不是环境名）。本仓库在产品定义阶段记录如下**正式例外**：
 
-- **Bootstrap-only 分支例外（F01）**：`.github/workflows/jianqu-free-worker-f01.yml` 允许**仅 Issue #4** 产出面向 `main` 的**文档型** Draft PR，并做双重护栏：
+- **Bootstrap-only 分支例外（ENG-01）**：`.github/workflows/jianqu-free-worker-f01.yml` 允许**仅 Issue #4** 产出面向 `main` 的**文档型** Draft PR，并做双重护栏：
   - 守卫 `issue_number == 4` 且 `DISPATCH_REF == main`；
   - 校验变更路径只允许 `AGENTS.md`、`README.md`、`docs/engineering/*`。
 - 该例外的**目的**：在 `dev` 存在之前，先建立本工程基线文档。
-- 该例外的**可变性/边界**：**F01 专用，不得复用于 F02 或任何功能开发**；它是临时例外，不新增任何生产能力、不替代 `dev`。
+- 该例外的**可变性/边界**：**ENG-01 专用，不得复用于 ENG-02 或任何功能开发**；它是临时例外，不新增任何生产能力、不替代 `dev`。
 - 该例外相对 `dev/test/prod` 的位置：**低于**正常流程，只服务文档基线，不参与环境晋级。
 
-### 7.3 后续实现基线（F02 起）
+### 7.3 后续实现基线（ENG-02 起）
 
-- F02 必须先建立 `dev`（并按环境模型建立 `test` / `prod`），或记录一份与组织惯例不同的正式例外，之后才能施工。
+- ENG-02 必须先建立 `dev`（并按环境模型建立 `test` / `prod`），或记录一份与组织惯例不同的正式例外，之后才能施工。
 - 实现工作一律基于 `dev` 开 `feat/*`，走 PR；**不得用默认 `main` 代替工程环境**。
 - `main` 的定位保持为文档/历史基线；发布只能在获授权环境分支上进行。
 
@@ -187,9 +188,9 @@ web/                     # 首期实现根，零构建，可作为 Pages 发布�
 
 ### 7.5 Pages 权限策略
 
-- 仅 `.github/workflows/pages.yml` 持有 `pages: write` 与 `id-token: write`；F01 Worker 工作流的守卫作业只有 `contents: read`，产出 PR 的作业授予 `contents: write` + `pull-requests: write`，且其校验脚本把可改动路径限制在 `AGENTS.md`、`README.md`、`docs/engineering/*`。
+- 仅 `.github/workflows/pages.yml` 持有 `pages: write` 与 `id-token: write`；ENG-01 Worker 工作流的守卫作业只有 `contents: read`，产出 PR 的作业授予 `contents: write` + `pull-requests: write`，且其校验脚本把可改动路径限制在 `AGENTS.md`、`README.md`、`docs/engineering/*`。
 - 当前发布源是设计分支，属评审演示；**Pages 可访问 ≠ 产品通过验收**。
-- 待 `dev` 存在且实现可评审后，才可**经评审修改工作流**把 Pages 发布源切到获授权的环境分支。**F01 不改动任何发布工作流，也不授权任何自动发布。**
+- 待 `dev` 存在且实现可评审后，才可**经评审修改工作流**把 Pages 发布源切到获授权的环境分支。**ENG-01 不改动任何发布工作流，也不授权任何自动发布。**
 
 ## 8. 变更与评审入口
 
