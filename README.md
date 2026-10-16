@@ -18,6 +18,8 @@
 
 - [**设计基线与主题规范（design.md）**](design.md) — OpenDesign 视觉继承、单页面双主题、扩展规则和验收边界。
 
+- [前端与工程基线契约（ENG-01）](docs/engineering/frontend-baseline.md) — 首期唯一前端技术选择、文件/组件/命名边界、主题 Token、Mock/API 边界、基础可访问性与 Lint/Format/类型要求，以及 bootstrap-only 分支/环境/Pages 权限策略。
+
 - [产品功能设计 V0.1](docs/product/elder-companion-v0.1.md) — 已确认的业务边界、八大功能域与待验证技术假设。
 - [功能评审与两周原型裁剪 V0.2](docs/product/elder-companion-functional-review-v0.2.md) — 原型优先级、风险与验收标准。
 - [信息架构与关键交互 V0.1](docs/design/elder-companion-ia-v0.1.md) — 五大内容去向、公共/个人模式、五条核心流程及异常状态。
