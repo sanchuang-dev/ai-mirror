@@ -47,7 +47,7 @@ if(paths[action])return paths[action]();
 root.addEventListener('click',e=>{const x=e.target.closest('[data-jk]');if(x){e.stopPropagation();route(x.dataset.jk)}else if(e.target===root)close()});
 document.addEventListener('keydown',e=>{if(e.key==="Escape"&&!root.hidden)close()});
 for(const s of document.querySelectorAll('.screen.a-screen,.screen.b-screen')){
-let mark=document.createElement('span');mark.className='jk-demo-mark';mark.textContent='见趣 · 视觉与交互概念 / 非真实服务';s.appendChild(mark);
+let mark=document.createElement('span');mark.className='jk-demo-mark';mark.innerHTML='见趣 · 视觉与交互概念 / 非真实服务　<a href="./CREDITS.md" style="color:#fff;text-decoration:underline;pointer-events:auto">素材署名</a>';mark.style.pointerEvents='auto';s.appendChild(mark);
 }
 for(const n of document.querySelectorAll('.a-logo,.b-public-logo')){n.innerHTML=n.textContent.replace('闺蜜机','见趣 <span class="jk-brand-small">· 闺蜜机</span>')}
 document.title='见趣 · 闺蜜机 / OpenDesign 视觉改造 V0.2';
