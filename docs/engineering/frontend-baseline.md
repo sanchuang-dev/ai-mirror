@@ -160,7 +160,7 @@ web/                     # 首期实现根，零构建，可作为 Pages 发布�
 
 - `main`：产品定义阶段的**文档基线**，`main` **不是工程环境**，不得作为实现开发或发布的落点。
 - `feat/jianqu-opendesign-v02`：承载未合并的 OpenDesign 改造原型（Draft PR #1）；**PR #1 未合并，不得视为 main 已有代码**。
-- **阶段更新（2026-10-16）**：`dev`、`test`、`prod` 均已创建，三者起源可追溯到 ENG-01 合并提交 `03f3ce1375403342ae59ccc3dd6f7200cebabb91`。核验时 `dev` 当前 HEAD `4d03709ea6572ce3fe76090bd21785b6035d7819`（相对 `main` 只新增 AI Review profile），`test` / `prod` 仍位于该初始基线 SHA。**分支存在不表示已实现业务源码、配置了保护规则或进行了环境部署**；正式工程源仍需 ENG-02 才能建立。
+- **阶段更新（2026-10-16）**：`dev`、`test`、`prod` 均已创建，三者起源可追溯到 ENG-01 合并提交 `03f3ce1375403342ae59ccc3dd6f7200cebabb91`。其后 ENG-02 [PR #25](https://github.com/sanchuang-dev/ai-mirror/pull/25) 已完成工程骨架及质量门禁并合入 `dev`，随 [PR #27](https://github.com/sanchuang-dev/ai-mirror/pull/27) 晋级 `test`；`prod` 未晋级。**分支/源码存在不代表产品 UI 已实现、设备验收完成、已部署或发布**。
 - `.github/workflows/pages.yml`：从 `feat/jianqu-opendesign-v02` 取静态文件发布到公开 GitHub Pages，是**设计评审演示站**，不是产品生产环境。
 
 ### 7.2 组织默认与仓库例外
@@ -176,7 +176,7 @@ web/                     # 首期实现根，零构建，可作为 Pages 发布�
 
 ### 7.3 后续实现基线（ENG-02 起）
 
-- ENG-02 的工程分支前提已满足：`dev`、`test`、`prod` 已按组织环境模型建立。**ENG-02 只允许从当前 `dev` 开 `feat/*` 并向 `dev` 提 PR**；本阶段仍须建立真实工程骨架、质量 CI，并单独审查分支保护配置。不得把分支存在当作已通过工程验收。
+- ENG-02 的工程分支前提已满足：`dev`、`test`、`prod` 已按组织环境模型建立。**ENG-02 已通过真实检查并合入 `dev`、晋级 `test`**；后续功能只能从当前 `dev` 开 `feat/*` 并向 `dev` 提 PR。质量门禁已建立，分支保护与产品级 WebView/真机验收仍应分别验证；不得把源代码晋级误报为部署或发布。
 - 实现工作一律基于 `dev` 开 `feat/*`，走 PR；**不得用默认 `main` 代替工程环境**。
 - `main` 的定位保持为文档/历史基线；发布只能在获授权环境分支上进行。
 
