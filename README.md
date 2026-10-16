@@ -16,6 +16,8 @@
 
 ## 闺蜜机：产品设计工作区
 
+- [**设计基线与主题规范（design.md）**](design.md) — OpenDesign 视觉继承、单页面双主题、扩展规则和验收边界。
+
 - [产品功能设计 V0.1](docs/product/elder-companion-v0.1.md) — 已确认的业务边界、八大功能域与待验证技术假设。
 - [功能评审与两周原型裁剪 V0.2](docs/product/elder-companion-functional-review-v0.2.md) — 原型优先级、风险与验收标准。
 - [信息架构与关键交互 V0.1](docs/design/elder-companion-ia-v0.1.md) — 五大内容去向、公共/个人模式、五条核心流程及异常状态。
