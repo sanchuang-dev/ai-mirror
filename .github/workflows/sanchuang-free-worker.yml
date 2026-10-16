@@ -1,7 +1,5 @@
-# Sanchuang Organization starter template. Deliberately FAIL-CLOSED until the
-# repository's reviewed enrollment PR sets ENABLED and the real engineering base,
-# and replaces the verification_command sentinel with trustworthy checks.
-# Install on the repository's default branch; never use main as a substitute for dev.
+# Jianqu opt-in caller: register on default branch main; implement and deliver only against dev.
+# Trust the immutable Organization V2 workflow and the repository's actual quality gate.
 name: Sanchuang Free Worker (opt-in)
 
 on:
@@ -74,15 +72,12 @@ jobs:
       verification_command: |
         set -euo pipefail
         git diff --cached --check
-        # ENG-02 must create these files; later work rechecks them.
+        # ENG-02 was accepted into dev; require its real source and quality gate.
         test -s package.json
         test -s package-lock.json
         test -s web/index.html
         test -s web/assets/app.js
         test -s web/assets/tokens.css
-        node -e 'const p=require("./package.json"); for(const k of ["lint","format:check","typecheck"]) if(typeof p.scripts?.[k]!=="string" || !p.scripts[k].trim() || /^(:|true|echo|exit 0)/.test(p.scripts[k].trim())) throw Error("Missing meaningful quality check: "+k)'
+        node -e 'const p=require("./package.json"); for(const k of ["lint","format:check","typecheck","syntax","test","check"]) if(typeof p.scripts?.[k]!=="string" || !p.scripts[k].trim() || /^(:|true|echo|exit 0)/.test(p.scripts[k].trim())) throw Error("Missing meaningful quality check: "+k)'
         npm ci --no-audit --no-fund
-        npm run lint
-        npm run format:check
-        npm run typecheck
-        node --check web/assets/app.js
+        npm run check
