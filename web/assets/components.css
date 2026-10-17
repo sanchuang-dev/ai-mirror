@@ -745,6 +745,9 @@
    不改业务 DOM/主题数据，也不把 1920 横屏画布缩放成竖屏。 */
 @media (orientation: portrait) {
   .jq-home {
+    /* Prevent the grid's automatic min-content column from widening the page. */
+    grid-template-columns: minmax(0, 1fr);
+    min-width: 0;
     --page-gutter: clamp(20px, 3.5vw, 44px);
     --page-pad-top: 20px;
     --section-gap: 40px;
@@ -753,7 +756,12 @@
   /* 顶栏中的内容导航单独成行，窄竖屏左右滑动，不挤压主题切换。 */
   .jq-header {
     gap: 10px 20px;
+    min-width: 0;
     padding-block: 14px 8px;
+  }
+
+  .jq-scroll {
+    min-width: 0;
   }
 
   .jq-brand {
@@ -769,6 +777,8 @@
   .jq-nav {
     order: 2;
     flex: 1 0 100%;
+    min-width: 0;
+    max-width: 100%;
     flex-wrap: nowrap;
     overflow-x: auto;
     overscroll-behavior-x: contain;
