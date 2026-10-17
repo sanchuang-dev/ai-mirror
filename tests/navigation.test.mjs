@@ -164,6 +164,9 @@ test('navigating away and back preserves the cached scene state', () => {
     1,
   );
 
+  // V02 播放场景不再挂在顶栏分类上（短剧 / 戏曲 / 音乐进入「看节目」目录），
+  // 从 H01 首页的入口重新进入，验证同一个 V02 正文被复用、展开状态未丢。
+  clickRoute(shell.element, 'home');
   clickRoute(shell.element, 'video');
   assert.equal(shell.body.childNodes[0], videoBody, 'the same video body must be restored');
   assert.equal(note.hidden, false, 'expanded state must survive a navigation round-trip');
