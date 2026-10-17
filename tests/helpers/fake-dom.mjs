@@ -58,8 +58,12 @@ export class FakeNode {
     this.attributes.delete(name);
   }
 
-  /** Records the last focus request; the real DOM focus behaviour is browser-side. */
+  /** Ignore focus on disconnected nodes when browser-like focus checks are requested. */
   focus() {
+    if (
+      this.ownerDocument?.requireMountedFocus &&
+      !collect(this.ownerDocument.root, (node) => node === this).length
+    ) return;
     this.focused = true;
     if (this.ownerDocument) this.ownerDocument.activeElement = this;
   }
@@ -102,13 +106,15 @@ export function collect(root, predicate) {
   return matches;
 }
 
-export function createFakeDocument() {
+/** @param {{requireMountedFocus?: boolean}} [options] */
+export function createFakeDocument(options = {}) {
   const root = new FakeNode('div');
   const documentElement = new FakeNode('html');
   const document = {
     root,
     documentElement,
     activeElement: null,
+    requireMountedFocus: options.requireMountedFocus ?? false,
     getElementById: (id) => (id === 'app' ? root : null),
     createElement: (tagName) => {
       const node = new FakeNode(tagName);
