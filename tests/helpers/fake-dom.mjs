@@ -63,7 +63,9 @@ export class FakeNode {
     if (
       this.ownerDocument?.requireMountedFocus &&
       !collect(this.ownerDocument.root, (node) => node === this).length
-    ) return;
+    ) {
+      return;
+    }
     this.focused = true;
     if (this.ownerDocument) this.ownerDocument.activeElement = this;
   }
