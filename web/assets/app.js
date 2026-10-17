@@ -46,6 +46,7 @@ const PROGRAM_ROUTES = {
 };
 
 /** Program tabs have one canonical shell route; 推荐 shares the generic directory. */
+/** @type {Record<string, string>} */
 const PROGRAM_CATEGORY_ROUTES = {
   all: 'programs',
   recommend: 'programs',
