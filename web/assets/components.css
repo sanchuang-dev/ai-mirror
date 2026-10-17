@@ -1,0 +1,740 @@
+/* H01 个人首页组件样式（jq- 前缀，见 ENG-01 §2）。
+   视觉差异只来自 tokens.css 的 CSS 变量；本文件不按 A/B 分叉页面结构。 */
+
+.jq-home {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  height: 100vh;
+  background: var(--bg);
+  color: var(--ink);
+}
+
+/* ---------- 顶栏 ---------- */
+.jq-header {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+  padding: 12px var(--page-gutter);
+  border-bottom: 1px solid var(--border);
+  background: var(--bg);
+}
+
+.jq-brand {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.jq-brand__logo {
+  font-family: var(--font-display);
+  font-size: 26px;
+  font-weight: 700;
+}
+
+.jq-brand__sub {
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.jq-nav {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.jq-nav__item {
+  min-height: 48px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 17px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.jq-nav__item:hover {
+  background: var(--surface-2);
+  color: var(--ink);
+}
+
+.jq-nav__item[aria-current='page'] {
+  color: var(--ink);
+  background: var(--accent-soft);
+  box-shadow: inset 0 -2px 0 var(--accent);
+}
+
+.jq-header__end {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-left: auto;
+}
+
+.jq-greeting {
+  margin: 0;
+  color: var(--muted);
+  font-size: 15px;
+}
+
+.jq-theme {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 4px 3px 12px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface-2);
+}
+
+.jq-theme__label {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.jq-theme__option {
+  min-height: 48px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.jq-theme__option[aria-pressed='true'] {
+  background: var(--accent-strong);
+  color: var(--accent-ink);
+}
+
+.jq-search {
+  min-height: 48px;
+  padding: 0 20px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--muted);
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.jq-search:hover {
+  color: var(--ink);
+  border-color: var(--accent);
+}
+
+.jq-user {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.jq-avatar {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--accent-strong);
+  color: var(--accent-ink);
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.jq-user__name {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+/* ---------- 滚动主体 ---------- */
+.jq-scroll {
+  overflow-y: auto;
+  min-height: 0;
+  padding: var(--page-pad-top) var(--page-gutter) 120px;
+}
+
+.jq-banner {
+  margin: 0 0 12px;
+  padding: 11px 16px;
+  border-left: 4px solid var(--accent);
+  border-radius: 0 10px 10px 0;
+  background: var(--accent-soft);
+  color: var(--ink);
+  font-size: 15px;
+}
+
+/* ---------- 继续观看 ---------- */
+.jq-hero-section {
+  margin-bottom: 24px;
+}
+
+.jq-hero {
+  display: grid;
+  grid-template-columns: var(--hero-columns);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  overflow: hidden;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.jq-hero .jq-media {
+  min-height: var(--hero-media-min);
+}
+
+.jq-hero .jq-media::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--media-scrim);
+}
+
+.jq-hero__tag {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  z-index: 1;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: var(--accent-strong);
+  color: var(--accent-ink);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.jq-hero__body {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: var(--hero-body-pad);
+}
+
+.jq-eyebrow {
+  margin: 0 0 6px;
+  color: var(--accent-strong);
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.jq-hero__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--hero-title-size);
+  line-height: 1.05;
+}
+
+.jq-hero__desc {
+  margin: 10px 0 0;
+  color: var(--muted);
+  font-size: 17px;
+}
+
+.jq-hero__progresstext {
+  margin: 0 0 16px;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.jq-hero__actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+/* 主题化布局视觉重点（design.md §4 允许的有限影像/布局主题化）：B「暖夜剧场」把英雄剧照
+   铺满整个 hero、文案压在影像上，对应 OpenDesign B 首页的沉浸式 hero；A「日光客厅」
+   保持图文并排的杂志式。同一棵 DOM，只换 CSS，不复制页面。 */
+[data-dir='b'] .jq-hero {
+  position: relative;
+}
+
+[data-dir='b'] .jq-hero .jq-media {
+  position: absolute;
+  inset: 0;
+  min-height: 0;
+}
+
+[data-dir='b'] .jq-hero__body {
+  position: relative;
+  z-index: 1;
+  max-width: 760px;
+}
+
+[data-dir='b'] .jq-hero__tag {
+  top: auto;
+  right: 18px;
+  bottom: 18px;
+  left: auto;
+}
+
+/* ---------- 通用进度 ---------- */
+.jq-progress {
+  margin: 16px 0 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  overflow: hidden;
+}
+
+.jq-progress span {
+  display: block;
+  width: var(--jq-progress, 0%);
+  height: 100%;
+  border-radius: 999px;
+  background: var(--accent);
+}
+
+.jq-progress--card {
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  left: 10px;
+  height: 5px;
+  margin: 0;
+  background: rgba(255, 255, 255, 0.35);
+}
+
+/* ---------- 示例画面：OpenDesign 影像 + 主题化处理 ---------- */
+.jq-media {
+  position: relative;
+  display: grid;
+  place-items: start end;
+  background-color: var(--surface-2);
+}
+
+/* 影像铺满容器：渐变只作载入前底色，主题只改 --media-filter / --media-scrim。 */
+.jq-media__img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: var(--media-filter);
+}
+
+.jq-media--warm {
+  background-image: var(--media-warm);
+}
+
+.jq-media--calm {
+  background-image: var(--media-calm);
+}
+
+.jq-media--gold {
+  background-image: var(--media-gold);
+}
+
+.jq-media--cool {
+  background-image: var(--media-cool);
+}
+
+.jq-media__note {
+  position: relative;
+  z-index: 1;
+  margin: 12px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(16, 20, 26, 0.7);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+/* ---------- 区块与卡片 ---------- */
+.jq-section {
+  margin-bottom: var(--section-gap);
+}
+
+.jq-section__head {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.jq-section__title {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 800;
+}
+
+.jq-section__sub {
+  color: var(--muted);
+  font-size: 15px;
+}
+
+.jq-more {
+  min-height: 48px;
+  margin-left: auto;
+  border: 0;
+  background: transparent;
+  color: var(--accent-strong);
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.jq-rail {
+  display: flex;
+  gap: 16px;
+  overflow-x: auto;
+  padding-bottom: 6px;
+}
+
+.jq-card {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  gap: 8px;
+  width: 184px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.jq-card .jq-media {
+  aspect-ratio: 3 / 4;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+/* 继续观看的画面比例随主题变化（A 竖版海报 / B 横版剧照），卡片结构与数据仍是同一份。 */
+.jq-rail--continue .jq-media {
+  aspect-ratio: var(--continue-ratio);
+}
+
+.jq-card__badge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 1;
+  padding: 4px 10px;
+  border-radius: 8px;
+  background: rgba(27, 30, 35, 0.82);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.jq-card__name {
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.jq-card__meta {
+  color: var(--muted);
+  font-size: 14px;
+}
+
+/* ---------- 网格：活动 / 趣玩 ---------- */
+.jq-grid {
+  display: grid;
+  gap: 16px;
+}
+
+.jq-grid--activity {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.jq-grid--create {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.jq-panel {
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  overflow: hidden;
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+}
+
+.jq-activity {
+  display: flex;
+  flex-direction: column;
+}
+
+.jq-activity .jq-media {
+  aspect-ratio: 16 / 9;
+}
+
+.jq-activity__body {
+  padding: 12px 14px 14px;
+}
+
+.jq-activity__name {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.jq-activity__meta {
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.jq-activity__foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.jq-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 12px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.jq-chip--free {
+  color: var(--ok);
+  border-color: var(--ok);
+}
+
+.jq-creation {
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  background: var(--surface);
+}
+
+.jq-creation .jq-media {
+  aspect-ratio: 1 / 1;
+}
+
+.jq-creation__name {
+  margin: 10px 12px 0;
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.jq-creation__sub {
+  margin: 2px 12px 14px;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+/* ---------- AI 伙伴 ---------- */
+.jq-companion {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 18px;
+  border: 1px solid var(--accent-soft-border);
+  border-radius: 14px;
+  background: var(--accent-soft);
+}
+
+.jq-companion__text {
+  flex: 1;
+  min-width: 0;
+}
+
+.jq-companion__name {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.jq-companion__line {
+  margin: 2px 0 0;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.jq-orb {
+  flex: none;
+  border-radius: 50%;
+  background: radial-gradient(circle at 34% 30%, var(--orb-core), var(--orb-edge) 62%);
+  box-shadow:
+    0 0 0 6px var(--orb-ring),
+    0 8px 20px var(--orb-glow);
+  animation: jq-orb-pulse 4.5s ease-in-out infinite;
+}
+
+.jq-orb--sm {
+  width: 40px;
+  height: 40px;
+}
+
+.jq-orb--xs {
+  width: 20px;
+  height: 20px;
+}
+
+@keyframes jq-orb-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+.jq-ai-fab {
+  position: fixed;
+  right: 28px;
+  bottom: 24px;
+  z-index: 6;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 52px;
+  padding: 0 22px 0 14px;
+  border: 1px solid var(--accent-soft-border);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 17px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: var(--shadow);
+}
+
+/* ---------- 视口内入口反馈（轻提示） ----------
+   固定在滚动区之外，页面滚到哪里点击入口都能立刻看到；贴左下角，
+   宽度上限保证不遮挡右下角固定「问小暖」入口与顶部核心操作。 */
+.jq-toast {
+  position: fixed;
+  left: var(--page-gutter);
+  bottom: 24px;
+  z-index: 7;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  max-width: min(620px, calc(100vw - 460px));
+  padding: 14px 16px;
+  border: 1px solid var(--accent-soft-border);
+  border-radius: 14px;
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: var(--shadow);
+}
+
+.jq-toast[hidden] {
+  display: none;
+}
+
+.jq-toast__text {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+.jq-toast__close {
+  flex: none;
+  min-height: 44px;
+  padding: 0 16px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface-2);
+  color: var(--ink);
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.jq-toast__close:hover {
+  border-color: var(--accent);
+}
+
+/* ---------- 通用按钮 ---------- */
+.jq-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 52px;
+  padding: 0 26px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  font-size: 18px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.jq-btn--primary {
+  background: var(--accent-strong);
+  color: var(--accent-ink);
+}
+
+.jq-btn--ghost {
+  border-color: var(--border);
+  background: transparent;
+  color: var(--ink);
+}
+
+.jq-btn--ghost:hover {
+  border-color: var(--accent);
+}
+
+.jq-btn--sm {
+  min-height: 48px;
+  padding: 0 18px;
+  font-size: 16px;
+}
+
+/* ---------- 窄屏收敛（主方向仍是横屏大屏） ---------- */
+@media (max-width: 1100px) {
+  .jq-hero {
+    grid-template-columns: 1fr;
+  }
+
+  .jq-hero .jq-media {
+    min-height: 220px;
+  }
+
+  .jq-grid--activity,
+  .jq-grid--create {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 720px) {
+  .jq-header,
+  .jq-scroll {
+    padding-inline: 18px;
+  }
+
+  .jq-scroll {
+    padding-bottom: 110px;
+  }
+
+  .jq-toast {
+    right: 18px;
+    bottom: 88px;
+    left: 18px;
+    max-width: none;
+  }
+
+  .jq-grid--activity,
+  .jq-grid--create {
+    grid-template-columns: 1fr;
+  }
+
+  .jq-greeting,
+  .jq-theme__label {
+    display: none;
+  }
+}
