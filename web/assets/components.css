@@ -1299,6 +1299,7 @@
   display: flex;
   align-items: center;
   gap: 10px;
+  flex-wrap: wrap;
 }
 
 .jq-player__time {
@@ -2408,5 +2409,156 @@
   .jq-program-tab {
     min-height: 56px;
     font-size: 18px;
+  }
+}
+
+/* ---------- 节目详情 / 选集 / 续播（V02 · Issue #10） ----------
+   复用既有 .jq-program-detail / .jq-episode-strip / .jq-player 结构；主题差异仍只来自
+   tokens.css 变量，不为 A/B 复制页面，播放器外观保持既有层级，只补状态与反馈样式。 */
+.jq-program-detail__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+
+.jq-program-detail__favorite {
+  min-height: 48px;
+  padding: 0 18px;
+  border: 1px solid var(--accent-soft-border);
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--ink);
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.jq-program-detail__favorite[aria-pressed='true'] {
+  border-color: transparent;
+  background: var(--accent-strong);
+  color: var(--accent-ink);
+}
+
+.jq-program-detail__watch {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.jq-program-detail__range,
+.jq-program-detail__episodes-label {
+  margin: 0;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.jq-program-detail__episodes {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+.jq-program-detail__notice {
+  margin: 0;
+  padding: 10px 14px;
+  border: 1px dashed var(--border);
+  border-radius: 10px;
+  background: var(--surface-2);
+  color: var(--ink);
+  font-size: 15px;
+}
+
+.jq-program-detail__feedback {
+  margin: 4px 0 0;
+  min-height: 20px;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+/* 未接入片源的集：用虚线与文字标注，不用颜色单独表达「不可点」。 */
+.jq-ep--unavailable {
+  border-style: dashed;
+  color: var(--muted);
+  background: var(--surface-2);
+}
+
+.jq-ep--current {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.jq-player__progress-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.jq-player__resume,
+.jq-player__feedback {
+  margin: 10px 0 0;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.jq-player__notice {
+  margin: 16px;
+  padding: 14px 16px;
+  border: 1px dashed var(--accent-soft-border);
+  border-radius: 12px;
+  background: var(--accent-soft);
+  color: var(--ink);
+}
+
+.jq-player__notice-title {
+  margin: 0 0 6px;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.jq-player__notice-text {
+  margin: 0 0 12px;
+  font-size: 15px;
+}
+
+.jq-player__notice[hidden],
+.jq-player__bar[hidden],
+.jq-player__resume[hidden],
+.jq-playbtn[hidden] {
+  display: none;
+}
+
+/* 下一集：可点击时是一个真实按钮，末集时退化为文字反馈。 */
+button.jq-video-next__row {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+button.jq-video-next__row:hover {
+  border-color: var(--accent);
+}
+
+.jq-video-next__done {
+  margin: 0;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+@media (orientation: portrait) {
+  .jq-program-detail__favorite,
+  .jq-ep--unavailable {
+    min-height: 56px;
   }
 }

@@ -69,6 +69,59 @@ export function getProgramContent() {
 }
 
 /**
+ * @typedef {object} ProgramEpisode
+ * @property {string} id 集号（两位数字）。
+ * @property {string} label 选集按钮显示文本。
+ * @property {string} [title] 示例集名（仅示例可播放范围内的集有）。
+ * @property {boolean} available 是否在示例可播放范围内（可进入 V02 示例播放器）。
+ *
+ * @typedef {object} ProgramDetail
+ * @property {ProgramItem} program
+ * @property {ProgramEpisode[]} episodes 全部集（含未接入片源的集）；无集数标注时为空。
+ * @property {boolean} playable 是否存在示例可播放资源。
+ * @property {{ from: string, to: string } | null} sampleRange 示例可播放集号范围。
+ */
+
+/**
+ * 单个节目的示例详情（简介 / 全集 / 示例可播放范围）。
+ *
+ * 同步组合本地 S1 数据：节目与集数来自节目目录，示例可播放范围来自 `video.fixture`，
+ * 两者只在这里汇合，页面不再自行拼接。接入真实详情服务时应把本函数改为异步，
+ * 并在页面补加载 / 失败态；当前不伪造异步与网络成功。
+ *
+ * @param {string} programId
+ * @returns {ProgramDetail | null} 未找到该节目时返回 null，由界面给出明确反馈。
+ */
+export function getProgramDetail(programId) {
+  const program = programFixture.programs.find((item) => item.id === programId) ?? null;
+  if (!program) return null;
+
+  const sample = program.demoRoute === 'video' ? videoFixture.episodes : [];
+  const total = typeof program.episodeCount === 'number' ? program.episodeCount : 0;
+  /** @type {ProgramEpisode[]} */
+  const episodes = [];
+  for (let index = 0; index < total; index += 1) {
+    const id = String(index + 1).padStart(2, '0');
+    const match = sample.find((episode) => episode.id === id);
+    episodes.push({
+      id,
+      label: id,
+      ...(match?.title ? { title: match.title } : {}),
+      available: Boolean(match),
+    });
+  }
+
+  const playable = sample.length > 0 && episodes.some((episode) => episode.available);
+  return {
+    program,
+    episodes,
+    playable,
+    sampleRange:
+      sample.length > 0 ? { from: sample[0].id, to: sample[sample.length - 1].id } : null,
+  };
+}
+
+/**
  * @typedef {object} ProgramSearchResult
  * @property {'ok' | 'empty'} status
  * @property {string} keyword 规范化后的关键词（空串表示未按关键词过滤）。
