@@ -122,7 +122,7 @@ jobs:
             issue_json="$(gh api "repos/$GITHUB_REPOSITORY/issues/$issue_number")"
             test "$(jq -r '.state' <<< "$issue_json")" = open &&
               test "$(jq -r 'has("pull_request")' <<< "$issue_json")" = false &&
-              test -n "$(jq -r '.body // empty' <<< "$issue_json")" ||
+              test "$(jq -r '.body // "" | gsub("[[:space:]]"; "") | length' <<< "$issue_json")" -gt 0 ||
               { echo "::error::Issue closed, is a PR, or has no task contract." >&2; exit 1; }
           else
             issue_number="$DISPATCH_ISSUE_NUMBER"
