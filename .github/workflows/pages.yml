@@ -12,6 +12,15 @@ on:
     paths:
       - .github/workflows/pages.yml
   workflow_dispatch:
+  # Default-branch workflow publishes dev only after dev's own quality gate passes.
+  # PR checks of the same workflow are intentionally ineligible for deployment.
+  workflow_run:
+    workflows:
+      - Jianqu Web baseline checks
+    branches:
+      - dev
+    types:
+      - completed
 
 permissions:
   contents: read
@@ -24,6 +33,12 @@ concurrency:
 
 jobs:
   build:
+    if: >-
+      ${{ github.event_name != 'workflow_run' ||
+          (github.event.workflow_run.conclusion == 'success' &&
+           github.event.workflow_run.event == 'push' &&
+           github.event.workflow_run.head_branch == 'dev' &&
+           github.event.workflow_run.head_repository.full_name == github.repository) }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout approved design prototype branch
@@ -61,6 +76,72 @@ jobs:
           test ! -e _site/docs
           test ! -e _site/AGENTS.md
 
+
+      - name: Checkout reviewed dev engineering sources (read-only)
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || 'dev' }}
+          path: dev-source
+          persist-credentials: false
+
+      - name: Reject stale dev workflow_run before publication
+        if: github.event_name == 'workflow_run'
+        shell: bash
+        env:
+          VERIFIED_DEV_SHA: ${{ github.event.workflow_run.head_sha }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          actual="$(git -C dev-source rev-parse HEAD)"
+          latest="$(gh api "repos/${GITHUB_REPOSITORY}/branches/dev" --jq '.commit.sha')"
+          test "$actual" = "$VERIFIED_DEV_SHA"
+          if test "$latest" != "$VERIFIED_DEV_SHA"; then
+            echo "::error::Skipping stale dev check; dev has advanced. Newer CI will deploy."
+            exit 1
+          fi
+
+      - name: Stage isolated dev H01 preview (static web only)
+        shell: bash
+        run: |
+          set -euo pipefail
+          source="dev-source/web"
+          test -s "$source/index.html"
+          test -s "$source/assets/app.js"
+          test -s "$source/assets/components.css"
+          test -s "$source/assets/tokens.css"
+          test -s "$source/data/api.js"
+          test -s "$source/pages/home.js"
+          test -s "$source/assets/img/art-reading.jpg"
+
+          mkdir -p _site/dev/{assets,data,pages}
+          cp "$source/index.html" _site/dev/index.html
+          cp -R "$source/assets/." _site/dev/assets/
+          cp -R "$source/data/." _site/dev/data/
+          cp -R "$source/pages/." _site/dev/pages/
+
+          # Never serve unexpected files or symlink targets from the engineering branch.
+          if find _site/dev -type l -print -quit | grep -q .; then
+            echo "::error::dev preview must not contain symlinks."
+            exit 1
+          fi
+          if find _site/dev -type f ! \( -name '*.html' -o -name '*.js' -o -name '*.css' -o -name '*.jpg' -o -name '*.jpeg' -o -name '*.png' -o -name '*.svg' -o -name '*.webp' -o -name '*.md' \) -print -quit | grep -q .; then
+            echo "::error::Unexpected dev preview file extension."
+            exit 1
+          fi
+
+          node --check _site/dev/assets/app.js
+          node --check _site/dev/pages/home.js
+          node --check _site/dev/data/api.js
+          grep -q 'H01' _site/dev/index.html
+          grep -q './assets/app.js' _site/dev/index.html
+          test ! -e _site/dev/tests
+          test ! -e _site/dev/.github
+          test ! -e _site/dev/AGENTS.md
+          test ! -e _site/dev/package.json
+          echo "Dev preview source revision:"
+          git -C dev-source rev-parse HEAD
+          echo "Isolated site routes: / (OpenDesign) and /dev/ (dev H01)."
+
       - name: Configure GitHub Pages
         if: github.event_name != 'pull_request'
         uses: actions/configure-pages@v5
@@ -72,7 +153,7 @@ jobs:
           path: ./_site
 
   deploy:
-    if: github.event_name != 'pull_request'
+    if: github.event_name != 'pull_request' && needs.build.result == 'success'
     needs: build
     runs-on: ubuntu-latest
     environment:
@@ -84,7 +165,7 @@ jobs:
         uses: actions/deploy-pages@v4
 
   smoke:
-    if: github.event_name != 'pull_request'
+    if: github.event_name != 'pull_request' && needs.deploy.result == 'success'
     needs: deploy
     runs-on: ubuntu-latest
     steps:
@@ -112,9 +193,20 @@ jobs:
           fetch "assets/jianqu-v02.js" jianqu.js
           fetch "assets/img/art-reading.jpg" reading.jpg
           fetch "CREDITS.md" credits.md
+          fetch "dev/" dev-index.html
+          fetch "dev/assets/app.js" dev-app.js
+          fetch "dev/assets/tokens.css" dev-tokens.css
+          fetch "dev/assets/components.css" dev-components.css
+          fetch "dev/pages/home.js" dev-home.js
+          fetch "dev/data/api.js" dev-api.js
+          fetch "dev/assets/img/art-reading.jpg" dev-reading.jpg
 
           grep -q 'jianqu-v02.js' "$tmp/index.html"
           grep -q '见趣' "$tmp/mobile.html"
           grep -q '报名流程演示完成' "$tmp/jianqu.js"
           test "$(wc -c < "$tmp/reading.jpg")" -gt 5000
-          echo "Published Jianqu review prototype verified"
+          grep -q 'H01' "$tmp/dev-index.html"
+          grep -q 'mountHome' "$tmp/dev-app.js"
+          grep -q 'createHomeController' "$tmp/dev-home.js"
+          test "$(wc -c < "$tmp/dev-reading.jpg")" -gt 5000
+          echo "Published unchanged OpenDesign / and isolated dev H01 /dev/ verified"
