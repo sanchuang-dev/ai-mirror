@@ -73,7 +73,6 @@ jobs:
           DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
           GH_TOKEN: ${{ github.token }}
           EVENT_NAME: ${{ github.event_name }}
-          EVENT_PATH: ${{ github.event_path }}
           DISPATCH_ISSUE_NUMBER: ${{ inputs.issue_number }}
           DISPATCH_MODEL: ${{ inputs.model }}
           ACTOR: ${{ github.actor }}
@@ -98,13 +97,14 @@ jobs:
           # Parse user-authored text as data, not workflow expressions or shell code.
           # Match the complete comment, with no flags, extra lines or arbitrary arguments.
           if test "$EVENT_NAME" = issue_comment; then
-            issue_number="$(jq -r '.issue.number // empty' "$EVENT_PATH")"
-            state="$(jq -r '.issue.state // empty' "$EVENT_PATH")"
-            comment_author="$(jq -r '.comment.user.login // empty' "$EVENT_PATH")"
-            sender="$(jq -r '.sender.login // empty' "$EVENT_PATH")"
-            author_type="$(jq -r '.comment.user.type // empty' "$EVENT_PATH")"
-            issue_is_pr="$(jq -r 'has("issue") and (.issue | has("pull_request"))' "$EVENT_PATH")"
-            comment_id="$(jq -er '.comment.id | numbers' "$EVENT_PATH")"
+            : "${GITHUB_EVENT_PATH:?Missing runner-provided GitHub event payload path}"
+            issue_number="$(jq -r '.issue.number // empty' "$GITHUB_EVENT_PATH")"
+            state="$(jq -r '.issue.state // empty' "$GITHUB_EVENT_PATH")"
+            comment_author="$(jq -r '.comment.user.login // empty' "$GITHUB_EVENT_PATH")"
+            sender="$(jq -r '.sender.login // empty' "$GITHUB_EVENT_PATH")"
+            author_type="$(jq -r '.comment.user.type // empty' "$GITHUB_EVENT_PATH")"
+            issue_is_pr="$(jq -r 'has("issue") and (.issue | has("pull_request"))' "$GITHUB_EVENT_PATH")"
+            comment_id="$(jq -er '.comment.id | numbers' "$GITHUB_EVENT_PATH")"
             test "$state" = open && test "$issue_is_pr" = false ||
               { echo "::error::Only an open work-item Issue may be dispatched." >&2; exit 1; }
             test -n "$comment_author" && test "$comment_author" = "$ACTOR" && test "$sender" = "$ACTOR" &&
@@ -125,12 +125,12 @@ jobs:
               else
                 error("Invalid dispatch directive")
               end
-            ' "$EVENT_PATH")" ||
+            ' "$GITHUB_EVENT_PATH")" ||
               { echo "::error::Use exactly /free-worker run [model=allowlisted-free-model]." >&2; exit 1; }
             # Reject edited/deleted comments and mismatched identity at execution time.
             # Do not trust only the event's potentially stale text or author.
             comment_json="$(gh api "repos/$GITHUB_REPOSITORY/issues/comments/$comment_id")"
-            jq -e --slurpfile event "$EVENT_PATH" '
+            jq -e --slurpfile event "$GITHUB_EVENT_PATH" '
               .id == $event[0].comment.id and
               .user.id == $event[0].comment.user.id and
               .user.login == $event[0].comment.user.login and
