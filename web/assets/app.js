@@ -24,7 +24,11 @@ import { renderVideoBody } from '../pages/video.js';
 import { renderAiBody } from '../pages/ai.js';
 import { renderCourseBody } from '../pages/course.js';
 import { renderPublicBody } from '../pages/public.js';
-import { renderProgramsBody } from '../pages/programs.js';
+import {
+  focusProgramsSearch,
+  renderProgramsBody,
+  selectProgramsCategory,
+} from '../pages/programs.js';
 
 export { mountHome };
 
@@ -39,6 +43,15 @@ const PROGRAM_ROUTES = {
   'programs-drama': 'drama',
   'programs-opera': 'opera',
   'programs-music': 'oldies',
+};
+
+/** Program tabs have one canonical shell route; 推荐 shares the generic directory. */
+const PROGRAM_CATEGORY_ROUTES = {
+  all: 'programs',
+  recommend: 'programs',
+  drama: 'programs-drama',
+  opera: 'programs-opera',
+  oldies: 'programs-music',
 };
 
 /** 搜索入口：打开「看节目」目录的搜索视图（全部范围）。 */
@@ -120,7 +133,9 @@ export function mountApp(documentRef, preferences, options = {}) {
    * @returns {HTMLElement}
    */
   function bodyFor(route) {
-    const cached = bodies.get(route);
+    // All directory routes share one list DOM, retaining keyword, details and scroll state.
+    const cacheKey = Object.hasOwn(PROGRAM_ROUTES, route) ? 'programs' : route;
+    const cached = bodies.get(cacheKey);
     if (cached) return cached;
     /** @type {HTMLElement} */
     let body;
@@ -138,9 +153,16 @@ export function mountApp(documentRef, preferences, options = {}) {
     } else if (Object.hasOwn(PROGRAM_ROUTES, route)) {
       body = renderProgramsBody(documentRef, programContent, shell.activate, {
         category: PROGRAM_ROUTES[route],
+        onCategoryChange: (category) => {
+          const nextRoute = PROGRAM_CATEGORY_ROUTES[category] ?? 'programs';
+          if (activeRoute !== null && Object.hasOwn(PROGRAM_ROUTES, activeRoute)) {
+            shell.setScene(nextRoute);
+            activeRoute = nextRoute;
+          }
+        },
       });
     } else body = renderHomeBody(documentRef, home, shell.activate);
-    bodies.set(route, body);
+    bodies.set(cacheKey, body);
     return body;
   }
 
@@ -161,7 +183,16 @@ export function mountApp(documentRef, preferences, options = {}) {
     }
     shell.setMode(target === PUBLIC_ROUTE ? 'public' : 'personal');
     shell.setScene(target);
-    shell.body.replaceChildren(bodyFor(target));
+    const body = bodyFor(target);
+    shell.body.replaceChildren(body);
+    if (Object.hasOwn(PROGRAM_ROUTES, target)) {
+      // External header navigation must also select the category on the cached scene.
+      selectProgramsCategory(body, PROGRAM_ROUTES[target]);
+    }
+    if (target === SEARCH_ROUTE) {
+      // Search focus is only valid after the body is connected to the mounted shell.
+      focusProgramsSearch(body);
+    }
     shell.body.scrollTop = scrollPositions.get(target) ?? 0;
     activeRoute = target;
     return target;
