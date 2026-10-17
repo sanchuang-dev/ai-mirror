@@ -456,6 +456,70 @@ test('H01 category entries open the program directory and stay theme-safe', asyn
   );
 });
 
+test('search focus happens only after mounting and again on cached re-entry', async () => {
+  // Browser focus() ignores detached nodes: the old pre-mount call must not pass this test.
+  const doc = createFakeDocument({ requireMountedFocus: true });
+  const { shell } = mountApp(doc, undefined);
+  clickRoute(shell, 'search');
+  await flush();
+  const body = shell.body.childNodes[0];
+  const field = searchField(body);
+  assert.equal(doc.activeElement, field, 'newly mounted search field must receive focus');
+
+  clickRoute(shell, 'home');
+  doc.activeElement = null; // Browser drops focus when the active input is detached.
+  clickRoute(shell, 'search');
+  assert.equal(shell.body.childNodes[0], body, 'search scene must remain cached');
+  assert.equal(doc.activeElement, field, 'cached search field must receive focus on re-entry');
+});
+
+test('program tabs and header navigation share one route, category and search state', async () => {
+  const doc = createFakeDocument();
+  const { shell } = mountApp(doc, undefined);
+
+  clickRoute(shell, 'programs-drama');
+  const body = shell.body.childNodes[0];
+  assert.equal(pressedCategory(body), 'drama');
+  assert.equal(
+    find(shell.element, (node) => node.getAttribute('data-route') === 'programs-drama' && node.getAttribute('aria-current') === 'page').length,
+    1,
+  );
+
+  submitKeyword(body, '梁祝');
+  await flush();
+  assert.equal(stateOf(body), 'empty', 'keyword should not match inside drama');
+
+  clickCategory(body, 'opera');
+  await flush();
+  assert.equal(shell.body.childNodes[0], body, 'changing a tab must not rebuild the page');
+  assert.equal(pressedCategory(body), 'opera');
+  assert.equal(searchField(body).value, '梁祝', 'tab switch preserves the keyword');
+  assert.deepEqual(programIds(body), ['liangzhu']);
+  assert.equal(
+    find(shell.element, (node) => node.getAttribute('data-route') === 'programs-opera' && node.getAttribute('aria-current') === 'page').length,
+    1,
+    'the header must reflect the in-page opera selection',
+  );
+
+  clickRoute(shell, 'programs-drama');
+  await flush();
+  assert.equal(shell.body.childNodes[0], body, 'header navigation reuses the scene');
+  assert.equal(pressedCategory(body), 'drama', 'header drama entry must restore drama selection');
+  assert.equal(searchField(body).value, '梁祝', 'header navigation must not discard the keyword');
+  assert.equal(stateOf(body), 'empty');
+  assert.equal(
+    find(shell.element, (node) => node.getAttribute('data-route') === 'programs-drama' && node.getAttribute('aria-current') === 'page').length,
+    1,
+  );
+
+  clickRoute(shell, 'home');
+  clickRoute(shell, 'programs-opera');
+  await flush();
+  assert.equal(shell.body.childNodes[0], body, 'all program header routes share the same cache');
+  assert.equal(pressedCategory(body), 'opera');
+  assert.deepEqual(programIds(body), ['liangzhu']);
+});
+
 test('a public terminal cannot navigate into the personal program directory', () => {
   const doc = createFakeDocument();
   const { shell, show } = mountApp(doc, undefined, { deviceMode: 'public' });
