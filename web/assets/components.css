@@ -1138,3 +1138,1013 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* ==========================================================================
+   T03 共享场景壳扩展：H01 / V02 / A01 / E01 / G00 共用同一份主题变量与导航状态。
+   所有颜色/留白都取 tokens.css 的语义变量，不为 A/B 各写一套，也不新造第三套风格。
+   ========================================================================== */
+
+/* ---------- 公共模式顶栏（不含个人身份 / 设置入口） ---------- */
+.jq-header--public {
+  border-bottom: 2px solid var(--accent);
+}
+
+.jq-public-note {
+  padding: 5px 12px;
+  border: 1px solid var(--accent-soft-border);
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.jq-public-back,
+.jq-public-entry {
+  min-height: 48px;
+  padding: 0 18px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.jq-public-entry {
+  border-color: var(--accent-soft-border);
+  background: var(--accent-soft);
+}
+
+.jq-public-back:hover,
+.jq-public-entry:hover {
+  border-color: var(--accent);
+}
+
+/* 公共模式下常驻 AI 入口必须隐藏（CSS 覆盖 [hidden] 前需显式声明）。 */
+.jq-ai-fab[hidden] {
+  display: none;
+}
+
+/* ---------- 场景子头（返回 + 标题 + 操作），五个场景共用 ---------- */
+.jq-scene__head {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 18px;
+}
+
+.jq-scene__back {
+  min-height: 48px;
+  padding: 0 18px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.jq-scene__back:hover {
+  border-color: var(--accent);
+}
+
+.jq-scene__title {
+  min-width: 0;
+}
+
+.jq-scene__h1 {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(26px, 2.6vw, 38px);
+  line-height: 1.1;
+}
+
+.jq-scene__ep,
+.jq-scene__sub {
+  color: var(--muted);
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.jq-scene__demo {
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.jq-scene__actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-left: auto;
+}
+
+/* ---------- V02 视频观看 ---------- */
+.jq-video-wrap {
+  display: grid;
+  grid-template-columns: minmax(0, 1.7fr) minmax(280px, 1fr);
+  gap: 24px;
+  align-items: start;
+}
+
+.jq-player {
+  position: relative;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  overflow: hidden;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.jq-player .jq-media {
+  aspect-ratio: 16 / 9;
+}
+
+.jq-playbtn {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: 78px;
+  height: 78px;
+  transform: translate(-50%, -50%);
+  padding-left: 6px;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(27, 30, 35, 0.72);
+  color: #fff;
+  font-size: 30px;
+  cursor: pointer;
+}
+
+.jq-player__bar {
+  padding: 0 16px 14px;
+  background: var(--surface);
+}
+
+.jq-progress--player {
+  margin: 14px 0 10px;
+}
+
+.jq-player__controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.jq-player__time {
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.jq-player__fill {
+  flex: 1;
+}
+
+.jq-player__btn {
+  min-height: 44px;
+  padding: 0 14px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface-2);
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.jq-ask-ai {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 16px 16px;
+  min-height: 48px;
+  padding: 0 18px;
+  border: 1px solid var(--accent-soft-border);
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--ink);
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.jq-ai-note {
+  margin: 0 16px 16px;
+  padding: 14px 16px;
+  border-left: 4px solid var(--accent);
+  border-radius: 0 12px 12px 0;
+  background: var(--surface-2);
+}
+
+.jq-ai-note[hidden] {
+  display: none;
+}
+
+.jq-ai-note__name {
+  margin: 0 0 4px;
+  color: var(--accent-strong);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.jq-ai-note__text {
+  margin: 0;
+  font-size: 16px;
+}
+
+.jq-video-side {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.jq-video-side__head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.jq-video-side__title {
+  margin: 0;
+  font-size: 20px;
+}
+
+.jq-episode-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.jq-ep {
+  min-width: 52px;
+  min-height: 48px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.jq-ep[aria-pressed='true'] {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.jq-video-next__label {
+  margin: 0 0 8px;
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.jq-video-next__row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.jq-video-next__thumb {
+  flex: none;
+  width: 120px;
+  aspect-ratio: 16 / 10;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.jq-video-next__name {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.jq-video-next__meta {
+  margin: 2px 0 0;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.jq-buddy {
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface);
+}
+
+.jq-buddy__title {
+  margin: 0 0 10px;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.jq-buddy__list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.jq-buddy__item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.jq-buddy__ava {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--surface-2);
+  color: var(--ink);
+  font-weight: 700;
+}
+
+.jq-buddy__text {
+  margin: 0;
+  font-size: 15px;
+}
+
+/* ---------- A01 AI 伙伴 ---------- */
+.jq-ai-grid {
+  display: grid;
+  grid-template-columns: minmax(240px, 0.8fr) minmax(0, 2fr);
+  gap: 24px;
+  align-items: start;
+}
+
+.jq-ai-presence {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 22px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--surface);
+}
+
+.jq-ai-presence .jq-scene__back {
+  align-self: flex-start;
+}
+
+.jq-orb--lg {
+  width: 116px;
+  height: 116px;
+}
+
+.jq-ai-name {
+  margin: 4px 0 0;
+  font-family: var(--font-display);
+  font-size: 34px;
+}
+
+.jq-ai-role {
+  margin: 0;
+  color: var(--muted);
+  font-size: 15px;
+}
+
+.jq-wave {
+  display: flex;
+  align-items: flex-end;
+  gap: 5px;
+  height: 34px;
+}
+
+.jq-wave i {
+  width: 5px;
+  height: 30%;
+  border-radius: 999px;
+  background: var(--accent);
+  animation: jq-wave-pulse 1.2s ease-in-out infinite;
+}
+
+.jq-wave i:nth-child(2n) {
+  animation-delay: 0.15s;
+}
+
+.jq-wave i:nth-child(3n) {
+  animation-delay: 0.3s;
+}
+
+@keyframes jq-wave-pulse {
+  0%,
+  100% {
+    height: 30%;
+  }
+
+  50% {
+    height: 100%;
+  }
+}
+
+.jq-ai-status {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.jq-ai-status__text {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.jq-ai-styles {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.jq-ai-styles__label {
+  width: 100%;
+  margin: 0;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.jq-stylechip {
+  min-height: 44px;
+  padding: 0 16px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface-2);
+  color: var(--ink);
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.jq-stylechip[aria-pressed='true'] {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.jq-ai-stream {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+}
+
+.jq-ai-messages {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.jq-bubble {
+  max-width: 78%;
+  padding: 12px 16px;
+  border-radius: 16px;
+  font-size: 16px;
+}
+
+.jq-bubble p {
+  margin: 0;
+}
+
+.jq-bubble--user {
+  align-self: flex-end;
+  background: var(--accent-strong);
+  color: var(--accent-ink);
+}
+
+.jq-bubble--ai {
+  align-self: flex-start;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--ink);
+}
+
+.jq-svc-card {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr);
+  align-self: stretch;
+}
+
+.jq-svc-card .jq-media {
+  min-height: 100%;
+}
+
+.jq-svc-card__body {
+  padding: 16px 18px;
+}
+
+.jq-svc-card__name {
+  margin: 0;
+  font-size: 19px;
+}
+
+.jq-svc-card__meta {
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.jq-svc-card__desc {
+  margin: 8px 0 0;
+  font-size: 15px;
+}
+
+.jq-svc-card__price {
+  margin: 10px 0 0;
+  color: var(--accent-strong);
+  font-size: 20px;
+  font-weight: 800;
+}
+
+.jq-svc-card__price-note {
+  margin-left: 8px;
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.jq-svc-card__actions {
+  margin-top: 12px;
+}
+
+.jq-ai-quick {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.jq-qchip {
+  min-height: 44px;
+  padding: 0 16px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.jq-qchip:hover {
+  border-color: var(--accent);
+}
+
+.jq-ai-input {
+  display: flex;
+  gap: 10px;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+}
+
+.jq-ai-input__field {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  font-size: 17px;
+  padding: 0 12px;
+}
+
+.jq-ai-input__field:focus-visible {
+  outline: none;
+}
+
+.jq-ai-send {
+  min-height: 48px;
+  padding: 0 22px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--accent-strong);
+  color: var(--accent-ink);
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.jq-ai-input__notice {
+  margin: 0;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+/* ---------- E01 数字人课程 ---------- */
+.jq-course-wrap {
+  display: grid;
+  grid-template-columns: minmax(0, 1.7fr) minmax(280px, 1fr);
+  gap: 24px;
+  align-items: start;
+}
+
+.jq-course-board {
+  position: relative;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  overflow: hidden;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.jq-course-board .jq-media {
+  aspect-ratio: 3 / 2;
+}
+
+.jq-course-rule {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(to right, rgba(255, 255, 255, 0.55) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.55) 1px, transparent 1px);
+  background-size: 33.333% 33.333%;
+  pointer-events: none;
+}
+
+.jq-course-pin {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: var(--accent-strong);
+  color: var(--accent-ink);
+  font-size: 14px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.jq-course-board__note {
+  margin: 10px 0 0;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.jq-course-side {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.jq-presenter {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface);
+}
+
+.jq-presenter__ava,
+.jq-tava {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.jq-presenter__name {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.jq-presenter__style {
+  margin: 2px 0 0;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.jq-teacher-pick {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.jq-teacher-label {
+  margin: 0;
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.jq-teacher {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 64px;
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+}
+
+.jq-teacher[aria-pressed='true'] {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.jq-teacher__info {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.jq-teacher__name {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.jq-teacher__desc,
+.jq-teacher__voice {
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.jq-outline__list {
+  margin: 8px 0 0;
+  padding-left: 22px;
+}
+
+.jq-outline__item {
+  font-size: 16px;
+  line-height: 1.7;
+}
+
+.jq-outline__item--on {
+  font-weight: 700;
+}
+
+.jq-course-controls {
+  display: flex;
+  gap: 10px;
+}
+
+/* ---------- G00 公共服务首页 ---------- */
+.jq-public-band {
+  margin-bottom: 28px;
+  padding: 26px 28px;
+  border: 1px solid var(--accent-soft-border);
+  border-radius: 18px;
+  background: var(--accent-soft);
+}
+
+.jq-public-title {
+  margin: 4px 0 0;
+  font-family: var(--font-display);
+  font-size: clamp(30px, 3.2vw, 46px);
+}
+
+.jq-public-desc {
+  margin: 8px 0 0;
+  color: var(--muted);
+  font-size: 17px;
+}
+
+.jq-public-band__stats {
+  display: flex;
+  gap: 28px;
+  margin-top: 18px;
+  flex-wrap: wrap;
+}
+
+.jq-stat {
+  display: flex;
+  flex-direction: column;
+}
+
+.jq-stat__num {
+  font-size: 30px;
+  font-weight: 800;
+}
+
+.jq-stat__cap {
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.jq-grid--signup {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.jq-act {
+  display: flex;
+  flex-direction: column;
+}
+
+.jq-act .jq-media {
+  aspect-ratio: 16 / 10;
+}
+
+.jq-act__body {
+  padding: 12px 14px 14px;
+}
+
+.jq-act__name {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.jq-act__meta {
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.jq-act__foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.jq-welfare-row {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.jq-welfare {
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface);
+  text-align: center;
+}
+
+.jq-welfare__ico {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  margin: 0 auto 8px;
+  border-radius: 50%;
+  background: var(--surface-2);
+  font-size: 22px;
+}
+
+.jq-welfare__name {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.jq-welfare__sub {
+  margin: 2px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.jq-rail--courses {
+  gap: 18px;
+}
+
+.jq-course-card {
+  flex: none;
+  width: 260px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  overflow: hidden;
+  background: var(--surface);
+}
+
+.jq-course-card .jq-media {
+  aspect-ratio: 16 / 9;
+}
+
+.jq-course-card__body {
+  padding: 10px 14px 14px;
+}
+
+.jq-course-card__name {
+  margin: 0;
+  font-size: 17px;
+}
+
+.jq-course-card__meta {
+  margin: 2px 0 0;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.jq-service-row {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.jq-service {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 52px;
+  padding: 0 20px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.jq-service::after {
+  content: '›';
+  color: var(--muted);
+}
+
+.jq-service:hover {
+  border-color: var(--accent);
+}
+
+/* ---------- 场景版式随主题的有限差异（同一份 DOM） ---------- */
+[data-dir='b'] .jq-player,
+[data-dir='b'] .jq-course-board {
+  border-color: var(--border);
+}
+
+[data-dir='b'] .jq-public-band {
+  background: var(--accent-soft);
+}
+
+/* ---------- 窄屏 / 竖屏收敛（主方向仍是横屏大屏） ---------- */
+@media (max-width: 1100px) {
+  .jq-video-wrap,
+  .jq-course-wrap,
+  .jq-ai-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .jq-grid--signup,
+  .jq-welfare-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 720px) {
+  .jq-scene__actions {
+    margin-left: 0;
+  }
+
+  .jq-grid--signup,
+  .jq-welfare-row {
+    grid-template-columns: 1fr;
+  }
+
+  .jq-svc-card {
+    grid-template-columns: 1fr;
+  }
+
+  .jq-bubble {
+    max-width: 100%;
+  }
+}
+
+@media (orientation: portrait) {
+  .jq-video-wrap,
+  .jq-course-wrap,
+  .jq-ai-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .jq-scene__back,
+  .jq-public-back,
+  .jq-public-entry,
+  .jq-teacher {
+    min-height: 56px;
+  }
+
+  .jq-ai-presence {
+    align-items: flex-start;
+  }
+}
