@@ -61,6 +61,7 @@ export class FakeNode {
   /** Records the last focus request; the real DOM focus behaviour is browser-side. */
   focus() {
     this.focused = true;
+    if (this.ownerDocument) this.ownerDocument.activeElement = this;
   }
 
   addEventListener(type, handler) {
@@ -104,10 +105,16 @@ export function collect(root, predicate) {
 export function createFakeDocument() {
   const root = new FakeNode('div');
   const documentElement = new FakeNode('html');
-  return {
+  const document = {
     root,
     documentElement,
+    activeElement: null,
     getElementById: (id) => (id === 'app' ? root : null),
-    createElement: (tagName) => new FakeNode(tagName),
+    createElement: (tagName) => {
+      const node = new FakeNode(tagName);
+      node.ownerDocument = document;
+      return node;
+    },
   };
+  return document;
 }

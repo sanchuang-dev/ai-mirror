@@ -2148,3 +2148,265 @@
     align-items: flex-start;
   }
 }
+
+/* ---------- 看节目：节目目录 / 分类浏览 / 搜索（V01 · Issue #9） ----------
+   复用 OpenDesign 的海报层级（竖版节目海报 + 名称 / 内容层级），主题差异仍只来自
+   tokens.css 的变量，不为 A/B 复制页面，也不退化成 SaaS 管理式卡片墙。 */
+.jq-programs-search {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin: 0 0 18px;
+}
+
+.jq-search__field {
+  flex: 1 1 320px;
+  min-width: 0;
+  min-height: 52px;
+  padding: 0 20px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 17px;
+}
+
+.jq-search__field::placeholder {
+  color: var(--muted);
+}
+
+.jq-programs-search__hint {
+  flex: 1 0 100%;
+  margin: 0;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.jq-programs__tabs {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin: 0 0 18px;
+}
+
+.jq-program-tab {
+  min-height: 48px;
+  padding: 0 22px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.jq-program-tab[aria-pressed='true'] {
+  border-color: transparent;
+  background: var(--accent-strong);
+  color: var(--accent-ink);
+}
+
+.jq-programs__count {
+  margin: 0 0 14px;
+  color: var(--muted);
+  font-size: 15px;
+}
+
+.jq-programs__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 22px 18px;
+}
+
+/* 海报墙：沿用 .jq-card 的结构，只在网格里铺满列宽。 */
+.jq-programs__grid .jq-card {
+  width: 100%;
+}
+
+.jq-program-card .jq-media {
+  aspect-ratio: 3 / 4;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.jq-program-card__chip {
+  align-self: flex-start;
+  color: var(--accent-strong);
+  border-color: var(--accent-soft-border);
+  background: var(--accent-soft);
+}
+
+/* 加载 / 无结果 / 失败状态：都带可见文字，不用颜色单独表达状态。 */
+.jq-programs__state {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 22px 20px;
+  border: 1px dashed var(--border);
+  border-radius: 14px;
+  background: var(--surface);
+  color: var(--ink);
+}
+
+.jq-programs__state--loading {
+  flex-direction: row;
+  align-items: center;
+}
+
+.jq-programs__state--empty {
+  border-style: solid;
+  background: var(--surface-2);
+}
+
+.jq-programs__state--error {
+  border-style: solid;
+  border-color: var(--accent-soft-border);
+  background: var(--accent-soft);
+}
+
+.jq-programs__state-title {
+  margin: 0;
+  font-size: 19px;
+  font-weight: 700;
+}
+
+.jq-programs__state-text {
+  margin: 0;
+  color: var(--muted);
+  font-size: 15px;
+}
+
+.jq-programs__state-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 6px;
+}
+
+.jq-programs__spinner {
+  flex: none;
+  width: 22px;
+  height: 22px;
+  border: 3px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: jq-spin 0.9s linear infinite;
+}
+
+@keyframes jq-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* 节目详情入口（示例）：明确的接入边界 + 可返回列表。 */
+.jq-program-detail {
+  margin: 0 0 20px;
+  padding: 18px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+}
+
+.jq-program-detail[hidden] {
+  display: none;
+}
+
+.jq-program-detail__head {
+  margin-bottom: 14px;
+}
+
+.jq-program-detail__close {
+  min-height: 48px;
+  padding: 0 18px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.jq-program-detail__close:hover {
+  border-color: var(--accent);
+}
+
+.jq-program-detail__main {
+  display: grid;
+  grid-template-columns: 200px minmax(0, 1fr);
+  gap: 20px;
+  align-items: start;
+}
+
+.jq-program-detail__main .jq-media {
+  aspect-ratio: 3 / 4;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.jq-program-detail__body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.jq-program-detail__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 26px;
+}
+
+.jq-program-detail__meta,
+.jq-program-detail__summary,
+.jq-program-detail__text {
+  margin: 0;
+  color: var(--muted);
+  font-size: 15px;
+}
+
+.jq-program-detail__note {
+  margin: 0;
+  padding: 10px 14px;
+  border-left: 4px solid var(--accent);
+  border-radius: 0 10px 10px 0;
+  background: var(--accent-soft);
+  color: var(--ink);
+  font-size: 15px;
+}
+
+.jq-program-detail__actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 720px) {
+  .jq-program-detail__main {
+    grid-template-columns: 1fr;
+  }
+
+  .jq-program-detail__main .jq-media {
+    max-width: 240px;
+  }
+}
+
+@media (orientation: portrait) {
+  .jq-search__field,
+  .jq-programs__state-title {
+    font-size: 19px;
+  }
+
+  .jq-programs__state-text {
+    font-size: 17px;
+  }
+
+  .jq-program-tab {
+    min-height: 56px;
+    font-size: 18px;
+  }
+}
