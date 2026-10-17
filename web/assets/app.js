@@ -14,6 +14,7 @@ import {
   getAiContent,
   getCourseContent,
   getHomeContent,
+  getProgramContent,
   getPublicContent,
   getVideoContent,
 } from '../data/api.js';
@@ -23,11 +24,36 @@ import { renderVideoBody } from '../pages/video.js';
 import { renderAiBody } from '../pages/ai.js';
 import { renderCourseBody } from '../pages/course.js';
 import { renderPublicBody } from '../pages/public.js';
+import { renderProgramsBody } from '../pages/programs.js';
 
 export { mountHome };
 
+/**
+ * 「看节目」分类路由 → 节目目录初始分类。
+ * 顶栏的短剧 / 戏曲 / 音乐入口都落在同一套节目列表的合理默认状态，
+ * 不再直接跳进固定的 V02 播放场景。
+ * @type {Record<string, string>}
+ */
+const PROGRAM_ROUTES = {
+  programs: 'recommend',
+  'programs-drama': 'drama',
+  'programs-opera': 'opera',
+  'programs-music': 'oldies',
+};
+
+/** 搜索入口：打开「看节目」目录的搜索视图。 */
+const SEARCH_ROUTE = 'search';
+
 /** 有正式演示页面的路由；其余路由仍走共享壳里的诚实「示例 / 未接入」反馈。 */
-const NAVIGABLE_ROUTES = new Set(['home', 'video', 'ai', 'course', 'public']);
+const NAVIGABLE_ROUTES = new Set([
+  'home',
+  'video',
+  'ai',
+  'course',
+  'public',
+  SEARCH_ROUTE,
+  ...Object.keys(PROGRAM_ROUTES),
+]);
 
 /** 公共模式路由：进入后顶栏不显示个人身份与设置入口。 */
 const PUBLIC_ROUTE = 'public';
@@ -72,6 +98,7 @@ export function mountApp(documentRef, preferences, options = {}) {
     deviceMode === 'public' ? NO_PREFERENCES : (preferences ?? createThemePreferences());
   const home = getHomeContent();
   const publicContent = getPublicContent();
+  const programContent = getProgramContent();
   const initialTheme = resolveInitialTheme({
     stored: deviceMode === 'public' ? null : effectivePreferences.read(),
     param: readThemeFromLocation(),
@@ -103,6 +130,15 @@ export function mountApp(documentRef, preferences, options = {}) {
       body = renderCourseBody(documentRef, getCourseContent(), shell.activate);
     } else if (route === PUBLIC_ROUTE) {
       body = renderPublicBody(documentRef, publicContent, shell.activate);
+    } else if (route === SEARCH_ROUTE) {
+      body = renderProgramsBody(documentRef, programContent, shell.activate, {
+        category: 'recommend',
+        searchOpen: true,
+      });
+    } else if (Object.hasOwn(PROGRAM_ROUTES, route)) {
+      body = renderProgramsBody(documentRef, programContent, shell.activate, {
+        category: PROGRAM_ROUTES[route],
+      });
     } else body = renderHomeBody(documentRef, home, shell.activate);
     bodies.set(route, body);
     return body;
