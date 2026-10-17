@@ -738,3 +738,224 @@
     display: none;
   }
 }
+
+/* ---------- 闺蜜机竖屏预览（非 Android 真机验收） ----------
+   以浏览器 CSS 视口的 portrait 方向切换布局，不按物理英寸或 DPR 猜测。
+   保留既有横屏 OpenDesign A/B 表达；只提升竖屏信息密度、触控面积、阅读性。
+   不改业务 DOM/主题数据，也不把 1920 横屏画布缩放成竖屏。 */
+@media (orientation: portrait) {
+  .jq-home {
+    /* Prevent the grid's automatic min-content column from widening the page. */
+    grid-template-columns: minmax(0, 1fr);
+    min-width: 0;
+    --page-gutter: clamp(20px, 3.5vw, 44px);
+    --page-pad-top: 20px;
+    --section-gap: 40px;
+  }
+
+  /* 顶栏中的内容导航单独成行，窄竖屏左右滑动，不挤压主题切换。 */
+  .jq-header {
+    gap: 10px 20px;
+    min-width: 0;
+    padding-block: 14px 8px;
+  }
+
+  .jq-scroll {
+    min-width: 0;
+  }
+
+  .jq-brand {
+    order: 0;
+  }
+
+  .jq-header__end {
+    order: 1;
+    gap: 10px;
+    min-width: 0;
+  }
+
+  .jq-nav {
+    order: 2;
+    flex: 1 0 100%;
+    min-width: 0;
+    max-width: 100%;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    white-space: nowrap;
+  }
+
+  .jq-nav__item {
+    flex: none;
+    min-height: 56px;
+    padding-inline: 18px;
+    font-size: 20px;
+  }
+
+  .jq-search,
+  .jq-theme__option {
+    min-height: 52px;
+    font-size: 16px;
+  }
+
+  .jq-section__title {
+    font-size: 28px;
+  }
+
+  .jq-section__sub {
+    font-size: 17px;
+  }
+
+  .jq-more {
+    min-height: 52px;
+    font-size: 18px;
+  }
+
+  .jq-banner {
+    font-size: 17px;
+  }
+
+  .jq-hero {
+    grid-template-columns: 1fr;
+  }
+
+  .jq-hero .jq-media {
+    min-height: clamp(300px, 36vw, 480px);
+  }
+
+  .jq-hero__body {
+    padding: 26px 30px 32px;
+  }
+
+  .jq-hero__desc {
+    font-size: 20px;
+  }
+
+  .jq-hero__progresstext {
+    font-size: 17px;
+  }
+
+  /* B 继续让剧照通栏铺底，不退化为 A 的上下两块卡片。 */
+  [data-dir='b'] .jq-hero {
+    min-height: clamp(420px, 54vw, 590px);
+  }
+
+  [data-dir='b'] .jq-hero .jq-media {
+    min-height: 0;
+  }
+
+  [data-dir='b'] .jq-hero__body {
+    min-height: inherit;
+    max-width: min(780px, 94%);
+    padding: 36px;
+  }
+
+  .jq-card {
+    width: clamp(220px, 28vw, 320px);
+  }
+
+  .jq-card__name,
+  .jq-creation__name {
+    font-size: 20px;
+  }
+
+  .jq-card__meta,
+  .jq-creation__sub,
+  .jq-activity__meta,
+  .jq-companion__line {
+    font-size: 17px;
+  }
+
+  .jq-grid--activity,
+  .jq-grid--create {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .jq-activity__name,
+  .jq-companion__name {
+    font-size: 21px;
+  }
+
+  .jq-btn,
+  .jq-btn--sm {
+    min-height: 56px;
+    font-size: 19px;
+  }
+
+  .jq-ai-fab {
+    right: var(--page-gutter);
+    bottom: 20px;
+    min-height: 60px;
+    font-size: 19px;
+  }
+
+  /* 把反馈放在常驻 AI 入口之上，竖屏下不遮挡操作。 */
+  .jq-toast {
+    right: var(--page-gutter);
+    bottom: 96px;
+    left: var(--page-gutter);
+    max-width: min(700px, calc(100vw - 2 * var(--page-gutter)));
+  }
+
+  .jq-toast__text,
+  .jq-toast__close {
+    font-size: 18px;
+  }
+
+  .jq-toast__close {
+    min-height: 48px;
+  }
+}
+
+/* Android DPR 较高时，1080px 物理屏可能只有 360–540px CSS 视口。
+   仍让单列卡片可滚动、首屏文字可读、触控入口完整。 */
+@media (orientation: portrait) and (max-width: 720px) {
+  .jq-header__end {
+    flex: 1 0 100%;
+    margin-left: 0;
+  }
+
+  .jq-brand__sub {
+    display: none;
+  }
+
+  .jq-nav__item {
+    min-height: 52px;
+    font-size: 18px;
+  }
+
+  .jq-hero__body {
+    padding: 24px;
+  }
+
+  .jq-hero__title {
+    font-size: clamp(36px, 9vw, 54px);
+  }
+
+  [data-dir='b'] .jq-hero__body {
+    max-width: 100%;
+    padding: 28px 24px;
+  }
+
+  .jq-section__head {
+    flex-wrap: wrap;
+  }
+
+  .jq-card {
+    width: min(72vw, 280px);
+  }
+
+  .jq-grid--activity,
+  .jq-grid--create {
+    grid-template-columns: 1fr;
+  }
+
+  .jq-toast {
+    max-width: none;
+    bottom: 100px;
+  }
+
+  .jq-companion {
+    flex-wrap: wrap;
+  }
+}
