@@ -151,7 +151,9 @@ export function renderProgramsBody(documentRef, content, activate, options = {})
     }
   }
 
-  /** Preserve the one mounted scene and any entered keyword during route changes. */
+  /** Preserve the one mounted scene and any entered keyword during route changes.
+   * @param {string} next
+   */
   function selectCategory(next) {
     if (category === next) return;
     category = next;
