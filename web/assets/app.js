@@ -1,28 +1,23 @@
 /**
- * Mount an explicitly unfinished engineering shell.
- * Business routes and A/B theme settings belong to later Issues.
+ * 见趣 Web 基线入口。
  *
- * @param {Document} documentRef
+ * 当前实现 H01 个人首页（单套 DOM + A/B 主题）。其它路由为示例反馈，
+ * 详见 web/pages/home.js。入口只负责挂载与读取试点用的初始主题。
  */
-export function mountShell(documentRef) {
-  const outlet = documentRef.getElementById('app');
-  if (!outlet) {
-    throw new Error('Required application outlet #app is missing');
-  }
+import { mountHome } from '../pages/home.js';
 
-  const main = documentRef.createElement('main');
-  main.className = 'jq-shell';
+export { mountHome };
 
-  const title = documentRef.createElement('h1');
-  title.textContent = '见趣';
-
-  const description = documentRef.createElement('p');
-  description.textContent = '工程骨架已建立，业务页面尚未接入。这里不是产品演示界面。';
-
-  main.append(title, description);
-  outlet.replaceChildren(main);
+/**
+ * 试点用初始主题：`?dir=b` 便于评审与截图；正式「设置 → 外观与主题」入口待实现。
+ * @returns {'a' | 'b' | undefined}
+ */
+function readThemeFromLocation() {
+  if (typeof location === 'undefined') return undefined;
+  const dir = new URLSearchParams(location.search).get('dir');
+  return dir === 'a' || dir === 'b' ? dir : undefined;
 }
 
 if (typeof document !== 'undefined') {
-  mountShell(document);
+  mountHome(document, readThemeFromLocation());
 }
