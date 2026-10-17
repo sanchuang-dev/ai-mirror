@@ -27,7 +27,27 @@ permissions:
 # the prior dispatch finishes. Never validate authorization before queueing.
 # The group is identical for comment and manual dispatches of the same Issue.
 concurrency:
-  group: free-worker-${{ github.repository }}-${{ github.event_name == 'issue_comment' && github.event.issue.number || inputs.issue_number }}
+  # Cheap event-only routing keeps ordinary/PR/bot comments out of the Issue
+  # dispatch lock. This is NOT authorization; enrollment rechecks live GitHub API.
+  group: >-
+    ${{
+      github.event_name == 'issue_comment' && (
+        github.event.issue.pull_request ||
+        github.event.comment.user.type != 'User' ||
+        github.event.sender.login != github.event.comment.user.login ||
+        github.actor != github.event.comment.user.login ||
+        (
+          github.event.comment.body != '/free-worker run' &&
+          github.event.comment.body != '/free-worker run model=mimo-v2.6-flash-free' &&
+          github.event.comment.body != '/free-worker run model=deepseek-v4.1-flash-free'
+        )
+      )
+      && format('free-worker-ignored-{0}', github.run_id)
+      || format('free-worker-{0}-{1}', github.repository, github.event_name == 'issue_comment' && github.event.issue.number || inputs.issue_number)
+    }}
+  # Single-pending mode silently replaces previously authorized dispatches.
+  # GitHub supports up to 100 FIFO waiters; the live guard runs after the wait.
+  queue: max
   cancel-in-progress: false
 
 jobs:
