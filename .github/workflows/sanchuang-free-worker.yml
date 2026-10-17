@@ -1,4 +1,6 @@
 # Jianqu caller: registered on main; Draft PRs target dev.
+# Accepted whole-comment directives: /free-worker run [model=<allowlisted free model>]
+# and the standard cross-Organization alias /worker run (repository default free model).
 name: Sanchuang Free Worker (opt-in)
 
 on:
@@ -39,7 +41,8 @@ concurrency:
         (
           github.event.comment.body != '/free-worker run' &&
           github.event.comment.body != '/free-worker run model=mimo-v2.6-flash-free' &&
-          github.event.comment.body != '/free-worker run model=deepseek-v4.1-flash-free'
+          github.event.comment.body != '/free-worker run model=deepseek-v4.1-flash-free' &&
+          github.event.comment.body != '/worker run'
         )
       )
       && format('free-worker-ignored-{0}', github.run_id)
@@ -53,7 +56,7 @@ concurrency:
 jobs:
   enrollment:
     # For issue_comment the event always runs at the default branch.
-    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'issue_comment' && github.event.action == 'created' && startsWith(github.event.comment.body, '/free-worker'))
+    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'issue_comment' && github.event.action == 'created' && (startsWith(github.event.comment.body, '/free-worker') || startsWith(github.event.comment.body, '/worker')))
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -118,7 +121,8 @@ jobs:
             # strip trailing newlines and accidentally accept multiline directives.
             model="$(jq -er '
               if .comment.body == "/free-worker run" or
-                 .comment.body == "/free-worker run model=deepseek-v4.1-flash-free" then
+                 .comment.body == "/free-worker run model=deepseek-v4.1-flash-free" or
+                 .comment.body == "/worker run" then
                 "deepseek-v4.1-flash-free"
               elif .comment.body == "/free-worker run model=mimo-v2.6-flash-free" then
                 "mimo-v2.6-flash-free"
@@ -126,7 +130,7 @@ jobs:
                 error("Invalid dispatch directive")
               end
             ' "$GITHUB_EVENT_PATH")" ||
-              { echo "::error::Use exactly /free-worker run [model=allowlisted-free-model]." >&2; exit 1; }
+              { echo "::error::Use exactly /free-worker run [model=allowlisted-free-model] or /worker run." >&2; exit 1; }
             # Reject edited/deleted comments and mismatched identity at execution time.
             # Do not trust only the event's potentially stale text or author.
             comment_json="$(gh api "repos/$GITHUB_REPOSITORY/issues/comments/$comment_id")"
