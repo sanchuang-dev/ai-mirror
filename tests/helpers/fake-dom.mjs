@@ -54,15 +54,34 @@ export class FakeNode {
     return this.attributes.has(name);
   }
 
+  removeAttribute(name) {
+    this.attributes.delete(name);
+  }
+
+  /** Records the last focus request; the real DOM focus behaviour is browser-side. */
+  focus() {
+    this.focused = true;
+  }
+
   addEventListener(type, handler) {
     const handlers = this.listeners.get(type) ?? [];
     handlers.push(handler);
     this.listeners.set(type, handlers);
   }
 
-  dispatch(type) {
+  /**
+   * @param {string} type
+   * @param {Record<string, unknown>} [event] extra event fields (key, shiftKey, …)
+   */
+  dispatch(type, event = {}) {
     for (const handler of this.listeners.get(type) ?? []) {
-      handler({ type, target: this });
+      handler({
+        type,
+        target: this,
+        preventDefault() {},
+        stopPropagation() {},
+        ...event,
+      });
     }
   }
 }

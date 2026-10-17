@@ -9,6 +9,10 @@
  *
  * 本卡是 H01 试点：其它业务路由（V01/V02/L01/M01/E01/A01/C01…）尚未实现，
  * 相关入口仍可操作，但只给出明确的「示例 / 未接入」反馈，不伪造结果。
+ *
+ * T02（Issue #7）在此补出真实的「设置 → 外观与主题」入口：顶栏的「演示主题」仍是
+ * 评审用的试点控件，设置面板才是用户入口。两者共用同一个 `data-dir` 主题状态与单套 DOM，
+ * 只有设置面板内的显式选择会写入个人本地偏好，不重建业务 DOM，因此不丢滚动与已显示反馈。
  */
 import { getHomeContent } from '../data/api.js';
 
@@ -16,9 +20,29 @@ import { getHomeContent } from '../data/api.js';
 /** @typedef {import('../data/fixtures/home.fixture.js').HomeActivity} HomeActivity */
 /** @typedef {import('../data/fixtures/home.fixture.js').HomeCreation} HomeCreation */
 /** @typedef {import('../data/fixtures/home.fixture.js').HomeFixture} HomeContent */
+/** @typedef {import('../data/preferences.js').ThemePreferences} ThemePreferences */
 
 /** @type {Array<'a' | 'b'>} */
 const THEMES = ['a', 'b'];
+
+/** 主题的名称与气质说明，只沿用 OpenDesign 既有的 A/B，不新造第三套。 */
+/** @type {Record<'a' | 'b', { name: string, desc: string }>} */
+const THEME_META = {
+  a: { name: '日光客厅', desc: '明亮、有呼吸感的客厅杂志式' },
+  b: { name: '暖夜剧场', desc: '深色暖金的沉浸式剧场' },
+};
+
+/** 设置面板里的偏好保存反馈：区分「已保存 / 保存失败 / 无存储 / 尚无偏好」。 */
+const PREFERENCE_MESSAGES = {
+  saved: '已保存你的选择，刷新后仍会使用。',
+  saveFailed: '本机无法保存偏好：本次选择只在当前页面有效，刷新后会恢复。',
+  noStorage: '本机不能保存外观偏好：选择会立即生效，但刷新后会恢复默认。',
+  noPreference: '还没有保存过外观偏好：选一个就记住，下次打开还在。',
+};
+
+/** 未注入偏好时的空实现（测试 / 纯渲染预览用）：不读取也不写入任何存储。 */
+/** @type {ThemePreferences} */
+const NO_PREFERENCES = { available: false, read: () => null, save: () => false };
 
 /** 每个首页入口对应的诚实反馈；未列出的路由回落到 FALLBACK_NOTICE。 */
 /** @type {Record<string, string>} */
@@ -186,8 +210,9 @@ function createSectionHead(documentRef, title, sub, titleId, onActivate, more) {
  * @param {Document} documentRef
  * @param {HomeContent} content
  * @param {'a' | 'b'} [initialTheme]
+ * @param {ThemePreferences} [preferences] 个人主题偏好存储；缺省时不读写存储
  */
-export function renderHome(documentRef, content, initialTheme) {
+export function renderHome(documentRef, content, initialTheme, preferences = NO_PREFERENCES) {
   const controller = createHomeController();
 
   const banner = createNode(documentRef, 'p', 'jq-banner', content.demo.notice);
@@ -258,12 +283,20 @@ export function renderHome(documentRef, content, initialTheme) {
   for (const entry of themeButtons) themeGroup.append(entry.node);
 
   const search = createRouteButton(documentRef, 'jq-search', '搜一搜', 'search', activate);
+
+  // T02 正式用户入口：设置。不给它塞演示路由文案，以免和「示例 / 未接入」反馈混淆；
+  // 它打开真实的设置面板（外观与主题），返回后回到当前首页状态。
+  const settingsEntry = createNode(documentRef, 'button', 'jq-settings-entry', '设置');
+  settingsEntry.setAttribute('type', 'button');
+  settingsEntry.setAttribute('data-open-settings', '');
+  settingsEntry.addEventListener('click', openSettings);
+
   const user = createNode(documentRef, 'div', 'jq-user');
   const avatar = createNode(documentRef, 'span', 'jq-avatar', viewer.avatarText);
   avatar.setAttribute('aria-hidden', 'true');
   user.append(avatar, createNode(documentRef, 'span', 'jq-user__name', viewer.name));
 
-  headerEnd.append(themeGroup, search, user);
+  headerEnd.append(themeGroup, search, settingsEntry, user);
   header.append(brand, nav, headerEnd);
 
   // ---------- 主体滚动区 ----------
@@ -399,14 +432,95 @@ export function renderHome(documentRef, content, initialTheme) {
   fabOrb.setAttribute('aria-hidden', 'true');
   fab.prepend(fabOrb);
 
+  // ---------- 设置 → 外观与主题（T02 正式入口） ----------
+  // 全屏覆盖层，默认隐藏；开关只切 `hidden`，不重建业务 DOM，也不改路由，
+  // 因此返回后滚动位置与已显示的入口反馈都保持原样。
+  const settings = createNode(documentRef, 'div', 'jq-settings');
+  settings.setAttribute('role', 'dialog');
+  settings.setAttribute('aria-modal', 'true');
+  settings.setAttribute('aria-labelledby', 'jq-settings-title');
+  settings.hidden = true;
+
+  const settingsPanel = createNode(documentRef, 'div', 'jq-settings__panel');
+
+  const settingsHead = createNode(documentRef, 'header', 'jq-settings__head');
+  const settingsTitle = createNode(documentRef, 'h2', 'jq-settings__title', '设置');
+  settingsTitle.setAttribute('id', 'jq-settings-title');
+  const settingsBack = createNode(documentRef, 'button', 'jq-settings__back', '返回首页');
+  settingsBack.setAttribute('type', 'button');
+  settingsBack.addEventListener('click', closeSettings);
+  settingsHead.append(settingsTitle, settingsBack);
+
+  const themeGroupSettings = createNode(documentRef, 'section', 'jq-settings__group');
+  themeGroupSettings.setAttribute('aria-labelledby', 'jq-settings-theme-title');
+  const themeHeading = createNode(documentRef, 'h3', 'jq-settings__group-title', '外观与主题');
+  themeHeading.setAttribute('id', 'jq-settings-theme-title');
+
+  const themePicker = createNode(documentRef, 'div', 'jq-theme-picker');
+  themePicker.setAttribute('role', 'group');
+  themePicker.setAttribute('aria-label', '外观与主题');
+  /** @type {Array<{ dir: 'a' | 'b', node: HTMLButtonElement, state: HTMLElement }>} */
+  const themeChoices = THEMES.map((dir) => {
+    const meta = THEME_META[dir];
+    const node = createNode(documentRef, 'button', 'jq-theme-card');
+    node.setAttribute('type', 'button');
+    node.setAttribute('data-theme-choice', dir);
+    node.setAttribute('aria-pressed', 'false');
+    const swatch = createNode(documentRef, 'span', 'jq-theme-card__swatch');
+    swatch.setAttribute('aria-hidden', 'true');
+    const body = createNode(documentRef, 'span', 'jq-theme-card__body');
+    body.append(
+      createNode(documentRef, 'span', 'jq-theme-card__name', meta.name),
+      createNode(documentRef, 'span', 'jq-theme-card__desc', meta.desc),
+    );
+    // 选中态不只靠颜色：同时给「当前使用」文字与 aria-pressed。
+    const state = createNode(documentRef, 'span', 'jq-theme-card__state', '当前使用');
+    state.hidden = true;
+    node.append(swatch, body, state);
+    node.addEventListener('click', () => applyTheme(dir, { persist: true }));
+    return { dir, node: /** @type {HTMLButtonElement} */ (node), state };
+  });
+  for (const choice of themeChoices) themePicker.append(choice.node);
+
+  const settingsStatus = createNode(documentRef, 'p', 'jq-settings__status');
+  settingsStatus.setAttribute('aria-live', 'polite');
+  settingsStatus.setAttribute('aria-atomic', 'true');
+
+  const themeHint = createNode(
+    documentRef,
+    'p',
+    'jq-settings__hint',
+    '选一个你看着舒服的，马上就能看到变化。',
+  );
+  const scopeNote = createNode(
+    documentRef,
+    'p',
+    'jq-settings__note',
+    '本页只保存你自己的外观选择。公共设备是否允许改主题、默认用哪套，尚未确定。',
+  );
+  themeGroupSettings.append(themeHeading, themeHint, themePicker, settingsStatus, scopeNote);
+  settingsPanel.append(settingsHead, themeGroupSettings);
+  settings.append(settingsPanel);
+
+  settings.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      closeSettings();
+    }
+  });
+
   const root = createNode(documentRef, 'main', 'jq-home');
-  root.append(header, scroll, fab, toast);
+  root.append(header, scroll, fab, toast, settings);
 
   /**
-   * 应用主题：只改根元素 token 标记与演示控件状态，不改任何业务 DOM。
+   * 应用主题：只改根元素 token 标记与选择状态，不重建业务 DOM，
+   * 因此当前滚动位置与已显示的路由反馈都不会丢。
+   * `persist` 仅在用户于设置面板显式选择时为真；顶部「演示主题」是评审试点控件，不写存储。
    * @param {string} dir
+   * @param {{ persist?: boolean }} [options]
+   * @returns {'a' | 'b'}
    */
-  function applyTheme(dir) {
+  function applyTheme(dir, options = {}) {
     const current = controller.setTheme(dir);
     if (documentRef.documentElement) {
       documentRef.documentElement.setAttribute('data-dir', current);
@@ -414,11 +528,65 @@ export function renderHome(documentRef, content, initialTheme) {
     for (const entry of themeButtons) {
       entry.node.setAttribute('aria-pressed', entry.dir === current ? 'true' : 'false');
     }
+    for (const choice of themeChoices) {
+      const selected = choice.dir === current;
+      choice.node.setAttribute('aria-pressed', selected ? 'true' : 'false');
+      choice.state.hidden = !selected;
+    }
+    if (options.persist) {
+      const saved = preferences.save(current);
+      settingsStatus.textContent = saved
+        ? PREFERENCE_MESSAGES.saved
+        : PREFERENCE_MESSAGES.saveFailed;
+    }
+    return current;
+  }
+
+  /**
+   * 打开设置前用一句话说明当前偏好状态：已保存 / 尚无偏好 / 本机不能保存。
+   * @returns {string}
+   */
+  function describePreferenceState() {
+    if (!preferences.available) return PREFERENCE_MESSAGES.noStorage;
+    const stored = preferences.read();
+    if (stored) return '已保存你的偏好：' + THEME_META[stored].name + '。';
+    return PREFERENCE_MESSAGES.noPreference;
+  }
+
+  /**
+   * 打开设置：显示覆盖层、说明偏好状态，并把焦点移到当前选中项。
+   * 背景区域设为 inert，焦点不会落到被遮住的内容上。
+   */
+  function openSettings() {
+    settingsStatus.textContent = describePreferenceState();
+    settings.hidden = false;
+    setBackgroundInert(true);
+    const selected = themeChoices.filter((choice) => choice.dir === controller.getTheme())[0];
+    const focusTarget = selected ? selected.node : settingsBack;
+    if (typeof focusTarget.focus === 'function') focusTarget.focus();
+  }
+
+  /** 关闭设置并返回首页，把焦点交回「设置」入口。 */
+  function closeSettings() {
+    settings.hidden = true;
+    setBackgroundInert(false);
+    if (typeof settingsEntry.focus === 'function') settingsEntry.focus();
+  }
+
+  /**
+   * 设置打开时把背景移出键盘/读屏顺序，避免焦点进入被遮住的内容。
+   * @param {boolean} inert
+   */
+  function setBackgroundInert(inert) {
+    for (const node of [header, scroll, fab, toast]) {
+      if (inert) node.setAttribute('inert', '');
+      else node.removeAttribute('inert');
+    }
   }
 
   applyTheme(initialTheme ?? controller.getTheme());
 
-  return { element: root, controller, applyTheme, activate };
+  return { element: root, controller, applyTheme, activate, openSettings, closeSettings };
 }
 
 /**
@@ -506,13 +674,14 @@ function renderCreation(documentRef, creation, onActivate) {
  * 挂载 H01 到 `#app`。缺少出口时显式失败，不静默吞掉。
  * @param {Document} documentRef
  * @param {'a' | 'b'} [initialTheme]
+ * @param {ThemePreferences} [preferences] 个人主题偏好存储；缺省时不读写存储
  */
-export function mountHome(documentRef, initialTheme) {
+export function mountHome(documentRef, initialTheme, preferences) {
   const outlet = documentRef.getElementById('app');
   if (!outlet) {
     throw new Error('Required application outlet #app is missing');
   }
-  const view = renderHome(documentRef, getHomeContent(), initialTheme);
+  const view = renderHome(documentRef, getHomeContent(), initialTheme, preferences);
   outlet.replaceChildren(view.element);
   return view;
 }

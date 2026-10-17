@@ -959,3 +959,182 @@
     flex-wrap: wrap;
   }
 }
+
+/* ---------- 设置 → 外观与主题（T02 · Issue #7） ----------
+   正式用户入口，与顶部「演示主题」试点控件区分。全屏覆盖层默认隐藏；
+   主题差异仍只来自 tokens.css 的变量，这里不复制 A/B 页面，也不新造第三套风格。 */
+.jq-settings-entry {
+  min-height: 48px;
+  padding: 0 18px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.jq-settings-entry:hover {
+  border-color: var(--accent);
+}
+
+.jq-settings {
+  position: fixed;
+  inset: 0;
+  z-index: 8;
+  overflow-y: auto;
+  padding: var(--page-pad-top) var(--page-gutter) 80px;
+  background: var(--bg);
+  color: var(--ink);
+}
+
+.jq-settings[hidden] {
+  display: none;
+}
+
+.jq-settings__panel {
+  max-width: 880px;
+  margin: 0 auto;
+}
+
+.jq-settings__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 28px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid var(--border);
+}
+
+.jq-settings__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(30px, 3vw, 42px);
+}
+
+.jq-settings__back {
+  min-height: 52px;
+  padding: 0 22px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 17px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.jq-settings__back:hover {
+  border-color: var(--accent);
+}
+
+.jq-settings__group-title {
+  margin: 0;
+  font-size: 22px;
+}
+
+.jq-settings__hint {
+  margin: 6px 0 18px;
+  color: var(--muted);
+  font-size: 16px;
+}
+
+.jq-theme-picker {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.jq-theme-card {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 16px;
+  min-height: 108px;
+  padding: 18px 20px;
+  border: 2px solid var(--border);
+  border-radius: 16px;
+  background: var(--surface);
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+}
+
+.jq-theme-card[aria-pressed='true'] {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.jq-theme-card__swatch {
+  width: 52px;
+  height: 52px;
+  border-radius: 12px;
+  box-shadow: inset 0 0 0 1px var(--border);
+}
+
+/* 选择预览用 design.md §3 已确认的 A/B 主色（底色 + 强调色），不引入新品牌色。 */
+.jq-theme-card[data-theme-choice='a'] .jq-theme-card__swatch {
+  background: linear-gradient(135deg, #f5f6f8 0 55%, #e4572e 55% 100%);
+}
+
+.jq-theme-card[data-theme-choice='b'] .jq-theme-card__swatch {
+  background: linear-gradient(135deg, #16141c 0 55%, #e9b25c 55% 100%);
+}
+
+.jq-theme-card__body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.jq-theme-card__name {
+  font-size: 20px;
+  font-weight: 800;
+}
+
+.jq-theme-card__desc {
+  color: var(--muted);
+  font-size: 15px;
+}
+
+/* 选中态不只靠颜色：可见的「当前使用」文字 + aria-pressed 同时表达。 */
+.jq-theme-card__state {
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: var(--accent-strong);
+  color: var(--accent-ink);
+  font-size: 14px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.jq-theme-card__state[hidden] {
+  display: none;
+}
+
+.jq-settings__status {
+  min-height: 26px;
+  margin: 18px 0 0;
+  color: var(--muted);
+  font-size: 16px;
+}
+
+.jq-settings__note {
+  margin: 24px 0 0;
+  padding: 14px 16px;
+  border-left: 4px solid var(--border);
+  border-radius: 0 10px 10px 0;
+  background: var(--surface-2);
+  color: var(--muted);
+  font-size: 14px;
+}
+
+@media (max-width: 720px) {
+  .jq-theme-picker {
+    grid-template-columns: 1fr;
+  }
+}

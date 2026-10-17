@@ -1,0 +1,58 @@
+{
+  "issue": 7,
+  "baseline": "dev @ 7150eae8b39d4507cfece44eaf582e4e8c145fd4",
+  "captured": "2026-10-17",
+  "environment": {
+    "browser": "Chromium 155.0.8059.0 headless=new (CDP, Emulation.setDeviceMetricsOverride, mobile:false)",
+    "fonts": "fonts-noto-cjk (Noto Sans/Serif CJK SC) installed on the runner",
+    "preview": "npm run preview -> http://127.0.0.1:4173/"
+  },
+  "qualityGate": {
+    "command": "npm ci --no-audit --no-fund && npm run check",
+    "exitCode": 0,
+    "tests": "26/26 pass"
+  },
+  "browser": {
+    "landscape": {
+      "freshDir": "a",
+      "settingsEntryCount": 1,
+      "toastBefore": true,
+      "panelOpen": true,
+      "settingsStatusOpen": "还没有保存过外观偏好：选一个就记住，下次打开还在。",
+      "inertBackground": true,
+      "afterChooseB": {
+        "dir": "b",
+        "stored": "b",
+        "status": "已保存你的选择，刷新后仍会使用。",
+        "pressed": "true",
+        "stateVisible": true
+      },
+      "afterReturn": {
+        "panelHidden": true,
+        "dir": "b",
+        "scrollTop": 260,
+        "toastVisible": true,
+        "toastText": "报名 L02 尚未实现：不会产生真实报名凭证，仅为示例。",
+        "inert": false
+      },
+      "afterReloadWithDirA": { "dir": "b", "stored": "b" },
+      "illegalStoredValue": { "dir": "b", "main": 1, "h1": 1 },
+      "paramOnlyNoPreference": { "dir": "b", "stored": null }
+    },
+    "portrait": {
+      "viewport": "1080x1920",
+      "innerWidth": 1080,
+      "innerHeight": 1920,
+      "horizontalOverflow": false,
+      "themeCardHeight": 108,
+      "backButtonHeight": 52
+    },
+    "consoleErrors": ["Failed to load resource: the server responded with a status of 404 (Not Found) — favicon.ico"],
+    "exceptions": []
+  },
+  "notes": [
+    "afterReloadWithDirA proves the saved personal preference outranks a stale ?dir=a review param.",
+    "illegalStoredValue proves an unusable stored value is ignored and the page still renders.",
+    "consoleErrors contains only the browser's automatic /favicon.ico request, not an app error."
+  ]
+}
