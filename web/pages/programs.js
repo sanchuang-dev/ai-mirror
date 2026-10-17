@@ -22,6 +22,21 @@
 import { createMedia, createNode, createRouteButton } from '../components/kit.js';
 import { searchPrograms } from '../data/api.js';
 
+/** A program scene owns its search/category state; the shell only asks it to change. */
+/** @type {WeakMap<HTMLElement, {selectCategory: (category: string) => void, focusSearch: () => void}>} */
+const programControls = new WeakMap();
+
+/** @param {HTMLElement} body @param {string} category */
+export function selectProgramsCategory(body, category) {
+  programControls.get(body)?.selectCategory(category);
+}
+
+/** Call only after the search scene has been inserted into the mounted shell. */
+/** @param {HTMLElement} body */
+export function focusProgramsSearch(body) {
+  programControls.get(body)?.focusSearch();
+}
+
 /** @typedef {import('../data/fixtures/programs.fixture.js').ProgramFixture} ProgramContent */
 /** @typedef {import('../data/fixtures/programs.fixture.js').ProgramItem} ProgramItem */
 /** @typedef {import('../data/api.js').ProgramSearchResult} ProgramSearchResult */
@@ -29,7 +44,8 @@ import { searchPrograms } from '../data/api.js';
 /**
  * @typedef {object} ProgramsOptions
  * @property {string} [category] 初始分类，缺省为「全部」。
- * @property {boolean} [searchOpen] 从「搜一搜」进入时标记搜索视图并聚焦输入框。
+ * @property {boolean} [searchOpen] 从「搜一搜」进入时标记搜索视图（聚焦由挂载后的外壳执行）。
+ * @property {(category: string) => void} [onCategoryChange] 分类被用户改变时同步外壳导航状态。
  * @property {(query: { keyword?: string, category?: string }) => Promise<ProgramSearchResult>} [search]
  *   可注入的数据出口（测试用）；缺省使用 `web/data/api.js` 的 `searchPrograms`。
  */
@@ -92,9 +108,8 @@ export function renderProgramsBody(documentRef, content, activate, options = {})
     button.setAttribute('type', 'button');
     button.setAttribute('data-category', entry.id);
     button.addEventListener('click', () => {
-      category = entry.id;
-      updateTabs();
-      load();
+      selectCategory(entry.id);
+      options.onCategoryChange?.(entry.id);
     });
     tabs.append(button);
     return { id: entry.id, node: button };
@@ -134,6 +149,14 @@ export function renderProgramsBody(documentRef, content, activate, options = {})
     for (const tab of tabButtons) {
       tab.node.setAttribute('aria-pressed', tab.id === category ? 'true' : 'false');
     }
+  }
+
+  /** Preserve the one mounted scene and any entered keyword during route changes. */
+  function selectCategory(next) {
+    if (category === next) return;
+    category = next;
+    updateTabs();
+    load();
   }
 
   function focusResults() {
@@ -192,9 +215,8 @@ export function renderProgramsBody(documentRef, content, activate, options = {})
               category: scope,
               onClear: clearSearch,
               onScopeAll: () => {
-                category = 'all';
-                updateTabs();
-                load();
+                selectCategory('all');
+                options.onCategoryChange?.('all');
               },
             }),
           ]);
@@ -240,12 +262,14 @@ export function renderProgramsBody(documentRef, content, activate, options = {})
   });
   clear.addEventListener('click', () => clearSearch());
 
+  programControls.set(body, {
+    selectCategory,
+    focusSearch: () => {
+      if (typeof field.focus === 'function') field.focus();
+    },
+  });
   updateTabs();
   load();
-  if (options.searchOpen) {
-    // 从「搜一搜」进入：直接落在搜索视图，输入框就绪。
-    if (typeof field.focus === 'function') field.focus();
-  }
   return body;
 }
 
