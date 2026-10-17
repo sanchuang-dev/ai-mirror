@@ -479,9 +479,15 @@ test('program tabs and header navigation share one route, category and search st
 
   clickRoute(shell, 'programs-drama');
   const body = shell.body.childNodes[0];
+  const headerCurrent = (route) =>
+    find(
+      shell.element,
+      (node) =>
+        node.getAttribute('data-route') === route && node.getAttribute('aria-current') === 'page',
+    ).length;
   assert.equal(pressedCategory(body), 'drama');
   assert.equal(
-    find(shell.element, (node) => node.getAttribute('data-route') === 'programs-drama' && node.getAttribute('aria-current') === 'page').length,
+    headerCurrent('programs-drama'),
     1,
   );
 
@@ -491,12 +497,15 @@ test('program tabs and header navigation share one route, category and search st
 
   clickCategory(body, 'opera');
   await flush();
-  assert.equal(shell.body.childNodes[0], body, 'changing a tab must not rebuild the page');
+  assert.equal(
+    shell.body.childNodes[0], body,
+    'changing a tab must not rebuild the page',
+  );
   assert.equal(pressedCategory(body), 'opera');
   assert.equal(searchField(body).value, '梁祝', 'tab switch preserves the keyword');
   assert.deepEqual(programIds(body), ['liangzhu']);
   assert.equal(
-    find(shell.element, (node) => node.getAttribute('data-route') === 'programs-opera' && node.getAttribute('aria-current') === 'page').length,
+    headerCurrent('programs-opera'),
     1,
     'the header must reflect the in-page opera selection',
   );
@@ -504,18 +513,27 @@ test('program tabs and header navigation share one route, category and search st
   clickRoute(shell, 'programs-drama');
   await flush();
   assert.equal(shell.body.childNodes[0], body, 'header navigation reuses the scene');
-  assert.equal(pressedCategory(body), 'drama', 'header drama entry must restore drama selection');
-  assert.equal(searchField(body).value, '梁祝', 'header navigation must not discard the keyword');
+  assert.equal(
+    pressedCategory(body), 'drama',
+    'header drama entry must restore drama selection',
+  );
+  assert.equal(
+    searchField(body).value, '梁祝',
+    'header navigation must not discard the keyword',
+  );
   assert.equal(stateOf(body), 'empty');
   assert.equal(
-    find(shell.element, (node) => node.getAttribute('data-route') === 'programs-drama' && node.getAttribute('aria-current') === 'page').length,
+    headerCurrent('programs-drama'),
     1,
   );
 
   clickRoute(shell, 'home');
   clickRoute(shell, 'programs-opera');
   await flush();
-  assert.equal(shell.body.childNodes[0], body, 'all program header routes share the same cache');
+  assert.equal(
+    shell.body.childNodes[0], body,
+    'all program header routes share the same cache',
+  );
   assert.equal(pressedCategory(body), 'opera');
   assert.deepEqual(programIds(body), ['liangzhu']);
 });
