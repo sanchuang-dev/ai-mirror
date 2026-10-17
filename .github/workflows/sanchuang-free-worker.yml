@@ -1,8 +1,10 @@
-# Jianqu opt-in caller: register on default branch main; implement and deliver only against dev.
-# Trust the immutable Organization V2 workflow and the repository's actual quality gate.
+# Jianqu caller: registered on main; Draft PRs target dev.
 name: Sanchuang Free Worker (opt-in)
 
 on:
+  # Only newly CREATED comments are dispatch candidates; edits never retrigger.
+  issue_comment:
+    types: [created]
   workflow_dispatch:
     inputs:
       issue_number:
@@ -23,11 +25,16 @@ permissions:
 
 jobs:
   enrollment:
+    # For issue_comment the event always runs at the default branch.
+    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'issue_comment' && github.event.action == 'created' && startsWith(github.event.comment.body, '/free-worker'))
     runs-on: ubuntu-latest
     permissions:
       contents: read
+      issues: read
     outputs:
       engineering_base: ${{ steps.guard.outputs.engineering_base }}
+      issue_number: ${{ steps.guard.outputs.issue_number }}
+      model: ${{ steps.guard.outputs.model }}
     steps:
       - name: Enforce repository-specific opt-in and delivery base
         id: guard
@@ -38,6 +45,11 @@ jobs:
           ENGINEERING_BASE: "dev"
           DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
           GH_TOKEN: ${{ github.token }}
+          EVENT_NAME: ${{ github.event_name }}
+          EVENT_PATH: ${{ github.event_path }}
+          DISPATCH_ISSUE_NUMBER: ${{ inputs.issue_number }}
+          DISPATCH_MODEL: ${{ inputs.model }}
+          ACTOR: ${{ github.actor }}
         run: |
           set -euo pipefail
           if test "$GITHUB_REF_NAME" != "$DEFAULT_BRANCH"; then
@@ -56,18 +68,92 @@ jobs:
           esac
           git check-ref-format --branch "$ENGINEERING_BASE"
           gh api "repos/$GITHUB_REPOSITORY/branches/$ENGINEERING_BASE" --jq '.name' >/dev/null
-          echo "engineering_base=$ENGINEERING_BASE" >> "$GITHUB_OUTPUT"
+          # Parse user-authored text as data, not workflow expressions or shell code.
+          # Match the complete comment, with no flags, extra lines or arbitrary arguments.
+          if test "$EVENT_NAME" = issue_comment; then
+            issue_number="$(jq -r '.issue.number // empty' "$EVENT_PATH")"
+            state="$(jq -r '.issue.state // empty' "$EVENT_PATH")"
+            comment_author="$(jq -r '.comment.user.login // empty' "$EVENT_PATH")"
+            sender="$(jq -r '.sender.login // empty' "$EVENT_PATH")"
+            author_type="$(jq -r '.comment.user.type // empty' "$EVENT_PATH")"
+            issue_is_pr="$(jq -r 'has("issue") and (.issue | has("pull_request"))' "$EVENT_PATH")"
+            comment_id="$(jq -er '.comment.id | numbers' "$EVENT_PATH")"
+            test "$state" = open && test "$issue_is_pr" = false ||
+              { echo "::error::Only an open work-item Issue may be dispatched." >&2; exit 1; }
+            test -n "$comment_author" && test "$comment_author" = "$ACTOR" && test "$sender" = "$ACTOR" &&
+              test "$author_type" = User ||
+              { echo "::error::Comment author must be the authenticated human event actor." >&2; exit 1; }
+            case "$issue_number:$comment_id" in
+              *[!0-9:]*|0:*|*:0|:*)
+                echo "::error::Invalid Issue/comment identity." >&2; exit 1 ;;
+            esac
+            # jq compares the JSON string exactly: shell command substitution would
+            # strip trailing newlines and accidentally accept multiline directives.
+            model="$(jq -er '
+              if .comment.body == "/free-worker run" or
+                 .comment.body == "/free-worker run model=mimo-v2.6-flash-free" then
+                "mimo-v2.6-flash-free"
+              elif .comment.body == "/free-worker run model=deepseek-v4.1-flash-free" then
+                "deepseek-v4.1-flash-free"
+              else
+                error("Invalid dispatch directive")
+              end
+            ' "$EVENT_PATH")" ||
+              { echo "::error::Use exactly /free-worker run [model=allowlisted-free-model]." >&2; exit 1; }
+            # Reject edited/deleted comments and mismatched identity at execution time.
+            # Do not trust only the event's potentially stale text or author.
+            comment_json="$(gh api "repos/$GITHUB_REPOSITORY/issues/comments/$comment_id")"
+            jq -e --slurpfile event "$EVENT_PATH" '
+              .id == $event[0].comment.id and
+              .user.id == $event[0].comment.user.id and
+              .user.login == $event[0].comment.user.login and
+              .user.type == "User" and
+              .issue_url == $event[0].issue.url and
+              .body == $event[0].comment.body
+            ' <<< "$comment_json" >/dev/null ||
+              { echo "::error::Dispatch comment was removed, edited or mismatched." >&2; exit 1; }
+            # Check CURRENT repository permission, not self-declared association in a comment.
+            permission="$(gh api "repos/$GITHUB_REPOSITORY/collaborators/$comment_author/permission" --jq '.permission')"
+            case "$permission" in
+              write|maintain|admin) ;;
+              *) echo "::error::Comment author has no repository write/maintain/admin permission." >&2; exit 1 ;;
+            esac
+            # Recheck live Issue state before granting the worker job any write permission.
+            issue_json="$(gh api "repos/$GITHUB_REPOSITORY/issues/$issue_number")"
+            test "$(jq -r '.state' <<< "$issue_json")" = open &&
+              test "$(jq -r 'has("pull_request")' <<< "$issue_json")" = false &&
+              test -n "$(jq -r '.body // empty' <<< "$issue_json")" ||
+              { echo "::error::Issue closed, is a PR, or has no task contract." >&2; exit 1; }
+          else
+            issue_number="$DISPATCH_ISSUE_NUMBER"
+            model="$DISPATCH_MODEL"
+            case "$model" in mimo-v2.6-flash-free|deepseek-v4.1-flash-free) ;; *)
+              echo "::error::Invalid free model." >&2; exit 1 ;;
+            esac
+          fi
+          case "$issue_number" in ''|*[!0-9]*|0)
+            echo "::error::Issue number must be a positive integer." >&2; exit 1 ;;
+          esac
+          {
+            echo "engineering_base=$ENGINEERING_BASE"
+            echo "issue_number=$issue_number"
+            echo "model=$model"
+          } >> "$GITHUB_OUTPUT"
 
   worker:
     needs: enrollment
+    # Serialise by Issue across comment and manual dispatch attempts.
+    concurrency:
+      group: free-worker-${{ github.repository }}-${{ needs.enrollment.outputs.issue_number }}
+      cancel-in-progress: false
     permissions:
       contents: write
       issues: read
       pull-requests: write
     uses: sanchuang-dev/.github/.github/workflows/sanchuang-free-worker-v2.yml@1d3eaaf10558bc70a588f91a6620c08826f350d6
     with:
-      issue_number: ${{ fromJSON(inputs.issue_number) }}
-      model: ${{ inputs.model }}
+      issue_number: ${{ fromJSON(needs.enrollment.outputs.issue_number) }}
+      model: ${{ needs.enrollment.outputs.model }}
       base_branch: ${{ needs.enrollment.outputs.engineering_base }}
       verification_command: |
         set -euo pipefail
