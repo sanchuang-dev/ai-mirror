@@ -1,20 +1,23 @@
 /**
  * H01 个人首页 —— 单套语义 DOM、单一数据与事件逻辑，A/B 主题只切 CSS 变量。
  *
- * 与 OpenDesign 两份原型（A 日光客厅 / B 暖夜剧场）的关系：
- * - 内容层级、入口与文案意图继承原型的个人首页；
- * - 但不为 A/B 各写一份 DOM，也不使用 `a-*` / `b-*` 分叉类名；
- * - 视觉差异全部落在 tokens.css（颜色、字体、阴影、遮罩、留白、画面比例、影像处理），
- *   布局、数据与交互只有一份；影像复用 OpenDesign 原型的开放授权素材（web/assets/img/CREDITS.md）。
+ * T03 起 H01 不再自建顶栏 / 主题控件 / 设置面板：它与 V02 / A01 / E01 / G00 一起
+ * 复用 `components/app-shell.js` 的共享场景壳（同一份导航、主题状态、设置与反馈），
+ * 本文件只负责首页正文内容。仍不为 A/B 各写一份 DOM，也不用 `a-*` / `b-*` 分叉类名。
  *
- * 本卡是 H01 试点：其它业务路由（V01/V02/L01/M01/E01/A01/C01…）尚未实现，
- * 相关入口仍可操作，但只给出明确的「示例 / 未接入」反馈，不伪造结果。
- *
- * T02（Issue #7）在此补出真实的「设置 → 外观与主题」入口：顶栏的「演示主题」仍是
- * 评审用的试点控件，设置面板才是用户入口。两者共用同一个 `data-dir` 主题状态与单套 DOM，
- * 只有设置面板内的显式选择会写入个人本地偏好，不重建业务 DOM，因此不丢滚动与已显示反馈。
+ * 影像复用 OpenDesign 原型的开放授权素材（web/assets/img/CREDITS.md）。
+ * 未接入真实的入口只给出明确的「示例 / 未接入」反馈，不伪造结果。
  */
 import { getHomeContent } from '../data/api.js';
+import { describeRoute } from '../data/notices.js';
+import {
+  createMedia,
+  createNode,
+  createProgress,
+  createRouteButton,
+  createSectionHead,
+} from '../components/kit.js';
+import { createSceneShell, NO_PREFERENCES } from '../components/app-shell.js';
 
 /** @typedef {import('../data/fixtures/home.fixture.js').HomeCard} HomeCard */
 /** @typedef {import('../data/fixtures/home.fixture.js').HomeActivity} HomeActivity */
@@ -22,86 +25,35 @@ import { getHomeContent } from '../data/api.js';
 /** @typedef {import('../data/fixtures/home.fixture.js').HomeFixture} HomeContent */
 /** @typedef {import('../data/preferences.js').ThemePreferences} ThemePreferences */
 
-/** @type {Array<'a' | 'b'>} */
-const THEMES = ['a', 'b'];
+// describeRoute 的既有公开出口仍保留在这里（其它页面从 web/data/notices.js 取同一份文案）。
+export { describeRoute };
 
-/** 主题的名称与气质说明，只沿用 OpenDesign 既有的 A/B，不新造第三套。 */
-/** @type {Record<'a' | 'b', { name: string, desc: string }>} */
-const THEME_META = {
-  a: { name: '日光客厅', desc: '明亮、有呼吸感的客厅杂志式' },
-  b: { name: '暖夜剧场', desc: '深色暖金的沉浸式剧场' },
+/** 首页顶栏品牌文案，与 OpenDesign 个人首页一致。 */
+const HOME_BRAND = { logo: '见趣', sub: '闺蜜机 · 客厅里的好伙伴' };
+
+/** 首页单独渲染（非公共模式）时占位的公共配置；真实公共品牌见 public 场景数据。 */
+const HOME_PUBLIC_PLACEHOLDER = {
+  brand: { logo: '见趣 · 社区版', sub: '公共终端' },
+  note: '本机为公共终端，不含个人内容',
+  dateLabel: '',
 };
-
-/** 设置面板里的偏好保存反馈：区分「已保存 / 保存失败 / 无存储 / 尚无偏好」。 */
-const PREFERENCE_MESSAGES = {
-  saved: '已保存你的选择，刷新后仍会使用。',
-  saveFailed: '本机无法保存偏好：本次选择只在当前页面有效，刷新后会恢复。',
-  noStorage: '本机不能保存外观偏好：选择会立即生效，但刷新后会恢复默认。',
-  noPreference: '还没有保存过外观偏好：选一个就记住，下次打开还在。',
-};
-
-/** 未注入偏好时的空实现（测试 / 纯渲染预览用）：不读取也不写入任何存储。 */
-/** @type {ThemePreferences} */
-const NO_PREFERENCES = { available: false, read: () => null, save: () => false };
-
-/** 每个首页入口对应的诚实反馈；未列出的路由回落到 FALLBACK_NOTICE。 */
-/** @type {Record<string, string>} */
-const ROUTE_NOTICES = {
-  home: '推荐内容就是当前 H01 首页（示例数据）。',
-  video: '看节目 V01 / 播放器 V02 尚未实现：H01 试点只交付首页，本入口为示例演示。',
-  activity: '本地生活 L01 尚未实现：本入口为示例演示。',
-  course: '数字人课程 E01 尚未实现：本入口为示例演示。',
-  shop: '商城 M01 尚未实现：本入口为示例演示。',
-  mine: '个人中心 P01 尚未实现：本入口为示例演示。',
-  search: '搜索尚未实现：本入口为示例演示。',
-  continue: '续播 V02 尚未实现：这里只演示首页「继续观看」入口，为示例。',
-  favorite: '片单 / 收藏的登录存储尚未接入：本次只给出示例反馈。',
-  ai: 'AI 伙伴 A01 尚未实现：本入口为示例，不是真实 AI 服务。',
-  create: 'AI 趣玩 C01 尚未实现：本入口为示例演示。',
-  signup: '报名 L02 尚未实现：不会产生真实报名凭证，仅为示例。',
-};
-
-const FALLBACK_NOTICE = '该入口尚未实现：H01 试点只交付首页，此处为示例。';
 
 /**
- * 入口反馈文案（纯函数，便于直接验证演示契约）。
- * @param {string} route
- * @returns {string}
- */
-export function describeRoute(route) {
-  return ROUTE_NOTICES[route] ?? FALLBACK_NOTICE;
-}
-
-/**
- * 首页交互状态：主题与最后一次入口反馈。
- * 主题只保存选择结果，不读写 localStorage —— 正式「设置 → 外观与主题」入口是待实现功能。
+ * 首页交互状态：主题与最后一次入口反馈。仅为向后兼容保留；正式状态在共享壳里。
+ * @returns {{ getTheme: () => 'a' | 'b', setTheme: (dir: string) => 'a' | 'b', getStatus: () => string, activate: (route: string) => string }}
  */
 export function createHomeController() {
   /** @type {'a' | 'b'} */
   let theme = 'a';
   let status = '';
   return {
-    /** @returns {'a' | 'b'} */
-    getTheme() {
-      return theme;
-    },
-    /**
-     * @param {string} dir
-     * @returns {'a' | 'b'}
-     */
-    setTheme(dir) {
+    getTheme: () => theme,
+    setTheme: (dir) => {
       if (dir === 'a' || dir === 'b') theme = dir;
       return theme;
     },
-    /** @returns {string} */
-    getStatus() {
-      return status;
-    },
-    /**
-     * @param {string} route
-     * @returns {string}
-     */
-    activate(route) {
+    getStatus: () => status,
+    activate: (route) => {
       status = describeRoute(route);
       return status;
     },
@@ -109,199 +61,16 @@ export function createHomeController() {
 }
 
 /**
- * @param {Document} documentRef
- * @param {string} tagName
- * @param {string} [className]
- * @param {string} [text]
- * @returns {HTMLElement}
- */
-function createNode(documentRef, tagName, className, text) {
-  const node = documentRef.createElement(tagName);
-  if (className) node.className = className;
-  if (text !== undefined) node.textContent = text;
-  return node;
-}
-
-/**
- * @param {Document} documentRef
- * @param {string} className
- * @param {string} label
- * @param {string} route
- * @param {(route: string) => void} onActivate
- * @returns {HTMLButtonElement}
- */
-function createRouteButton(documentRef, className, label, route, onActivate) {
-  const node = createNode(documentRef, 'button', className, label);
-  node.setAttribute('type', 'button');
-  node.setAttribute('data-route', route);
-  node.addEventListener('click', () => onActivate(route));
-  return /** @type {HTMLButtonElement} */ (node);
-}
-
-/**
- * 示例画面：优先铺 OpenDesign 原型（PR #1）原样复用的开放授权影像
- * （署名见 `web/assets/img/CREDITS.md`），渐变只作为图片载入前的底色。
- * 影像是氛围示意，alt 一律标注「示例画面」，不冒充真实剧照 / 商品图。
- * @param {Document} documentRef
- * @param {{ tone: string, image?: string, imageAlt?: string, title?: string }} spec
- * @param {boolean} [showNote]
- * @returns {HTMLElement}
- */
-function createMedia(documentRef, spec, showNote) {
-  const media = createNode(documentRef, 'div', 'jq-media jq-media--' + spec.tone);
-  const alt = '示例画面：' + (spec.imageAlt ?? spec.title ?? '');
-  if (spec.image) {
-    const image = createNode(documentRef, 'img', 'jq-media__img');
-    image.setAttribute('src', './assets/img/' + spec.image);
-    image.setAttribute('alt', alt);
-    image.setAttribute('decoding', 'async');
-    media.append(image);
-  } else {
-    // 没有可复用影像时仍保留可读的画面语义，不用纯色块冒充内容。
-    media.setAttribute('role', 'img');
-    media.setAttribute('aria-label', alt);
-  }
-  if (showNote) {
-    media.append(createNode(documentRef, 'span', 'jq-media__note', '示例画面'));
-  }
-  return media;
-}
-
-/**
- * @param {Document} documentRef
- * @param {number} progress
- * @param {string} className
- * @returns {HTMLElement}
- */
-function createProgress(documentRef, progress, className) {
-  const bar = createNode(documentRef, 'div', className);
-  bar.setAttribute('role', 'progressbar');
-  bar.setAttribute('aria-valuemin', '0');
-  bar.setAttribute('aria-valuemax', '100');
-  bar.setAttribute('aria-valuenow', String(progress));
-  const fill = createNode(documentRef, 'span');
-  fill.setAttribute('style', '--jq-progress:' + progress + '%');
-  bar.append(fill);
-  return bar;
-}
-
-/**
- * @param {Document} documentRef
- * @param {string} title
- * @param {string} sub
- * @param {string} titleId
- * @param {(route: string) => void} onActivate
- * @param {{ label: string, route: string }} [more]
- * @returns {HTMLElement}
- */
-function createSectionHead(documentRef, title, sub, titleId, onActivate, more) {
-  const head = createNode(documentRef, 'header', 'jq-section__head');
-  const heading = createNode(documentRef, 'h2', 'jq-section__title', title);
-  heading.setAttribute('id', titleId);
-  head.append(heading, createNode(documentRef, 'span', 'jq-section__sub', sub));
-  if (more) {
-    head.append(createRouteButton(documentRef, 'jq-more', more.label, more.route, onActivate));
-  }
-  return head;
-}
-
-/**
- * 构建 H01 首页。返回单棵 DOM 与可验证的控制器，不做全局副作用。
+ * 构建 H01 首页正文（不含顶栏 / 设置 / 反馈），供共享壳与独立预览共用。
  * @param {Document} documentRef
  * @param {HomeContent} content
- * @param {'a' | 'b'} [initialTheme]
- * @param {ThemePreferences} [preferences] 个人主题偏好存储；缺省时不读写存储
+ * @param {(route: string) => void} activate 共享壳的统一入口动作
+ * @returns {HTMLElement}
  */
-export function renderHome(documentRef, content, initialTheme, preferences = NO_PREFERENCES) {
-  const controller = createHomeController();
+export function renderHomeBody(documentRef, content, activate) {
+  const body = createNode(documentRef, 'div', 'jq-home-body');
 
-  const banner = createNode(documentRef, 'p', 'jq-banner', content.demo.notice);
-
-  // 视口内立即可见的轻提示：挂在滚动区之外并固定定位，页面滚到哪、从下方点「报名」/
-  // AI 入口都能马上看到反馈；可关闭、键盘可达，role=status 是唯一的反馈出口。
-  const toast = createNode(documentRef, 'div', 'jq-toast');
-  toast.setAttribute('role', 'group');
-  toast.setAttribute('aria-label', '入口反馈提示');
-  toast.hidden = true;
-  const toastText = createNode(documentRef, 'p', 'jq-toast__text');
-  toastText.setAttribute('role', 'status');
-  toastText.setAttribute('aria-live', 'polite');
-  const toastClose = createNode(documentRef, 'button', 'jq-toast__close', '关闭');
-  toastClose.setAttribute('type', 'button');
-  toastClose.addEventListener('click', () => {
-    toast.hidden = true;
-  });
-  toast.append(toastText, toastClose);
-
-  /** @param {string} route */
-  const activate = (route) => {
-    toastText.textContent = controller.activate(route);
-    toast.hidden = false;
-  };
-
-  // ---------- 顶栏：品牌 + 一级导航 + 问候 / 演示主题 / 搜索 / 用户 ----------
-  const header = createNode(documentRef, 'header', 'jq-header');
-
-  const brand = createNode(documentRef, 'div', 'jq-brand');
-  brand.append(
-    createNode(documentRef, 'span', 'jq-brand__logo', '见趣'),
-    createNode(documentRef, 'span', 'jq-brand__sub', '闺蜜机 · 客厅里的好伙伴'),
-  );
-
-  const nav = createNode(documentRef, 'nav', 'jq-nav');
-  nav.setAttribute('aria-label', '内容分区');
-  for (const item of content.nav) {
-    const link = createRouteButton(documentRef, 'jq-nav__item', item.label, item.route, activate);
-    if (item.route === 'home') link.setAttribute('aria-current', 'page');
-    nav.append(link);
-  }
-
-  const headerEnd = createNode(documentRef, 'div', 'jq-header__end');
-  const viewer = content.viewer;
-  headerEnd.append(
-    createNode(
-      documentRef,
-      'p',
-      'jq-greeting',
-      viewer.dateLabel + ' · ' + viewer.greeting + '，' + viewer.name,
-    ),
-  );
-
-  const themeGroup = createNode(documentRef, 'div', 'jq-theme');
-  themeGroup.setAttribute('role', 'group');
-  themeGroup.setAttribute('aria-label', '演示主题切换（试点控件，非正式设置）');
-  /** @type {Array<{ dir: 'a' | 'b', node: HTMLButtonElement }>} */
-  const themeButtons = THEMES.map((dir) => {
-    const label = dir === 'a' ? 'A · 日光客厅' : 'B · 暖夜剧场';
-    const node = createNode(documentRef, 'button', 'jq-theme__option', label);
-    node.setAttribute('type', 'button');
-    node.setAttribute('data-dir-option', dir);
-    node.addEventListener('click', () => applyTheme(dir));
-    return { dir, node: /** @type {HTMLButtonElement} */ (node) };
-  });
-  themeGroup.append(createNode(documentRef, 'span', 'jq-theme__label', '演示主题'));
-  for (const entry of themeButtons) themeGroup.append(entry.node);
-
-  const search = createRouteButton(documentRef, 'jq-search', '搜一搜', 'search', activate);
-
-  // T02 正式用户入口：设置。不给它塞演示路由文案，以免和「示例 / 未接入」反馈混淆；
-  // 它打开真实的设置面板（外观与主题），返回后回到当前首页状态。
-  const settingsEntry = createNode(documentRef, 'button', 'jq-settings-entry', '设置');
-  settingsEntry.setAttribute('type', 'button');
-  settingsEntry.setAttribute('data-open-settings', '');
-  settingsEntry.addEventListener('click', openSettings);
-
-  const user = createNode(documentRef, 'div', 'jq-user');
-  const avatar = createNode(documentRef, 'span', 'jq-avatar', viewer.avatarText);
-  avatar.setAttribute('aria-hidden', 'true');
-  user.append(avatar, createNode(documentRef, 'span', 'jq-user__name', viewer.name));
-
-  headerEnd.append(themeGroup, search, settingsEntry, user);
-  header.append(brand, nav, headerEnd);
-
-  // ---------- 主体滚动区 ----------
-  const scroll = createNode(documentRef, 'div', 'jq-scroll');
-  scroll.append(banner);
+  body.append(createNode(documentRef, 'p', 'jq-banner', content.demo.notice));
 
   // 继续观看：全页唯一 h1。
   const featured = content.featured;
@@ -338,35 +107,33 @@ export function renderHome(documentRef, content, initialTheme, preferences = NO_
   );
   hero.append(heroMedia, heroBody);
   heroSection.append(hero);
-  scroll.append(heroSection);
+  body.append(heroSection);
 
   // 接着看
   const continueSection = createNode(documentRef, 'section', 'jq-section');
   continueSection.setAttribute('aria-labelledby', 'jq-continue-title');
   continueSection.append(
-    createSectionHead(
-      documentRef,
-      '接着看',
-      '你追到一半的都在这里',
-      'jq-continue-title',
-      activate,
-      { label: '全部 ›', route: 'video' },
-    ),
+    createSectionHead(documentRef, '接着看', activate, {
+      sub: '你追到一半的都在这里',
+      titleId: 'jq-continue-title',
+      more: { label: '全部 ›', route: 'video' },
+    }),
   );
   const continueRail = createNode(documentRef, 'div', 'jq-rail jq-rail--continue');
   for (const card of content.continueWatching) {
     continueRail.append(renderCard(documentRef, card, activate, true));
   }
   continueSection.append(continueRail);
-  scroll.append(continueSection);
+  body.append(continueSection);
 
   // 今日精选
   const pickSection = createNode(documentRef, 'section', 'jq-section');
   pickSection.setAttribute('aria-labelledby', 'jq-pick-title');
   pickSection.append(
-    createSectionHead(documentRef, '今日精选', '按你常看的口味挑的', 'jq-pick-title', activate, {
-      label: '全部 ›',
-      route: 'video',
+    createSectionHead(documentRef, '今日精选', activate, {
+      sub: '按你常看的口味挑的',
+      titleId: 'jq-pick-title',
+      more: { label: '全部 ›', route: 'video' },
     }),
   );
   const pickRail = createNode(documentRef, 'div', 'jq-rail');
@@ -374,40 +141,40 @@ export function renderHome(documentRef, content, initialTheme, preferences = NO_
     pickRail.append(renderCard(documentRef, card, activate, false));
   }
   pickSection.append(pickRail);
-  scroll.append(pickSection);
+  body.append(pickSection);
 
   // 家门口的活动
   const activitySection = createNode(documentRef, 'section', 'jq-section');
   activitySection.setAttribute('aria-labelledby', 'jq-activity-title');
   activitySection.append(
-    createSectionHead(
-      documentRef,
-      '家门口的活动',
-      '云栖社区 · 本周末',
-      'jq-activity-title',
-      activate,
-      { label: '全部 ›', route: 'activity' },
-    ),
+    createSectionHead(documentRef, '家门口的活动', activate, {
+      sub: '云栖社区 · 本周末',
+      titleId: 'jq-activity-title',
+      more: { label: '全部 ›', route: 'activity' },
+    }),
   );
   const activityGrid = createNode(documentRef, 'div', 'jq-grid jq-grid--activity');
   for (const activity of content.activities) {
     activityGrid.append(renderActivity(documentRef, activity, activate));
   }
   activitySection.append(activityGrid);
-  scroll.append(activitySection);
+  body.append(activitySection);
 
   // 随手玩点新花样
   const createSection = createNode(documentRef, 'section', 'jq-section');
   createSection.setAttribute('aria-labelledby', 'jq-create-title');
   createSection.append(
-    createSectionHead(documentRef, '随手玩点新花样', '把日子过成作品', 'jq-create-title', activate),
+    createSectionHead(documentRef, '随手玩点新花样', activate, {
+      sub: '把日子过成作品',
+      titleId: 'jq-create-title',
+    }),
   );
   const createGrid = createNode(documentRef, 'div', 'jq-grid jq-grid--create');
   for (const creation of content.creations) {
     createGrid.append(renderCreation(documentRef, creation, activate));
   }
   createSection.append(createGrid);
-  scroll.append(createSection);
+  body.append(createSection);
 
   // AI 伙伴入口（常驻，不占据整页）
   const companion = content.companion;
@@ -425,168 +192,43 @@ export function renderHome(documentRef, content, initialTheme, preferences = NO_
     companionText,
     createRouteButton(documentRef, 'jq-btn jq-btn--ghost jq-btn--sm', '问小暖', 'ai', activate),
   );
-  scroll.append(companionSection);
+  body.append(companionSection);
 
-  const fab = createRouteButton(documentRef, 'jq-ai-fab', '问问小暖', 'ai', activate);
-  const fabOrb = createNode(documentRef, 'span', 'jq-orb jq-orb--xs');
-  fabOrb.setAttribute('aria-hidden', 'true');
-  fab.prepend(fabOrb);
+  return body;
+}
 
-  // ---------- 设置 → 外观与主题（T02 正式入口） ----------
-  // 全屏覆盖层，默认隐藏；开关只切 `hidden`，不重建业务 DOM，也不改路由，
-  // 因此返回后滚动位置与已显示的入口反馈都保持原样。
-  const settings = createNode(documentRef, 'div', 'jq-settings');
-  settings.setAttribute('role', 'dialog');
-  settings.setAttribute('aria-modal', 'true');
-  settings.setAttribute('aria-labelledby', 'jq-settings-title');
-  settings.hidden = true;
-
-  const settingsPanel = createNode(documentRef, 'div', 'jq-settings__panel');
-
-  const settingsHead = createNode(documentRef, 'header', 'jq-settings__head');
-  const settingsTitle = createNode(documentRef, 'h2', 'jq-settings__title', '设置');
-  settingsTitle.setAttribute('id', 'jq-settings-title');
-  const settingsBack = createNode(documentRef, 'button', 'jq-settings__back', '返回首页');
-  settingsBack.setAttribute('type', 'button');
-  settingsBack.addEventListener('click', closeSettings);
-  settingsHead.append(settingsTitle, settingsBack);
-
-  const themeGroupSettings = createNode(documentRef, 'section', 'jq-settings__group');
-  themeGroupSettings.setAttribute('aria-labelledby', 'jq-settings-theme-title');
-  const themeHeading = createNode(documentRef, 'h3', 'jq-settings__group-title', '外观与主题');
-  themeHeading.setAttribute('id', 'jq-settings-theme-title');
-
-  const themePicker = createNode(documentRef, 'div', 'jq-theme-picker');
-  themePicker.setAttribute('role', 'group');
-  themePicker.setAttribute('aria-label', '外观与主题');
-  /** @type {Array<{ dir: 'a' | 'b', node: HTMLButtonElement, state: HTMLElement }>} */
-  const themeChoices = THEMES.map((dir) => {
-    const meta = THEME_META[dir];
-    const node = createNode(documentRef, 'button', 'jq-theme-card');
-    node.setAttribute('type', 'button');
-    node.setAttribute('data-theme-choice', dir);
-    node.setAttribute('aria-pressed', 'false');
-    const swatch = createNode(documentRef, 'span', 'jq-theme-card__swatch');
-    swatch.setAttribute('aria-hidden', 'true');
-    const body = createNode(documentRef, 'span', 'jq-theme-card__body');
-    body.append(
-      createNode(documentRef, 'span', 'jq-theme-card__name', meta.name),
-      createNode(documentRef, 'span', 'jq-theme-card__desc', meta.desc),
-    );
-    // 选中态不只靠颜色：同时给「当前使用」文字与 aria-pressed。
-    const state = createNode(documentRef, 'span', 'jq-theme-card__state', '当前使用');
-    state.hidden = true;
-    node.append(swatch, body, state);
-    node.addEventListener('click', () => applyTheme(dir, { persist: true }));
-    return { dir, node: /** @type {HTMLButtonElement} */ (node), state };
+/**
+ * 构建 H01 首页：共享壳 + 首页正文。返回单棵 DOM 与可验证的控制器，不做全局副作用。
+ * @param {Document} documentRef
+ * @param {HomeContent} content
+ * @param {'a' | 'b'} [initialTheme]
+ * @param {ThemePreferences} [preferences] 个人主题偏好存储；缺省时不读写存储
+ * @param {{ isNavigable?: (route: string) => boolean, onNavigate?: (route: string) => void }} [options]
+ */
+export function renderHome(
+  documentRef,
+  content,
+  initialTheme,
+  preferences = NO_PREFERENCES,
+  options = {},
+) {
+  const shell = createSceneShell(documentRef, {
+    rootClass: 'jq-home',
+    theme: initialTheme,
+    preferences,
+    describeRoute,
+    isNavigable: options.isNavigable,
+    onNavigate: options.onNavigate,
+    personal: {
+      brand: HOME_BRAND,
+      viewer: content.viewer,
+      nav: content.nav,
+      companion: content.companion,
+    },
+    publicConfig: HOME_PUBLIC_PLACEHOLDER,
   });
-  for (const choice of themeChoices) themePicker.append(choice.node);
-
-  const settingsStatus = createNode(documentRef, 'p', 'jq-settings__status');
-  settingsStatus.setAttribute('aria-live', 'polite');
-  settingsStatus.setAttribute('aria-atomic', 'true');
-
-  const themeHint = createNode(
-    documentRef,
-    'p',
-    'jq-settings__hint',
-    '选一个你看着舒服的，马上就能看到变化。',
-  );
-  const scopeNote = createNode(
-    documentRef,
-    'p',
-    'jq-settings__note',
-    '本页只保存你自己的外观选择。公共设备是否允许改主题、默认用哪套，尚未确定。',
-  );
-  themeGroupSettings.append(themeHeading, themeHint, themePicker, settingsStatus, scopeNote);
-  settingsPanel.append(settingsHead, themeGroupSettings);
-  settings.append(settingsPanel);
-
-  settings.addEventListener('keydown', (event) => {
-    if (event.key === 'Escape') {
-      event.preventDefault();
-      closeSettings();
-    }
-  });
-
-  const root = createNode(documentRef, 'main', 'jq-home');
-  root.append(header, scroll, fab, toast, settings);
-
-  /**
-   * 应用主题：只改根元素 token 标记与选择状态，不重建业务 DOM，
-   * 因此当前滚动位置与已显示的路由反馈都不会丢。
-   * `persist` 仅在用户于设置面板显式选择时为真；顶部「演示主题」是评审试点控件，不写存储。
-   * @param {string} dir
-   * @param {{ persist?: boolean }} [options]
-   * @returns {'a' | 'b'}
-   */
-  function applyTheme(dir, options = {}) {
-    const current = controller.setTheme(dir);
-    if (documentRef.documentElement) {
-      documentRef.documentElement.setAttribute('data-dir', current);
-    }
-    for (const entry of themeButtons) {
-      entry.node.setAttribute('aria-pressed', entry.dir === current ? 'true' : 'false');
-    }
-    for (const choice of themeChoices) {
-      const selected = choice.dir === current;
-      choice.node.setAttribute('aria-pressed', selected ? 'true' : 'false');
-      choice.state.hidden = !selected;
-    }
-    if (options.persist) {
-      const saved = preferences.save(current);
-      settingsStatus.textContent = saved
-        ? PREFERENCE_MESSAGES.saved
-        : PREFERENCE_MESSAGES.saveFailed;
-    }
-    return current;
-  }
-
-  /**
-   * 打开设置前用一句话说明当前偏好状态：已保存 / 尚无偏好 / 本机不能保存。
-   * @returns {string}
-   */
-  function describePreferenceState() {
-    if (!preferences.available) return PREFERENCE_MESSAGES.noStorage;
-    const stored = preferences.read();
-    if (stored) return '已保存你的偏好：' + THEME_META[stored].name + '。';
-    return PREFERENCE_MESSAGES.noPreference;
-  }
-
-  /**
-   * 打开设置：显示覆盖层、说明偏好状态，并把焦点移到当前选中项。
-   * 背景区域设为 inert，焦点不会落到被遮住的内容上。
-   */
-  function openSettings() {
-    settingsStatus.textContent = describePreferenceState();
-    settings.hidden = false;
-    setBackgroundInert(true);
-    const selected = themeChoices.filter((choice) => choice.dir === controller.getTheme())[0];
-    const focusTarget = selected ? selected.node : settingsBack;
-    if (typeof focusTarget.focus === 'function') focusTarget.focus();
-  }
-
-  /** 关闭设置并返回首页，把焦点交回「设置」入口。 */
-  function closeSettings() {
-    settings.hidden = true;
-    setBackgroundInert(false);
-    if (typeof settingsEntry.focus === 'function') settingsEntry.focus();
-  }
-
-  /**
-   * 设置打开时把背景移出键盘/读屏顺序，避免焦点进入被遮住的内容。
-   * @param {boolean} inert
-   */
-  function setBackgroundInert(inert) {
-    for (const node of [header, scroll, fab, toast]) {
-      if (inert) node.setAttribute('inert', '');
-      else node.removeAttribute('inert');
-    }
-  }
-
-  applyTheme(initialTheme ?? controller.getTheme());
-
-  return { element: root, controller, applyTheme, activate, openSettings, closeSettings };
+  shell.body.append(renderHomeBody(documentRef, content, shell.activate));
+  return shell;
 }
 
 /**
