@@ -476,20 +476,15 @@ test('search focus happens only after mounting and again on cached re-entry', as
 test('program tabs and header navigation share one route, category and search state', async () => {
   const doc = createFakeDocument();
   const { shell } = mountApp(doc, undefined);
+  function currentHeaderRoute() {
+    const current = find(shell.element, (node) => node.getAttribute('aria-current') === 'page')[0];
+    return current?.getAttribute('data-route');
+  }
 
   clickRoute(shell, 'programs-drama');
   const body = shell.body.childNodes[0];
-  const headerCurrent = (route) =>
-    find(
-      shell.element,
-      (node) =>
-        node.getAttribute('data-route') === route && node.getAttribute('aria-current') === 'page',
-    ).length;
   assert.equal(pressedCategory(body), 'drama');
-  assert.equal(
-    headerCurrent('programs-drama'),
-    1,
-  );
+  assert.equal(currentHeaderRoute(), 'programs-drama');
 
   submitKeyword(body, '梁祝');
   await flush();
@@ -497,43 +492,24 @@ test('program tabs and header navigation share one route, category and search st
 
   clickCategory(body, 'opera');
   await flush();
-  assert.equal(
-    shell.body.childNodes[0], body,
-    'changing a tab must not rebuild the page',
-  );
+  assert.equal(shell.body.childNodes[0], body);
   assert.equal(pressedCategory(body), 'opera');
   assert.equal(searchField(body).value, '梁祝', 'tab switch preserves the keyword');
   assert.deepEqual(programIds(body), ['liangzhu']);
-  assert.equal(
-    headerCurrent('programs-opera'),
-    1,
-    'the header must reflect the in-page opera selection',
-  );
+  assert.equal(currentHeaderRoute(), 'programs-opera');
 
   clickRoute(shell, 'programs-drama');
   await flush();
-  assert.equal(shell.body.childNodes[0], body, 'header navigation reuses the scene');
-  assert.equal(
-    pressedCategory(body), 'drama',
-    'header drama entry must restore drama selection',
-  );
-  assert.equal(
-    searchField(body).value, '梁祝',
-    'header navigation must not discard the keyword',
-  );
+  assert.equal(shell.body.childNodes[0], body);
+  assert.equal(pressedCategory(body), 'drama');
+  assert.equal(searchField(body).value, '梁祝');
   assert.equal(stateOf(body), 'empty');
-  assert.equal(
-    headerCurrent('programs-drama'),
-    1,
-  );
+  assert.equal(currentHeaderRoute(), 'programs-drama');
 
   clickRoute(shell, 'home');
   clickRoute(shell, 'programs-opera');
   await flush();
-  assert.equal(
-    shell.body.childNodes[0], body,
-    'all program header routes share the same cache',
-  );
+  assert.equal(shell.body.childNodes[0], body, 'the directory cache is shared across routes');
   assert.equal(pressedCategory(body), 'opera');
   assert.deepEqual(programIds(body), ['liangzhu']);
 });
