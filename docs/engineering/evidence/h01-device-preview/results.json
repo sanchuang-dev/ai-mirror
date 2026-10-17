@@ -1,0 +1,122 @@
+{
+  "chrome": "Mac Google Chrome headless, CDP emulated CSS viewport",
+  "codeSha": "38b6fcec8db89d75259e74d870dee42f78a06a3f",
+  "results": [
+    {
+      "name": "portrait-a-1080x1920",
+      "width": 1080,
+      "height": 1920,
+      "dpr": 1,
+      "scrollable": true,
+      "navHorizontal": false,
+      "touchTargets": 16,
+      "unloadedImages": 0,
+      "click": {
+        "visible": true,
+        "overlap": false,
+        "preserved": true,
+        "dismissed": true,
+        "hasDemo": true,
+        "scrollTop": 1562,
+        "closeHeight": 48
+      }
+    },
+    {
+      "name": "portrait-b-1080x1920",
+      "width": 1080,
+      "height": 1920,
+      "dpr": 1,
+      "scrollable": true,
+      "navHorizontal": false,
+      "touchTargets": 16,
+      "unloadedImages": 0,
+      "click": {
+        "visible": true,
+        "overlap": false,
+        "preserved": true,
+        "dismissed": true,
+        "hasDemo": true,
+        "scrollTop": 1249,
+        "closeHeight": 48
+      }
+    },
+    {
+      "name": "landscape-a-1920x1080",
+      "width": 1920,
+      "height": 1080,
+      "dpr": 1,
+      "scrollable": true,
+      "navHorizontal": false,
+      "touchTargets": 16,
+      "unloadedImages": 0,
+      "click": {
+        "visible": true,
+        "overlap": false,
+        "preserved": true,
+        "dismissed": true,
+        "hasDemo": true,
+        "scrollTop": 1295,
+        "closeHeight": 44
+      }
+    },
+    {
+      "name": "landscape-b-1920x1080",
+      "width": 1920,
+      "height": 1080,
+      "dpr": 1,
+      "scrollable": true,
+      "navHorizontal": false,
+      "touchTargets": 16,
+      "unloadedImages": 0,
+      "click": {
+        "visible": true,
+        "overlap": false,
+        "preserved": true,
+        "dismissed": true,
+        "hasDemo": true,
+        "scrollTop": 1109,
+        "closeHeight": 44
+      }
+    },
+    {
+      "name": "portrait-density-a-540x960-css-2x",
+      "width": 540,
+      "height": 960,
+      "dpr": 2,
+      "scrollable": true,
+      "navHorizontal": true,
+      "touchTargets": 16,
+      "unloadedImages": 0,
+      "click": {
+        "visible": true,
+        "overlap": false,
+        "preserved": true,
+        "dismissed": true,
+        "hasDemo": true,
+        "scrollTop": 1975,
+        "closeHeight": 48
+      }
+    },
+    {
+      "name": "portrait-density-b-540x960-css-2x",
+      "width": 540,
+      "height": 960,
+      "dpr": 2,
+      "scrollable": true,
+      "navHorizontal": true,
+      "touchTargets": 16,
+      "unloadedImages": 0,
+      "click": {
+        "visible": true,
+        "overlap": false,
+        "preserved": true,
+        "dismissed": true,
+        "hasDemo": true,
+        "scrollTop": 1570,
+        "closeHeight": 48
+      }
+    }
+  ],
+  "evidenceImages": "Six Chrome PNG screenshots captured at exact emulated CSS viewports, converted to JPEG quality 84 without resizing.",
+  "limitations": "Chrome CDP viewport and JavaScript click() checks; not Android WebView or physical touch testing."
+}
