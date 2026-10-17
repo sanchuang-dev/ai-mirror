@@ -133,7 +133,8 @@ export function renderHomeBody(documentRef, content, activate) {
     createSectionHead(documentRef, '今日精选', activate, {
       sub: '按你常看的口味挑的',
       titleId: 'jq-pick-title',
-      more: { label: '全部 ›', route: 'video' },
+      // 「全部」进入正式「看节目」目录，而不是跳进单个 V02 播放页。
+      more: { label: '全部 ›', route: 'programs' },
     }),
   );
   const pickRail = createNode(documentRef, 'div', 'jq-rail');

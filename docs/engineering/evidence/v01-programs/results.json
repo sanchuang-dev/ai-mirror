@@ -1,0 +1,588 @@
+{
+  "a": {
+    "home": {
+      "activeElement": "BODY",
+      "cards": [],
+      "count": null,
+      "detailHasV02": false,
+      "detailOpen": false,
+      "detailTitle": null,
+      "dir": "a",
+      "fieldValue": null,
+      "h1": "朝夕巷",
+      "horizontalOverflow": false,
+      "pressedCategory": null,
+      "route": "home",
+      "sceneHasV02": false,
+      "state": null,
+      "stateTitle": null
+    },
+    "navDrama": {
+      "label": "短剧",
+      "ok": true
+    },
+    "drama": {
+      "activeElement": "BODY",
+      "cards": [
+        "zhaoxi-xiang",
+        "chaguan-chunqiu",
+        "laolaiqui",
+        "tuanyuan-fan"
+      ],
+      "count": "「短剧」共 4 个示例节目",
+      "detailHasV02": false,
+      "detailOpen": false,
+      "detailTitle": null,
+      "dir": "a",
+      "fieldValue": "",
+      "h1": "看节目",
+      "horizontalOverflow": false,
+      "pressedCategory": "drama",
+      "route": "programs",
+      "sceneHasV02": false,
+      "state": "ok",
+      "stateTitle": null
+    },
+    "clickOpera": {
+      "label": "戏曲",
+      "ok": true
+    },
+    "opera": {
+      "activeElement": "BODY",
+      "cards": [
+        "chaoyanggou",
+        "liangzhu",
+        "tianxianpei"
+      ],
+      "count": "「戏曲」共 3 个示例节目",
+      "detailHasV02": false,
+      "detailOpen": false,
+      "detailTitle": null,
+      "dir": "a",
+      "fieldValue": "",
+      "h1": "看节目",
+      "horizontalOverflow": false,
+      "pressedCategory": "opera",
+      "route": "programs",
+      "sceneHasV02": false,
+      "state": "ok",
+      "stateTitle": null
+    },
+    "openLiangzhu": {
+      "ok": true
+    },
+    "detailLiangzhu": {
+      "activeElement": "jq-program-detail",
+      "cards": [
+        "chaoyanggou",
+        "liangzhu",
+        "tianxianpei"
+      ],
+      "count": "「戏曲」共 3 个示例节目",
+      "detailHasV02": false,
+      "detailOpen": true,
+      "detailTitle": "越剧《梁祝》",
+      "dir": "a",
+      "fieldValue": "",
+      "h1": "看节目",
+      "horizontalOverflow": false,
+      "pressedCategory": "opera",
+      "route": "programs",
+      "sceneHasV02": false,
+      "state": "ok",
+      "stateTitle": null
+    },
+    "clickAll": {
+      "label": "全部",
+      "ok": true
+    },
+    "submitHit": {
+      "ok": true
+    },
+    "hit": {
+      "activeElement": "jq-programs__results",
+      "cards": [
+        "liangzhu"
+      ],
+      "count": "在「全部」里找到 1 个与「梁祝」相关的示例节目",
+      "detailHasV02": false,
+      "detailOpen": false,
+      "detailTitle": null,
+      "dir": "a",
+      "fieldValue": "梁祝",
+      "h1": "看节目",
+      "horizontalOverflow": false,
+      "pressedCategory": "all",
+      "route": "programs",
+      "sceneHasV02": false,
+      "state": "ok",
+      "stateTitle": null
+    },
+    "clickOldies": {
+      "label": "老歌",
+      "ok": true
+    },
+    "mismatch": {
+      "activeElement": "jq-programs__results",
+      "cards": [],
+      "count": null,
+      "detailHasV02": false,
+      "detailOpen": false,
+      "detailTitle": null,
+      "dir": "a",
+      "fieldValue": "梁祝",
+      "h1": "看节目",
+      "horizontalOverflow": false,
+      "pressedCategory": "oldies",
+      "route": "programs",
+      "sceneHasV02": false,
+      "state": "empty",
+      "stateTitle": "「老歌」里没有找到与「梁祝」相关的节目"
+    },
+    "clear": {
+      "ok": true
+    },
+    "afterClear": {
+      "activeElement": "jq-programs__results",
+      "cards": [
+        "minyue-laoge",
+        "jingdian-laoge"
+      ],
+      "count": "「老歌」共 2 个示例节目",
+      "detailHasV02": false,
+      "detailOpen": false,
+      "detailTitle": null,
+      "dir": "a",
+      "fieldValue": "",
+      "h1": "看节目",
+      "horizontalOverflow": false,
+      "pressedCategory": "oldies",
+      "route": "programs",
+      "sceneHasV02": false,
+      "state": "ok",
+      "stateTitle": null
+    },
+    "openOldie": {
+      "ok": true
+    },
+    "detailOldie": {
+      "activeElement": "jq-program-detail",
+      "cards": [
+        "minyue-laoge",
+        "jingdian-laoge"
+      ],
+      "count": "「老歌」共 2 个示例节目",
+      "detailHasV02": false,
+      "detailOpen": true,
+      "detailTitle": "民乐老歌",
+      "dir": "a",
+      "fieldValue": "",
+      "h1": "看节目",
+      "horizontalOverflow": false,
+      "pressedCategory": "oldies",
+      "route": "programs",
+      "sceneHasV02": false,
+      "state": "ok",
+      "stateTitle": null
+    },
+    "close": {
+      "ok": true
+    },
+    "afterClose": {
+      "activeElement": "jq-card jq-program-card",
+      "cards": [
+        "minyue-laoge",
+        "jingdian-laoge"
+      ],
+      "count": "「老歌」共 2 个示例节目",
+      "detailHasV02": false,
+      "detailOpen": false,
+      "detailTitle": null,
+      "dir": "a",
+      "fieldValue": "",
+      "h1": "看节目",
+      "horizontalOverflow": false,
+      "pressedCategory": "oldies",
+      "route": "programs",
+      "sceneHasV02": false,
+      "state": "ok",
+      "stateTitle": null
+    },
+    "openSearch": {
+      "label": "搜一搜",
+      "ok": true
+    },
+    "searchView": {
+      "activeElement": "BODY",
+      "cards": [
+        "zhaoxi-xiang",
+        "chaguan-chunqiu",
+        "laolaiqui",
+        "tuanyuan-fan",
+        "chaoyanggou",
+        "liangzhu",
+        "tianxianpei",
+        "minyue-laoge",
+        "jingdian-laoge"
+      ],
+      "count": "「全部」共 9 个示例节目",
+      "detailHasV02": false,
+      "detailOpen": false,
+      "detailTitle": null,
+      "dir": "a",
+      "fieldValue": "",
+      "h1": "看节目",
+      "horizontalOverflow": false,
+      "pressedCategory": "all",
+      "route": "programs",
+      "sceneHasV02": false,
+      "state": "ok",
+      "stateTitle": null
+    },
+    "openZhaoxi": {
+      "ok": true
+    },
+    "detailZhaoxi": {
+      "activeElement": "jq-program-detail",
+      "cards": [
+        "zhaoxi-xiang",
+        "chaguan-chunqiu",
+        "laolaiqui",
+        "tuanyuan-fan",
+        "chaoyanggou",
+        "liangzhu",
+        "tianxianpei",
+        "minyue-laoge",
+        "jingdian-laoge"
+      ],
+      "count": "「全部」共 9 个示例节目",
+      "detailHasV02": true,
+      "detailOpen": true,
+      "detailTitle": "朝夕巷",
+      "dir": "a",
+      "fieldValue": "",
+      "h1": "看节目",
+      "horizontalOverflow": false,
+      "pressedCategory": "all",
+      "route": "programs",
+      "sceneHasV02": true,
+      "state": "ok",
+      "stateTitle": null
+    },
+    "goV02": {
+      "ok": true
+    },
+    "videoScene": {
+      "activeElement": "BODY",
+      "cards": [],
+      "count": null,
+      "detailHasV02": false,
+      "detailOpen": false,
+      "detailTitle": null,
+      "dir": "a",
+      "fieldValue": null,
+      "h1": "朝夕巷第 8 集 · 一碗阳春面",
+      "horizontalOverflow": false,
+      "pressedCategory": null,
+      "route": "video",
+      "sceneHasV02": false,
+      "state": null,
+      "stateTitle": null
+    },
+    "consoleSevere": [
+      "http://127.0.0.1:4173/favicon.ico - Failed to load resource: the server responded with a status of 404 (Not Found)"
+    ]
+  },
+  "b": {
+    "home": {
+      "activeElement": "BODY",
+      "cards": [],
+      "count": null,
+      "detailHasV02": false,
+      "detailOpen": false,
+      "detailTitle": null,
+      "dir": "b",
+      "fieldValue": null,
+      "h1": "朝夕巷",
+      "horizontalOverflow": false,
+      "pressedCategory": null,
+      "route": "home",
+      "sceneHasV02": false,
+      "state": null,
+      "stateTitle": null
+    },
+    "navDrama": {
+      "label": "短剧",
+      "ok": true
+    },
+    "drama": {
+      "activeElement": "BODY",
+      "cards": [
+        "zhaoxi-xiang",
+        "chaguan-chunqiu",
+        "laolaiqui",
+        "tuanyuan-fan"
+      ],
+      "count": "「短剧」共 4 个示例节目",
+      "detailHasV02": false,
+      "detailOpen": false,
+      "detailTitle": null,
+      "dir": "b",
+      "fieldValue": "",
+      "h1": "看节目",
+      "horizontalOverflow": false,
+      "pressedCategory": "drama",
+      "route": "programs",
+      "sceneHasV02": false,
+      "state": "ok",
+      "stateTitle": null
+    },
+    "clickOpera": {
+      "label": "戏曲",
+      "ok": true
+    },
+    "opera": {
+      "activeElement": "BODY",
+      "cards": [
+        "chaoyanggou",
+        "liangzhu",
+        "tianxianpei"
+      ],
+      "count": "「戏曲」共 3 个示例节目",
+      "detailHasV02": false,
+      "detailOpen": false,
+      "detailTitle": null,
+      "dir": "b",
+      "fieldValue": "",
+      "h1": "看节目",
+      "horizontalOverflow": false,
+      "pressedCategory": "opera",
+      "route": "programs",
+      "sceneHasV02": false,
+      "state": "ok",
+      "stateTitle": null
+    },
+    "openLiangzhu": {
+      "ok": true
+    },
+    "detailLiangzhu": {
+      "activeElement": "jq-program-detail",
+      "cards": [
+        "chaoyanggou",
+        "liangzhu",
+        "tianxianpei"
+      ],
+      "count": "「戏曲」共 3 个示例节目",
+      "detailHasV02": false,
+      "detailOpen": true,
+      "detailTitle": "越剧《梁祝》",
+      "dir": "b",
+      "fieldValue": "",
+      "h1": "看节目",
+      "horizontalOverflow": false,
+      "pressedCategory": "opera",
+      "route": "programs",
+      "sceneHasV02": false,
+      "state": "ok",
+      "stateTitle": null
+    },
+    "clickAll": {
+      "label": "全部",
+      "ok": true
+    },
+    "submitHit": {
+      "ok": true
+    },
+    "hit": {
+      "activeElement": "jq-programs__results",
+      "cards": [
+        "liangzhu"
+      ],
+      "count": "在「全部」里找到 1 个与「梁祝」相关的示例节目",
+      "detailHasV02": false,
+      "detailOpen": false,
+      "detailTitle": null,
+      "dir": "b",
+      "fieldValue": "梁祝",
+      "h1": "看节目",
+      "horizontalOverflow": false,
+      "pressedCategory": "all",
+      "route": "programs",
+      "sceneHasV02": false,
+      "state": "ok",
+      "stateTitle": null
+    },
+    "clickOldies": {
+      "label": "老歌",
+      "ok": true
+    },
+    "mismatch": {
+      "activeElement": "jq-programs__results",
+      "cards": [],
+      "count": null,
+      "detailHasV02": false,
+      "detailOpen": false,
+      "detailTitle": null,
+      "dir": "b",
+      "fieldValue": "梁祝",
+      "h1": "看节目",
+      "horizontalOverflow": false,
+      "pressedCategory": "oldies",
+      "route": "programs",
+      "sceneHasV02": false,
+      "state": "empty",
+      "stateTitle": "「老歌」里没有找到与「梁祝」相关的节目"
+    },
+    "clear": {
+      "ok": true
+    },
+    "afterClear": {
+      "activeElement": "jq-programs__results",
+      "cards": [
+        "minyue-laoge",
+        "jingdian-laoge"
+      ],
+      "count": "「老歌」共 2 个示例节目",
+      "detailHasV02": false,
+      "detailOpen": false,
+      "detailTitle": null,
+      "dir": "b",
+      "fieldValue": "",
+      "h1": "看节目",
+      "horizontalOverflow": false,
+      "pressedCategory": "oldies",
+      "route": "programs",
+      "sceneHasV02": false,
+      "state": "ok",
+      "stateTitle": null
+    },
+    "openOldie": {
+      "ok": true
+    },
+    "detailOldie": {
+      "activeElement": "jq-program-detail",
+      "cards": [
+        "minyue-laoge",
+        "jingdian-laoge"
+      ],
+      "count": "「老歌」共 2 个示例节目",
+      "detailHasV02": false,
+      "detailOpen": true,
+      "detailTitle": "民乐老歌",
+      "dir": "b",
+      "fieldValue": "",
+      "h1": "看节目",
+      "horizontalOverflow": false,
+      "pressedCategory": "oldies",
+      "route": "programs",
+      "sceneHasV02": false,
+      "state": "ok",
+      "stateTitle": null
+    },
+    "close": {
+      "ok": true
+    },
+    "afterClose": {
+      "activeElement": "jq-card jq-program-card",
+      "cards": [
+        "minyue-laoge",
+        "jingdian-laoge"
+      ],
+      "count": "「老歌」共 2 个示例节目",
+      "detailHasV02": false,
+      "detailOpen": false,
+      "detailTitle": null,
+      "dir": "b",
+      "fieldValue": "",
+      "h1": "看节目",
+      "horizontalOverflow": false,
+      "pressedCategory": "oldies",
+      "route": "programs",
+      "sceneHasV02": false,
+      "state": "ok",
+      "stateTitle": null
+    },
+    "openSearch": {
+      "label": "搜一搜",
+      "ok": true
+    },
+    "searchView": {
+      "activeElement": "BODY",
+      "cards": [
+        "zhaoxi-xiang",
+        "chaguan-chunqiu",
+        "laolaiqui",
+        "tuanyuan-fan",
+        "chaoyanggou",
+        "liangzhu",
+        "tianxianpei",
+        "minyue-laoge",
+        "jingdian-laoge"
+      ],
+      "count": "「全部」共 9 个示例节目",
+      "detailHasV02": false,
+      "detailOpen": false,
+      "detailTitle": null,
+      "dir": "b",
+      "fieldValue": "",
+      "h1": "看节目",
+      "horizontalOverflow": false,
+      "pressedCategory": "all",
+      "route": "programs",
+      "sceneHasV02": false,
+      "state": "ok",
+      "stateTitle": null
+    },
+    "openZhaoxi": {
+      "ok": true
+    },
+    "detailZhaoxi": {
+      "activeElement": "jq-program-detail",
+      "cards": [
+        "zhaoxi-xiang",
+        "chaguan-chunqiu",
+        "laolaiqui",
+        "tuanyuan-fan",
+        "chaoyanggou",
+        "liangzhu",
+        "tianxianpei",
+        "minyue-laoge",
+        "jingdian-laoge"
+      ],
+      "count": "「全部」共 9 个示例节目",
+      "detailHasV02": true,
+      "detailOpen": true,
+      "detailTitle": "朝夕巷",
+      "dir": "b",
+      "fieldValue": "",
+      "h1": "看节目",
+      "horizontalOverflow": false,
+      "pressedCategory": "all",
+      "route": "programs",
+      "sceneHasV02": true,
+      "state": "ok",
+      "stateTitle": null
+    },
+    "goV02": {
+      "ok": true
+    },
+    "videoScene": {
+      "activeElement": "BODY",
+      "cards": [],
+      "count": null,
+      "detailHasV02": false,
+      "detailOpen": false,
+      "detailTitle": null,
+      "dir": "b",
+      "fieldValue": null,
+      "h1": "朝夕巷第 8 集 · 一碗阳春面",
+      "horizontalOverflow": false,
+      "pressedCategory": null,
+      "route": "video",
+      "sceneHasV02": false,
+      "state": null,
+      "stateTitle": null
+    },
+    "consoleSevere": []
+  }
+}

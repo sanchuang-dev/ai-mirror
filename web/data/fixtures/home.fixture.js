@@ -84,9 +84,10 @@ export const homeFixture = {
   },
   nav: [
     { id: 'home', label: '推荐', route: 'home' },
-    { id: 'video', label: '短剧', route: 'video' },
-    { id: 'opera', label: '戏曲', route: 'video' },
-    { id: 'music', label: '音乐', route: 'video' },
+    // 「看节目」分类入口：接入正式节目列表，不再直接跳进固定的 V02 播放场景。
+    { id: 'drama', label: '短剧', route: 'programs-drama' },
+    { id: 'opera', label: '戏曲', route: 'programs-opera' },
+    { id: 'oldies', label: '老歌', route: 'programs-music' },
     { id: 'activity', label: '活动', route: 'activity' },
     { id: 'course', label: '课程', route: 'course' },
     { id: 'shop', label: '商城', route: 'shop' },
