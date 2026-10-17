@@ -17,7 +17,7 @@ import {
   getPublicContent,
   getVideoContent,
 } from '../data/api.js';
-import { createSceneShell } from '../components/app-shell.js';
+import { createSceneShell, NO_PREFERENCES } from '../components/app-shell.js';
 import { mountHome, renderHomeBody } from '../pages/home.js';
 import { renderVideoBody } from '../pages/video.js';
 import { renderAiBody } from '../pages/ai.js';
@@ -31,6 +31,16 @@ const NAVIGABLE_ROUTES = new Set(['home', 'video', 'ai', 'course', 'public']);
 
 /** 公共模式路由：进入后顶栏不显示个人身份与设置入口。 */
 const PUBLIC_ROUTE = 'public';
+
+/**
+ * Preview-only device selection; production hosts must supply trusted deployment
+ * configuration instead of treating this query argument as authentication.
+ * @returns {'personal' | 'public'}
+ */
+function readDeviceModeFromLocation() {
+  if (typeof location === 'undefined') return 'personal';
+  return new URLSearchParams(location.search).get('device') === 'public' ? 'public' : 'personal';
+}
 
 /**
  * 既有评审/截图参数：`?dir=b` 直接以 B 主题预览。
@@ -47,24 +57,32 @@ function readThemeFromLocation() {
  * 装配并挂载整站演示。返回共享壳与路由函数，便于验证。
  * @param {Document} documentRef
  * @param {import('../data/preferences.js').ThemePreferences} [preferences]
+ * @param {{ deviceMode?: 'personal' | 'public' }} [options]
  * @returns {{ shell: import('../components/app-shell.js').SceneShell, show: (route: string) => string }}
  */
-export function mountApp(documentRef, preferences = createThemePreferences()) {
+export function mountApp(documentRef, preferences, options = {}) {
   const outlet = documentRef.getElementById('app');
   if (!outlet) {
     throw new Error('Required application outlet #app is missing');
   }
 
+  // Public terminals must not read an injected personal preference.
+  const deviceMode = options.deviceMode ?? 'personal';
+  const effectivePreferences =
+    deviceMode === 'public' ? NO_PREFERENCES : (preferences ?? createThemePreferences());
   const home = getHomeContent();
   const publicContent = getPublicContent();
-  // 个人已保存偏好优先；仅在没有个人偏好时使用 `?dir` 评审参数，默认 A。
   const initialTheme = resolveInitialTheme({
-    stored: preferences.read(),
+    stored: deviceMode === 'public' ? null : effectivePreferences.read(),
     param: readThemeFromLocation(),
   });
 
-  /** @type {Map<string, HTMLElement>} 首次进入即缓存，返回时原样复用，保留场景状态。 */
+  /** @type {Map<string, HTMLElement>} Lazy scene bodies preserve local interaction state. */
   const bodies = new Map();
+  /** @type {Map<string, number>} Independent scroll position for each scene. */
+  const scrollPositions = new Map();
+  /** @type {string | null} */
+  let activeRoute = null;
 
   /** @type {import('../components/app-shell.js').SceneShell} */
   let shell;
@@ -96,17 +114,28 @@ export function mountApp(documentRef, preferences = createThemePreferences()) {
    * @returns {string}
    */
   function show(route) {
+    // Deployment mode is immutable. Even a stale or synthetic private route
+    // cannot expose the private shell on a public terminal.
+    if (deviceMode === 'public' && route !== PUBLIC_ROUTE) return PUBLIC_ROUTE;
     const target = NAVIGABLE_ROUTES.has(route) ? route : 'home';
+    if (activeRoute === target) return target;
+
+    if (activeRoute !== null) {
+      scrollPositions.set(activeRoute, shell.body.scrollTop);
+    }
     shell.setMode(target === PUBLIC_ROUTE ? 'public' : 'personal');
     shell.setScene(target);
     shell.body.replaceChildren(bodyFor(target));
+    shell.body.scrollTop = scrollPositions.get(target) ?? 0;
+    activeRoute = target;
     return target;
   }
 
   shell = createSceneShell(documentRef, {
     rootClass: 'jq-home',
     theme: initialTheme,
-    preferences,
+    preferences: effectivePreferences,
+    canLeavePublicPreview: deviceMode === 'personal',
     describeRoute,
     isNavigable: (route) => NAVIGABLE_ROUTES.has(route),
     onNavigate: show,
@@ -123,13 +152,12 @@ export function mountApp(documentRef, preferences = createThemePreferences()) {
     },
   });
 
-  show('home');
+  show(deviceMode === 'public' ? PUBLIC_ROUTE : 'home');
   outlet.replaceChildren(shell.element);
   return { shell, show };
 }
 
 if (typeof document !== 'undefined') {
-  // 本试点按个人会话接入本地偏好。公共设备模式（G00）不读取也不写入个人存储，
-  // 公共设备默认主题与访客改主题权限仍未确定，由设备部署规则另行确认。
-  mountApp(document, createThemePreferences());
+  // Preview selector only; real deployment must use trusted device activation.
+  mountApp(document, undefined, { deviceMode: readDeviceModeFromLocation() });
 }

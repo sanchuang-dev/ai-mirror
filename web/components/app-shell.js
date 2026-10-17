@@ -68,6 +68,7 @@ export const NO_PREFERENCES = { available: false, read: () => null, save: () => 
  * @property {'personal' | 'public'} [mode]
  * @property {string} [scene]
  * @property {'a' | 'b'} [theme]
+ * @property {boolean} [canLeavePublicPreview] Only personal-device previews may exit to private.
  * @property {ThemePreferences} [preferences]
  * @property {(route: string) => string} describeRoute
  * @property {(route: string) => boolean} [isNavigable]
@@ -196,7 +197,7 @@ export function createSceneShell(documentRef, config) {
     const headerEnd = createNode(documentRef, 'div', 'jq-header__end');
 
     if (mode === 'public') {
-      // 公共终端：不含个人姓名 / 问候 / 设置 / 私人入口，只保留公共标识、时间与返回家庭版。
+      // 公共终端：只保留公共标识、时间和演示主题；仅个人设备上的社区预览可返回。
       brand.append(
         createNode(documentRef, 'span', 'jq-brand__logo', publicConfig.brand.logo),
         createNode(documentRef, 'span', 'jq-brand__sub', publicConfig.brand.sub),
@@ -205,8 +206,13 @@ export function createSceneShell(documentRef, config) {
         createNode(documentRef, 'span', 'jq-public-note', publicConfig.note),
         createNode(documentRef, 'span', 'jq-greeting', publicConfig.dateLabel),
         buildThemeGroup(),
-        createRouteButton(documentRef, 'jq-public-back', '‹ 返回家庭版', 'home', activate),
       );
+      if (config.canLeavePublicPreview) {
+        // Real public terminals never expose a switch to personal space.
+        headerEnd.append(
+          createRouteButton(documentRef, 'jq-public-back', '‹ 退出社区预览', 'home', activate),
+        );
+      }
       header.append(brand, headerEnd);
     } else {
       brand.append(
@@ -248,7 +254,7 @@ export function createSceneShell(documentRef, config) {
         buildThemeGroup(),
         createRouteButton(documentRef, 'jq-search', '搜一搜', 'search', activate),
         // 正式演示入口：从个人设备进入公共（社区）模式；公共模式不再提供任何个人入口。
-        createRouteButton(documentRef, 'jq-public-entry', '社区版 ›', 'public', activate),
+        createRouteButton(documentRef, 'jq-public-entry', '社区版预览 ›', 'public', activate),
         settingsEntry,
         user,
       );

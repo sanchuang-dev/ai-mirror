@@ -78,7 +78,7 @@ test('the four existing scenes are reachable and returnable through formal navig
     );
   }
 
-  // 公共场景：从个人顶栏的「社区版」入口进入，再从「返回家庭版」回到个人首页。
+  // 公共场景：从个人顶栏进入「社区版预览」，只有个人设备预览能返回；公共设备无此按钮。
   clickRoute(shell.element, 'public');
   assert.equal(
     find(shell.element, (node) => node.classList.contains('jq-scene--public')).length,
@@ -88,7 +88,7 @@ test('the four existing scenes are reachable and returnable through formal navig
   assert.equal(find(shell.element, (node) => node.classList.contains('jq-home-body')).length, 1);
 });
 
-test('public G00 hides every personal surface and restores them on return', () => {
+test('personal-device public preview hides private surfaces and can exit the preview', () => {
   const { doc, shell } = setup();
   const publicContent = getPublicContent();
   const personalName = '王秀兰';
@@ -197,4 +197,56 @@ test('personal theme preference is applied on mount and public mode never writes
   app.shell.applyTheme('a');
   assert.equal(doc.documentElement.getAttribute('data-dir'), 'a');
   assert.equal(storage.getItem('jianqu.theme-preference'), 'b');
+});
+
+test('a public-terminal launch cannot navigate to private routes or read personal preferences', () => {
+  const doc = createFakeDocument();
+  const secretPreferences = {
+    available: true,
+    read: () => {
+      throw new Error('public bootstrap accessed private preferences');
+    },
+    save: () => {
+      throw new Error('public bootstrap wrote private preferences');
+    },
+  };
+  const { shell, show } = mountApp(doc, secretPreferences, { deviceMode: 'public' });
+
+  assert.equal(shell.getMode(), 'public');
+  assert.equal(
+    find(shell.element, (node) => node.classList.contains('jq-scene--public')).length,
+    1,
+  );
+  assert.equal(find(shell.element, (node) => node.classList.contains('jq-home-body')).length, 0);
+  assert.equal(find(shell.element, (node) => node.classList.contains('jq-public-back')).length, 0);
+  assert.equal(find(shell.element, (node) => node.classList.contains('jq-user')).length, 0);
+  assert.equal(find(shell.element, (node) => node.hasAttribute('data-open-settings')).length, 0);
+  assert.equal(find(shell.element, (node) => node.classList.contains('jq-ai-fab'))[0].hidden, true);
+
+  for (const route of ['home', 'video', 'ai', 'course', 'mine', 'garbage']) {
+    assert.equal(show(route), 'public', 'no synthetic route may cross the public boundary');
+    shell.activate(route);
+    assert.equal(shell.getMode(), 'public');
+    assert.equal(find(shell.element, (node) => node.classList.contains('jq-home-body')).length, 0);
+    assert.equal(find(shell.element, (node) => node.classList.contains('jq-user')).length, 0);
+  }
+  shell.applyTheme('b');
+  assert.equal(doc.documentElement.getAttribute('data-dir'), 'b');
+});
+
+test('each scene starts at top then independently restores its last scroll position', () => {
+  const { shell } = setup();
+  shell.body.scrollTop = 1300;
+  clickRoute(shell.element, 'video');
+  assert.equal(shell.body.scrollTop, 0, 'first video visit must not inherit home offset');
+  shell.body.scrollTop = 70;
+  clickRoute(shell.element, 'course');
+  assert.equal(shell.body.scrollTop, 0, 'first course visit starts at the top');
+  shell.body.scrollTop = 40;
+  clickRoute(shell.element, 'home');
+  assert.equal(shell.body.scrollTop, 1300, 'returning restores the exact home scroll');
+  clickRoute(shell.element, 'video');
+  assert.equal(shell.body.scrollTop, 70, 'video has its own independent scroll position');
+  clickRoute(shell.element, 'course');
+  assert.equal(shell.body.scrollTop, 40, 'course restores its own independent scroll position');
 });
