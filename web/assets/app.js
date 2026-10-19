@@ -11,6 +11,7 @@
 import { createThemePreferences, resolveInitialTheme } from '../data/preferences.js';
 import { describeRoute } from '../data/notices.js';
 import {
+  getActivityContent,
   getAiContent,
   getCourseContent,
   getCreationContent,
@@ -29,6 +30,7 @@ import { renderCourseBody } from '../pages/course.js';
 import { renderPublicBody } from '../pages/public.js';
 import { renderCreationBody, resetCreationFlow } from '../pages/creation.js';
 import { renderCreationResultBody } from '../pages/creation-result.js';
+import { renderActivitiesBody } from '../pages/activities.js';
 import { clearCreationDraft } from '../data/creation-draft.js';
 import { createWatchLibrary } from '../data/watch.js';
 import {
@@ -82,6 +84,8 @@ const NAVIGABLE_ROUTES = new Set([
   // 首页「继续观看」是正式续播入口：按正确节目 / 集进入既有 V02 播放器，
   // 不再只是发出一条 Toast。
   'continue',
+  // L01-A 本地活动与福利示例目录（分类 + 关键词筛选 + 空状态）。
+  'activity',
   ...Object.keys(PROGRAM_ROUTES),
 ]);
 
@@ -192,6 +196,9 @@ export function mountApp(documentRef, preferences, options = {}) {
       });
     } else if (route === PUBLIC_ROUTE) {
       body = renderPublicBody(documentRef, publicContent, shell.activate);
+    } else if (route === 'activity') {
+      // L01-A 示例目录：详情（L01-B）与报名（L02）尚未接入，卡片只给诚实提示。
+      body = renderActivitiesBody(documentRef, getActivityContent(), shell.activate);
     } else if (route === SEARCH_ROUTE) {
       body = renderProgramsBody(documentRef, programContent, shell.activate, {
         category: 'all',

@@ -13,8 +13,9 @@ import { publicFixture } from './fixtures/public.fixture.js';
 import { programFixture } from './fixtures/programs.fixture.js';
 import { creationFixture } from './fixtures/creation.fixture.js';
 import { creationResultFixture } from './fixtures/creation-result.fixture.js';
+import { activityFixture } from './fixtures/activities.fixture.js';
 
-/** @typedef {import('./fixtures/home.fixture.js').HomeFixture} HomeContent */
+/** @typedef {import('./fixtures/home.fixture.js').HomeContent} HomeContent */
 /** @typedef {import('./fixtures/video.fixture.js').VideoFixture} VideoContent */
 /** @typedef {import('./fixtures/ai.fixture.js').AiFixture} AiContent */
 /** @typedef {import('./fixtures/course.fixture.js').CourseFixture} CourseContent */
@@ -23,13 +24,39 @@ import { creationResultFixture } from './fixtures/creation-result.fixture.js';
 /** @typedef {import('./fixtures/programs.fixture.js').ProgramItem} ProgramItem */
 /** @typedef {import('./fixtures/creation.fixture.js').CreationFixture} CreationContent */
 /** @typedef {import('./fixtures/creation-result.fixture.js').CreationResultFixture} CreationResultContent */
+/** @typedef {import('./fixtures/activities.fixture.js').ActivityFixture} ActivityContent */
 
 /**
+ * H01 首页数据：在首页 fixture 之上，把「家门口的活动」接到 L01-A 的唯一活动事实源。
+ * 首页只取目录条目中的活动（不含福利），字段与目录卡片保持一致。
+ * @type {HomeContent}
+ */
+const homeContent = {
+  ...homeFixture,
+  activities: activityFixture.items
+    .filter((item) => item.category === 'activity')
+    .map((item) => ({
+      id: item.id,
+      title: item.title,
+      time: item.time,
+      place: item.place,
+      price: item.price,
+      free: item.free,
+      tone: item.tone,
+      image: item.image,
+      imageAlt: item.imageAlt,
+    })),
+};
+/**
  * H01 个人首页内容。
+ *
+ * 「家门口的活动」不再在首页 fixture 里维护第二份：它由 L01-A 的活动数据
+ * （`activities.fixture.js`）组合成首页需要的精简字段，因此首页卡片与本地生活目录
+ * 永远指向同一批示例条目。
  * @returns {HomeContent} 单一结构的首页数据，A/B 主题共用。
  */
 export function getHomeContent() {
-  return homeFixture;
+  return homeContent;
 }
 
 /**
@@ -86,6 +113,14 @@ export function getCreationContent() {
  */
 export function getCreationResultContent() {
   return creationResultFixture;
+}
+
+/**
+ * L01-A 本地活动与福利目录内容（分类 + 示例条目）。
+ * @returns {ActivityContent} 单一结构的示例数据，A/B 主题共用。
+ */
+export function getActivityContent() {
+  return activityFixture;
 }
 
 /**

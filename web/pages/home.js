@@ -22,7 +22,7 @@ import { createSceneShell, NO_PREFERENCES } from '../components/app-shell.js';
 /** @typedef {import('../data/fixtures/home.fixture.js').HomeCard} HomeCard */
 /** @typedef {import('../data/fixtures/home.fixture.js').HomeActivity} HomeActivity */
 /** @typedef {import('../data/fixtures/home.fixture.js').HomeCreation} HomeCreation */
-/** @typedef {import('../data/fixtures/home.fixture.js').HomeFixture} HomeContent */
+/** @typedef {import('../data/fixtures/home.fixture.js').HomeContent} HomeContent */
 /** @typedef {import('../data/preferences.js').ThemePreferences} ThemePreferences */
 
 // describeRoute 的既有公开出口仍保留在这里（其它页面从 web/data/notices.js 取同一份文案）。
@@ -288,26 +288,39 @@ function renderCard(documentRef, card, onActivate, withProgress, openProgram) {
  */
 function renderActivity(documentRef, activity, onActivate) {
   const article = createNode(documentRef, 'article', 'jq-panel jq-activity');
-  const media = createMedia(documentRef, {
-    tone: activity.tone,
-    image: activity.image,
-    imageAlt: activity.imageAlt,
-    title: activity.title,
-  });
+  // 画面进入 L01-A 示例目录：首页活动不再只发一条无法导航的提示。
+  // 标题 / 时间仍留在卡片正文，保证标题语义与既有 H01 结构不变。
+  const open = createRouteButton(documentRef, 'jq-activity__open', '', 'activity', onActivate);
+  open.setAttribute('aria-label', activity.title + '：查看本地活动与福利示例目录');
+  open.append(
+    createMedia(documentRef, {
+      tone: activity.tone,
+      image: activity.image,
+      imageAlt: activity.imageAlt,
+      title: activity.title,
+    }),
+  );
   const body = createNode(documentRef, 'div', 'jq-activity__body');
   const foot = createNode(documentRef, 'div', 'jq-activity__foot');
   const chip = createNode(documentRef, 'span', 'jq-chip', activity.price);
   if (activity.free) chip.classList.add('jq-chip--free');
+  // 「报名」先进入示例目录：L02 未接入，不显示报名成功。
   foot.append(
     chip,
-    createRouteButton(documentRef, 'jq-btn jq-btn--ghost jq-btn--sm', '报名', 'signup', onActivate),
+    createRouteButton(
+      documentRef,
+      'jq-btn jq-btn--ghost jq-btn--sm jq-activity__signup',
+      '报名',
+      'activity',
+      onActivate,
+    ),
   );
   body.append(
     createNode(documentRef, 'h3', 'jq-activity__name', activity.title),
     createNode(documentRef, 'p', 'jq-activity__meta', activity.place + ' · ' + activity.time),
     foot,
   );
-  article.append(media, body);
+  article.append(open, body);
   return article;
 }
 

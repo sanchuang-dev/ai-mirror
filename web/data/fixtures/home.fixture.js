@@ -59,15 +59,21 @@
  * @property {string} imageAlt
  *
  * @typedef {object} HomeFixture
+ * 首页 fixture 原始数据：不含「家门口的活动」。
  * @property {{ level: string, notice: string }} demo
  * @property {{ dateLabel: string, greeting: string, name: string, avatarText: string }} viewer
  * @property {HomeNavItem[]} nav
  * @property {HomeFeatured} featured
  * @property {HomeCard[]} continueWatching
  * @property {HomeCard[]} recommendations
- * @property {HomeActivity[]} activities
  * @property {HomeCreation[]} creations
  * @property {{ name: string, status: string, line: string }} companion
+ *
+ * 首页「家门口的活动」不自带第二份活动数据：L01-A 起由 `activities.fixture.js`
+ * 统一提供，经 `web/data/api.js` 组合成首页需要的精简字段，避免首页与本地生活目录各说一套。
+ *
+ * @typedef {HomeFixture & { activities: HomeActivity[] }} HomeContent
+ * 页面消费的完整首页内容（fixture + L01-A 活动条目）。
  */
 
 /** @type {HomeFixture} */
@@ -183,41 +189,6 @@ export const homeFixture = {
       tone: 'gold',
       image: 'art-guzheng.jpg',
       imageAlt: '民乐老歌氛围画面：传统民乐合奏',
-    },
-  ],
-  activities: [
-    {
-      id: 'taiji',
-      title: '晨练太极',
-      time: '周六 7:00',
-      place: '云栖公园',
-      price: '免费',
-      free: true,
-      tone: 'warm',
-      image: 'art-taichi.jpg',
-      imageAlt: '晨练太极氛围画面：公园里的太极晨练',
-    },
-    {
-      id: 'chayi',
-      title: '邻里茶艺课',
-      time: '周日 15:00',
-      place: '活动中心',
-      price: '余 8 位',
-      free: false,
-      tone: 'calm',
-      image: 'art-tea.jpg',
-      imageAlt: '邻里茶艺课氛围画面：茶艺课上的茶具',
-    },
-    {
-      id: 'dubao',
-      title: '老友读报会',
-      time: '每天 9:30',
-      place: '社区书屋',
-      price: '免费',
-      free: true,
-      tone: 'cool',
-      image: 'art-reading.jpg',
-      imageAlt: '老友读报会氛围画面：社区书屋的读报场景',
     },
   ],
   creations: [
