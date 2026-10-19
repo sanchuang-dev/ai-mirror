@@ -3424,6 +3424,210 @@ button.jq-video-next__row:hover {
   }
 }
 
+/* ---------- L02 报名确认与公共设备手机接力（Issue #14） ----------
+   个人确认 / 取消与公共手机接力共用同一条活动对象；这里只补 S1 模拟报名的
+   确认摘要、模拟结果、演示异常和接力反馈，主题差异仍只来自 tokens.css。 */
+.jq-activity-detail__main[hidden],
+.jq-activity-signup[hidden] {
+  display: none;
+}
+
+.jq-activity-detail__state {
+  margin: 0;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.jq-activity-signup {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  outline: none;
+}
+
+.jq-signup__head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.jq-signup__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(24px, 2.4vw, 32px);
+  line-height: 1.15;
+}
+
+.jq-signup__badge {
+  padding: 4px 12px;
+  border: 1px solid var(--accent-soft-border);
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.jq-signup__intro {
+  margin: 0;
+  color: var(--ink);
+  font-size: 16px;
+}
+
+.jq-signup__notice {
+  margin: 0;
+  padding: 10px 14px;
+  border-left: 4px solid var(--accent);
+  border-radius: 0 10px 10px 0;
+  background: var(--accent-soft);
+  color: var(--ink);
+  font-size: 14px;
+}
+
+.jq-signup__summary {
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface-2);
+}
+
+.jq-signup__h3 {
+  margin: 0 0 8px;
+  font-size: 17px;
+}
+
+.jq-signup__summary-name {
+  margin: 0 0 8px;
+  color: var(--ink);
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.jq-signup__facts .jq-activity-card__label {
+  width: 5em;
+}
+
+.jq-signup__actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.jq-signup__result-activity {
+  margin: 0;
+  color: var(--ink);
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.jq-signup__result-text {
+  margin: 0;
+  max-width: 76ch;
+  color: var(--ink);
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+.jq-signup__relay {
+  display: grid;
+  grid-template-columns: 180px minmax(0, 1fr);
+  gap: 20px;
+  align-items: start;
+}
+
+.jq-signup__qr {
+  display: grid;
+  place-items: center;
+  width: 168px;
+  aspect-ratio: 1;
+  border: 3px solid var(--ink);
+  border-radius: 12px;
+  background-color: var(--surface);
+  background-image: repeating-conic-gradient(var(--ink) 0 25%, transparent 0 50%);
+  background-size: 22px 22px;
+}
+
+.jq-signup__qr-mark {
+  padding: 4px 12px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--bg);
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.jq-signup__relay-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.jq-signup__qr-label {
+  margin: 0;
+  color: var(--ink);
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.jq-signup__qr-hint {
+  margin: 0;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.jq-signup__steps {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0;
+  padding-left: 1.3em;
+  color: var(--ink);
+  font-size: 15px;
+}
+
+.jq-signup__status {
+  margin: 0;
+  padding: 12px 16px;
+  border: 1px dashed var(--border);
+  border-radius: 12px;
+  background: var(--surface-2);
+  color: var(--ink);
+  font-size: 15px;
+}
+
+.jq-signup__demo {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.jq-signup__demo-label {
+  margin: 0;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+@media (max-width: 900px) {
+  .jq-signup__relay {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .jq-signup__qr {
+    width: 148px;
+  }
+}
+
+@media (orientation: portrait) {
+  .jq-signup__intro,
+  .jq-signup__result-text,
+  .jq-signup__status,
+  .jq-signup__steps {
+    font-size: 17px;
+  }
+}
+
 /* ---------- M01 平台商城首页（Issue #15） ----------
    复用既有 .jq-scene__head / .jq-programs-search / .jq-program-tab / .jq-programs__state,
    只补商城浏览所需的内容卡、店铺来源与详情入口；主题差异仍只来自 tokens.css。 */
