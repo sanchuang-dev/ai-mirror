@@ -151,8 +151,8 @@ function renderStreamItem(documentRef, item, activate) {
     createRouteButton(
       documentRef,
       'jq-btn jq-btn--ghost jq-btn--sm',
-      '看看示例',
-      'signup',
+      item.actionLabel ?? '看看示例',
+      item.route ?? 'signup',
       activate,
     ),
   );
