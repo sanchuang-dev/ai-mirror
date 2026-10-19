@@ -2,13 +2,14 @@
  * M01 平台商城首页示例数据（S1 演示，非真实商城）。
  *
  * 这是商城 M01 唯一的一份示例数据：平台精选、类目、入驻店铺（来源）与商品列表都从这里取数，
- * 经 `web/data/api.js` 出口消费，页面不另写第二份商品列表。M02 的商品详情应继续复用同一批
+ * 经 `web/data/api.js` 出口消费，页面不另写第二份商品列表。M02 的商品详情继续复用同一批
  * `id` / `storeId`，不另建一套商品事实源。
  *
- * 边界（Issue #15）：
+ * 边界（Issue #15 / #16）：
  * - 店铺、商品、价格、配送与服务条件全部为**虚构示例**；
  * - 不编造库存、销量、评分、优惠倒计时或真实履约时效；
- * - 商城的商品详情（M02）、购物车与订单确认（M03）尚未接入，本数据只提供浏览所需字段；
+ * - `details` 只为「上臂式电子血压计」补充 M02 详情资料，其余商品由详情页如实说明未补充；
+ * - 购物车与订单确认（M03）尚未接入，详情页只提供明确标注的示例入口；
  * - 不外链其它电商，商品与店铺都在本平台商城内展示。
  *
  * 影像复用 OpenDesign 原型的开放授权素材（web/assets/img/CREDITS.md），只是氛围示意。
@@ -39,6 +40,27 @@
  * @property {'all' | ShopCategory} id `all` 表示不做分类限制。
  * @property {string} label
  *
+ * @typedef {object} ShopProductSpec
+ * @property {string} id 规格 id；M02 详情页以它维护当前选择。
+ * @property {string} label 规格名称。
+ * @property {string} contents 该规格包含什么。
+ * @property {'sample' | 'out-of-stock-example'} availability 示例状态；后者只用于演示无货提示。
+ * @property {string} availabilityLabel 用户可读的示例状态说明。
+ *
+ * @typedef {object} ShopProductDetail
+ * @property {string} productId 指向 `products` 中的稳定 id。
+ * @property {string} intro 详情页的示例边界说明。
+ * @property {ShopProductSpec[]} specs 可选规格。
+ * @property {string} defaultSpecId 默认规格，必须存在于 `specs`。
+ * @property {{ unitPrice: number, quantityLimit: number, quantityNote: string }} pricing
+ *   示例单价（用于演示小计，必须与商品 `price` 中的数字一致）、演示数量上限与说明。
+ * @property {{ fee: number, freeFrom: number, note: string }} shipping 示例运费规则。
+ * @property {string} region 示例适用区域。
+ * @property {string} fulfillmentParty 店铺 / 履约方与责任边界。
+ * @property {string} delivery 预计配送 / 服务说明。
+ * @property {string} afterSales 售后说明。
+ * @property {string} stockNote 库存未接入的显式说明。
+ *
  * @typedef {object} ShopFixture
  * @property {{ level: string, notice: string }} demo
  * @property {string} title
@@ -49,6 +71,7 @@
  * @property {ShopCategoryEntry[]} categories
  * @property {ShopStore[]} stores
  * @property {ShopProduct[]} products
+ * @property {ShopProductDetail[]} details 只为提供完整示例资料的商品补充详情；其余商品由详情页如实说明未补充。
  */
 
 /** @type {ShopFixture} */
@@ -204,6 +227,49 @@ export const shopFixture = {
       image: 'art-teahouse.jpg',
       imageAlt: '商城权益氛围画面：茶馆里的慢生活',
       tags: '会员 免运费 权益 商城',
+    },
+  ],
+  details: [
+    {
+      productId: 'blood-pressure',
+      intro:
+        '这是 M02 的商品详情示例：规格、单价、数量、运费、区域、履约方与售后都只用于说明信息如何呈现，不是真实商品页，也不代表商家真实在售。',
+      specs: [
+        {
+          id: 'standard',
+          label: '标准装',
+          contents: '主机 1 台 · 袖带 1 条 · 说明书 1 份',
+          availability: 'sample',
+          availabilityLabel: '正常示例状态（未接入真实库存）',
+        },
+        {
+          id: 'gift',
+          label: '礼盒装',
+          contents: '主机 1 台 · 收纳包 1 个 · 礼盒 1 个',
+          availability: 'out-of-stock-example',
+          availabilityLabel: '无货示例状态（仅演示，不代表真实库存）',
+        },
+      ],
+      defaultSpecId: 'standard',
+      pricing: {
+        unitPrice: 199,
+        quantityLimit: 9,
+        quantityNote: '数量只为演示加减；演示上限 9 件不是库存限制，也不校验真实可供数量。',
+      },
+      shipping: {
+        fee: 12,
+        freeFrom: 299,
+        note: '示例规则：满 ¥299 免运费，未满收 ¥12。真实运费、包邮门槛与结算金额尚未接入，以 M03 为准。',
+      },
+      region:
+        '示例适用区域：云栖市主城区（虚构）。其它区域是否可送：未提供 / 演示待确认；真实配送范围以商家确认为准。',
+      fulfillmentParty:
+        '云栖优选生活馆（虚构示例）负责发货、配送协调与售后；平台提供商品展示与交易入口，实际责任以正式协议为准。',
+      delivery:
+        '预计配送 / 服务说明：本页不承诺真实送达时间；M03 接入后由履约方在确认订单时给出。当前未接入真实物流或上门服务。',
+      afterSales:
+        '示例售后：签收后 7 天内可申请退换（虚构规则）。真实售后政策、运费承担、上门取件与退款时间均未接入，以商家确认为准。',
+      stockNote: '库存：未接入真实库存，本页不显示剩余件数，也不保证下单成功。',
     },
   ],
 };

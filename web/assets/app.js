@@ -32,7 +32,8 @@ import { renderPublicBody } from '../pages/public.js';
 import { renderCreationBody, resetCreationFlow } from '../pages/creation.js';
 import { renderCreationResultBody } from '../pages/creation-result.js';
 import { renderActivitiesBody } from '../pages/activities.js';
-import { renderShopBody, setShopReturnRoute } from '../pages/shop.js';
+import { focusShopProduct, renderShopBody, setShopReturnRoute } from '../pages/shop.js';
+import { productIdFromRoute, renderProductDetailBody } from '../pages/product.js';
 import { clearCreationDraft } from '../data/creation-draft.js';
 import { createWatchLibrary } from '../data/watch.js';
 import {
@@ -92,6 +93,16 @@ const NAVIGABLE_ROUTES = new Set([
   'shop',
   ...Object.keys(PROGRAM_ROUTES),
 ]);
+
+/**
+ * 是否有可用的详情数据：`product:<id>` 是商城列表与 AI 商品卡共用的同一详情路由。
+ * 做成前缀路由而不是把详情塞回列表页，避免维护第二套详情语义。
+ * @param {string} route
+ * @returns {boolean}
+ */
+function isNavigableRoute(route) {
+  return NAVIGABLE_ROUTES.has(route) || productIdFromRoute(route) !== null;
+}
 
 /** 公共模式路由：进入后顶栏不显示个人身份与设置入口。 */
 const PUBLIC_ROUTE = 'public';
@@ -168,13 +179,15 @@ export function mountApp(documentRef, preferences, options = {}) {
    * 构建（或复用）场景正文。复用保证「导航返回不清空场景的演示状态」。
    * `create-result` 例外：它按最新一次 C01 交接数据重建，不复用缓存，
    * 因此不会把上一次 / 上一位使用者的作品与分享状态留在页面里。
+   * 商品详情按商品 id 路由，也不缓存，避免离开后再次进入仍保留上一次的数量 / 规格状态。
    * @param {string} route
+   * @param {string} [fromRoute] 进入详情前的来源路由，用于「返回」。
    * @returns {HTMLElement}
    */
-  function bodyFor(route) {
+  function bodyFor(route, fromRoute) {
     // All directory routes share one list DOM, retaining keyword, details and scroll state.
     const cacheKey = Object.hasOwn(PROGRAM_ROUTES, route) ? 'programs' : route;
-    const cacheable = route !== 'create-result';
+    const cacheable = route !== 'create-result' && productIdFromRoute(route) === null;
     if (cacheable) {
       const cached = bodies.get(cacheKey);
       if (cached) return cached;
@@ -216,8 +229,16 @@ export function mountApp(documentRef, preferences, options = {}) {
         isPublicMode: () => shell.getMode() === 'public',
       });
     } else if (route === 'shop') {
-      // M01 平台商城：精选 / 类目 / 店铺 / 商品；详情归 M02、下单归 M03。
+      // M01 平台商城：精选 / 类目 / 店铺 / 商品；卡片进入 M02 共用详情路由。
       body = renderShopBody(documentRef, getShopContent(), shell.activate);
+    } else if (productIdFromRoute(route) !== null) {
+      // M02 商品详情：商城列表与 AI 商品卡进入同一 `product:<id>` 语义页。
+      body = renderProductDetailBody(
+        documentRef,
+        /** @type {string} */ (productIdFromRoute(route)),
+        shell.activate,
+        { returnRoute: fromRoute ?? 'shop' },
+      );
     } else if (route === SEARCH_ROUTE) {
       body = renderProgramsBody(documentRef, programContent, shell.activate, {
         category: 'all',
@@ -273,7 +294,7 @@ export function mountApp(documentRef, preferences, options = {}) {
     if (deviceMode === 'public' && !PUBLIC_DEVICE_ROUTES.has(route)) return PUBLIC_ROUTE;
     // 首页主按钮「继续观看」：按正确节目 / 集进入既有 V02 播放器，而不是空入口。
     if (route === 'continue') return openProgram(home.featured.id);
-    const target = NAVIGABLE_ROUTES.has(route) ? route : 'home';
+    const target = isNavigableRoute(route) ? route : 'home';
     if (activeRoute === target) return target;
 
     if (activeRoute !== null) {
@@ -286,12 +307,19 @@ export function mountApp(documentRef, preferences, options = {}) {
       target === PUBLIC_ROUTE ||
       (target === 'activity' && (deviceMode === 'public' || shell.getMode() === 'public'));
     shell.setMode(publicScene ? 'public' : 'personal');
-    shell.setScene(target);
-    const body = bodyFor(target);
+    // 商品详情按 `product:<id>` 路由渲染，但场景修饰类只使用稳定的 `product`。
+    shell.setScene(productIdFromRoute(target) !== null ? 'product' : target);
+    const body = bodyFor(target, previous ?? 'home');
     shell.body.replaceChildren(body);
     if (target === 'shop') {
       // 商城按入口来源返回首页或 AI 小暖场景，保留 L01-B 公共隔离逻辑。
-      setShopReturnRoute(body, previous ?? 'home');
+      // 从商品详情返回列表时不覆盖商城原有的来源，否则「返回首页」会指向详情。
+      if (previous === null || productIdFromRoute(previous) === null) {
+        setShopReturnRoute(body, previous ?? 'home');
+      } else {
+        const returnedProductId = productIdFromRoute(previous);
+        if (returnedProductId) focusShopProduct(body, returnedProductId);
+      }
     }
     if (Object.hasOwn(PROGRAM_ROUTES, target)) {
       // External header navigation must also select the category on the cached scene.
@@ -315,7 +343,9 @@ export function mountApp(documentRef, preferences, options = {}) {
         previous !== null && (Object.hasOwn(PROGRAM_ROUTES, previous) || previous === SEARCH_ROUTE);
       applyVideoWatchSelection(body, { returnRoute: fromPrograms ? previous : null });
     }
-    shell.body.scrollTop = scrollPositions.get(target) ?? 0;
+    // 商品详情每次进入都从页头开始，不复用上一次停留位置；其它场景仍恢复各自滚动。
+    shell.body.scrollTop =
+      productIdFromRoute(target) !== null ? 0 : (scrollPositions.get(target) ?? 0);
     activeRoute = target;
     return target;
   }
@@ -326,7 +356,7 @@ export function mountApp(documentRef, preferences, options = {}) {
     preferences: effectivePreferences,
     canLeavePublicPreview: deviceMode === 'personal',
     describeRoute,
-    isNavigable: (route) => NAVIGABLE_ROUTES.has(route),
+    isNavigable: isNavigableRoute,
     onNavigate: show,
     personal: {
       brand: { logo: '见趣', sub: '闺蜜机 · 客厅里的好伙伴' },

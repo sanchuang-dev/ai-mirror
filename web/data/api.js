@@ -28,6 +28,8 @@ import { shopFixture } from './fixtures/shop.fixture.js';
 /** @typedef {import('./fixtures/activities.fixture.js').ActivityFixture} ActivityContent */
 /** @typedef {import('./fixtures/shop.fixture.js').ShopFixture} ShopContent */
 /** @typedef {import('./fixtures/shop.fixture.js').ShopProduct} ShopProduct */
+/** @typedef {import('./fixtures/shop.fixture.js').ShopStore} ShopStore */
+/** @typedef {import('./fixtures/shop.fixture.js').ShopProductDetail} ShopProductDetail */
 
 /**
  * H01 首页数据：在首页 fixture 之上，把「家门口的活动」接到 L01-A 的唯一活动事实源。
@@ -132,6 +134,43 @@ export function getActivityContent() {
  */
 export function getShopContent() {
   return shopFixture;
+}
+
+/**
+ * @typedef {object} ShopProductDetailEntry
+ * @property {ShopProduct} product
+ * @property {ShopStore} store 商品来源店铺。
+ * @property {string} categoryLabel 类目显示名。
+ * @property {ShopProductDetail | null} detail 完整示例详情；未补充时为 null。
+ */
+
+/**
+ * 读取单个商品详情所需的同一批商城事实。
+ *
+ * M02 不另建商品数据：商品、店铺与类目都来自 `shopFixture`，详情资料只补在
+ * `details` 上。找不到商品返回 null，由详情页给出明确「找不到」状态；
+ * 商品存在但未补充详情时返回 `detail: null`，由详情页如实说明，而不是伪造
+ * 规格、库存或配送条件。真实后端接入时只替换本函数实现。
+ *
+ * @param {string} productId
+ * @returns {ShopProductDetailEntry | null}
+ */
+export function getShopProductDetail(productId) {
+  const product = shopFixture.products.find((entry) => entry.id === productId);
+  if (!product) return null;
+  const store = shopFixture.stores.find((entry) => entry.id === product.storeId) ?? {
+    id: product.storeId,
+    name: '示例店铺（未登记）',
+    kind: '示例',
+  };
+  return {
+    product,
+    store,
+    categoryLabel:
+      shopFixture.categories.find((entry) => entry.id === product.category)?.label ??
+      product.category,
+    detail: shopFixture.details.find((entry) => entry.productId === productId) ?? null,
+  };
 }
 
 /**

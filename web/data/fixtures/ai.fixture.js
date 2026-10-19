@@ -19,7 +19,7 @@
  * @property {string} desc
  * @property {string} [price]
  * @property {string} [priceNote]
- * @property {string} [route] 卡片动作去向；商品卡进入 M01 平台商城，缺省沿用示例提示。
+ * @property {string} [route] 卡片动作去向；商品卡进入 M02 统一商品详情路由，缺省沿用示例提示。
  * @property {string} [actionLabel] 卡片按钮文字。
  * @property {string} tone
  * @property {string} image
@@ -72,12 +72,12 @@ export const aiFixture = {
       type: 'card',
       name: '上臂式电子血压计',
       meta: '大屏大字 · 一键测量 · 支持语音播报',
-      desc: '示例商品，未接入真实商城与库存。',
+      desc: '示例商品推荐，未做真实比价，也未接入真实商城与库存。',
       price: '¥199',
       priceNote: '会员价 ¥179',
-      // 商品卡进入 M01 平台商城的示例商品目录；M02 再统一商品详情。
-      route: 'shop',
-      actionLabel: '去平台商城看看',
+      // 与商城列表进入同一个 M02 商品详情路由；这里只做示例推荐，不冒充真实比价。
+      route: 'product:blood-pressure',
+      actionLabel: '查看示例商品详情',
       tone: 'cool',
       image: 'art-living.jpg',
       imageAlt: '家用电子血压计氛围画面',

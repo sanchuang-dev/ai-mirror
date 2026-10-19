@@ -5,16 +5,19 @@
  * （类目 + 店铺 + 关键词）以及进入商品详情的入口。A/B 主题只改 CSS 变量，
  * 不为两套主题各写一份列表。
  *
+ * 商品详情（规格 / 数量 / 运费 / 履约 / 售后）归 M02，由列表卡片进入统一
+ * `product:<id>` 路由；本页不再内嵌第二份详情语义。
+ *
  * 数据只来自 `web/data/api.js` 的异步示例出口；页面据此展示加载 / 命中 /
  * 无结果 / 失败四种状态，不做装饰性假搜索框。
  *
  * 边界：
- * - 商品详情（规格 / 运费 / 履约 / 售后）归 M02，本页只提供「商品详情入口」；
  * - 购物车、订单与支付归 M03，本页不显示「加入购物车」「去结算」等假动作；
  * - 店铺入驻后台、真实库存 / 营销算法与外部电商跳转不在本卡范围。
  */
 import { createMedia, createNode } from '../components/kit.js';
 import { searchShopProducts } from '../data/api.js';
+import { productRoute } from './product.js';
 
 /** @typedef {import('../data/fixtures/shop.fixture.js').ShopFixture} ShopContent */
 /** @typedef {import('../data/fixtures/shop.fixture.js').ShopProduct} ShopProduct */
@@ -112,7 +115,7 @@ export function renderShopBody(documentRef, content, activate, options = {}) {
           product,
           storeOf(product),
           categoryLabel(product.category),
-          openDetail,
+          openProduct,
           true,
         ),
       );
@@ -189,13 +192,6 @@ export function renderShopBody(documentRef, content, activate, options = {}) {
   storeSection.append(storeHead, storeList);
   body.append(storeSection);
 
-  // ---------- 商品详情入口（M02 接入点）：放在结果之前保证可见 ----------
-  const detail = createNode(documentRef, 'aside', 'jq-shop-detail');
-  detail.setAttribute('aria-label', '商品详情入口（示例）');
-  detail.setAttribute('tabindex', '-1');
-  detail.hidden = true;
-  body.append(detail);
-
   // ---------- 结果区：加载 / 命中 / 无结果 / 失败 ----------
   const results = createNode(documentRef, 'section', 'jq-shop__results');
   results.setAttribute('aria-live', 'polite');
@@ -207,14 +203,6 @@ export function renderShopBody(documentRef, content, activate, options = {}) {
 
   /** 请求序号：晚到的旧结果不得覆盖新一次筛选。 */
   let seq = 0;
-  /** 本次渲染后是否需要把焦点从已关闭的详情恢复到结果区。 */
-  let restoreFocus = false;
-  /** 打开详情时接收焦点的卡片，用于「返回商品列表」时把焦点交回。 */
-  /** @type {HTMLElement | null} */
-  let openedCard = null;
-  /** 当前打开的商品；为 null 表示详情关闭。 */
-  /** @type {ShopProduct | null} */
-  let openedProduct = null;
 
   /** @param {string} id @returns {string} */
   function categoryLabel(id) {
@@ -248,19 +236,11 @@ export function renderShopBody(documentRef, content, activate, options = {}) {
   }
 
   /**
-   * 关闭商品详情入口并清空其内容，避免旧商品的上下文留在新筛选之后。
-   * 只清这一段，不重建整个场景。
+   * 所有商品卡共用同一个详情路由；列表不再内嵌第二份详情语义。
+   * @param {ShopProduct} product
    */
-  function closeDetail() {
-    openedCard = null;
-    openedProduct = null;
-    if (detail.hidden) return;
-    detail.hidden = true;
-    detail.replaceChildren();
-  }
-
-  function focusResults() {
-    if (typeof results.focus === 'function') results.focus();
+  function openProduct(product) {
+    activate(productRoute(product.id));
   }
 
   /**
@@ -270,21 +250,11 @@ export function renderShopBody(documentRef, content, activate, options = {}) {
   function renderState(state, children) {
     results.setAttribute('data-state', state);
     results.replaceChildren(...children);
-    if (restoreFocus) {
-      restoreFocus = false;
-      focusResults();
-    }
   }
 
   /** 统一取数：类目、店铺与关键词都经过同一个异步数据出口。 */
   function load() {
     const keyword = field.value.trim();
-    // 新一次有效筛选：先让旧详情失效，并判断是否需要交回焦点。
-    const focusWasInDetail =
-      !detail.hidden && isFocusWithin(detail, documentRef.activeElement ?? null);
-    closeDetail();
-    restoreFocus = focusWasInDetail;
-
     const token = (seq += 1);
     const scope = scopeLabel(categoryLabel(category), storeLabel(store));
     renderState('loading', [renderLoading(documentRef, keyword, scope)]);
@@ -320,7 +290,7 @@ export function renderShopBody(documentRef, content, activate, options = {}) {
             result,
             scopeLabel(categoryLabel(shownCategory), storeLabel(shownStore)),
           ),
-          renderGrid(documentRef, items, storeOf, categoryLabel, openDetail),
+          renderGrid(documentRef, items, storeOf, categoryLabel, openProduct),
         ]);
       })
       .catch(() => {
@@ -351,36 +321,6 @@ export function renderShopBody(documentRef, content, activate, options = {}) {
     store = 'all';
     updateFilters();
     load();
-  }
-
-  /** 详情内容按当前商品与店铺来源重渲染；只在详情打开时使用。 */
-  function renderDetailContent() {
-    const product = openedProduct;
-    if (!product) return;
-    detail.replaceChildren(
-      ...buildDetailNodes(documentRef, product, storeOf(product), categoryLabel(product.category), {
-        onClose: closeDetailFromButton,
-      }),
-    );
-  }
-
-  /** 打开商品详情入口：展示店铺来源与接入边界，并保留返回列表的路径。 */
-  /** @param {ShopProduct} product @param {HTMLElement | null} card */
-  function openDetail(product, card) {
-    openedCard = card;
-    openedProduct = product;
-    renderDetailContent();
-    detail.hidden = false;
-    if (typeof detail.scrollIntoView === 'function') detail.scrollIntoView({ block: 'nearest' });
-    if (typeof detail.focus === 'function') detail.focus();
-  }
-
-  /** 「返回商品列表」：关闭详情并把焦点交回触发的卡片，卡片不在时回到结果区。 */
-  function closeDetailFromButton() {
-    const card = openedCard;
-    closeDetail();
-    if (card && isFocusWithin(body, card) && typeof card.focus === 'function') card.focus();
-    else focusResults();
   }
 
   form.addEventListener('submit', (event) => {
@@ -483,7 +423,7 @@ function renderCount(documentRef, result, scope) {
  * @param {ShopProduct[]} products
  * @param {(product: ShopProduct) => ShopStore} storeOf
  * @param {(id: string) => string} categoryLabel
- * @param {(product: ShopProduct, card: HTMLElement) => void} onOpen
+ * @param {(product: ShopProduct) => void} onOpen
  * @returns {HTMLElement}
  */
 function renderGrid(documentRef, products, storeOf, categoryLabel, onOpen) {
@@ -508,7 +448,7 @@ function renderGrid(documentRef, products, storeOf, categoryLabel, onOpen) {
  * @param {ShopProduct} product
  * @param {ShopStore} store
  * @param {string} categoryName
- * @param {(product: ShopProduct, card: HTMLElement) => void} onOpen
+ * @param {(product: ShopProduct) => void} onOpen
  * @param {boolean} isFeatured
  * @returns {HTMLElement}
  */
@@ -522,7 +462,7 @@ function renderProductCard(documentRef, product, store, categoryName, onOpen, is
   card.setAttribute('data-product', product.id);
   card.setAttribute(
     'aria-label',
-    product.title + '，' + product.price + '，入驻商家 ' + store.name + '（示例商品）',
+    product.title + '，' + product.price + '，入驻商家 ' + store.name + '（示例商品，查看详情）',
   );
 
   const media = createMedia(documentRef, product);
@@ -549,80 +489,33 @@ function renderProductCard(documentRef, product, store, categoryName, onOpen, is
     createNode(documentRef, 'span', 'jq-chip jq-shop-card__category', categoryName + ' · 示例'),
   );
   card.append(media, cardBody);
-  card.addEventListener('click', () => onOpen(product, card));
+  card.addEventListener('click', () => onOpen(product));
   return card;
 }
 
 /**
- * @typedef {object} ShopDetailHandlers
- * @property {() => void} onClose
+ * 从商品详情返回列表时，把焦点交回触发详情的同一张卡。
+ * 卡片可能位于精选区或结果区；找不到时保持当前焦点，不强行滚动。
+ * @param {HTMLElement} body
+ * @param {string} productId
  */
-
-/**
- * 商品详情入口：只展示商城首页已有的店铺来源 / 类目 / 示例价格，
- * 并明确 M02 尚未接入；不在 M01 伪造规格、运费、库存或下单能力。
- * @param {Document} documentRef
- * @param {ShopProduct} product
- * @param {ShopStore} store
- * @param {string} category
- * @param {ShopDetailHandlers} handlers
- * @returns {HTMLElement[]}
- */
-function buildDetailNodes(documentRef, product, store, category, handlers) {
-  const head = createNode(documentRef, 'div', 'jq-shop-detail__head');
-  const close = createNode(documentRef, 'button', 'jq-shop-detail__close', '‹ 返回商品列表');
-  close.setAttribute('type', 'button');
-  close.addEventListener('click', handlers.onClose);
-  head.append(close);
-
-  const main = createNode(documentRef, 'div', 'jq-shop-detail__main');
-  const info = createNode(documentRef, 'div', 'jq-shop-detail__body');
-  const facts = createNode(documentRef, 'dl', 'jq-shop-detail__facts');
-  for (const [label, value] of [
-    ['入驻商家', store.name],
-    ['店铺类型', store.kind + ' · 示例'],
-    ['商品类目', category + ' · 示例'],
-    ['示例价格', product.price + (product.priceNote ? '（' + product.priceNote + '）' : '')],
-  ]) {
-    const row = createNode(documentRef, 'div', 'jq-shop-detail__fact');
-    row.append(
-      createNode(documentRef, 'dt', 'jq-shop-detail__label', label),
-      createNode(documentRef, 'dd', 'jq-shop-detail__value', value),
-    );
-    facts.append(row);
-  }
-
-  info.append(
-    createNode(documentRef, 'p', 'jq-shop-detail__demo', '示例商品 · 详情入口'),
-    createNode(documentRef, 'h2', 'jq-shop-detail__title', product.title),
-    createNode(documentRef, 'p', 'jq-shop-detail__meta', product.meta),
-    createNode(documentRef, 'p', 'jq-shop-detail__summary', product.summary),
-    facts,
-    createNode(
-      documentRef,
-      'p',
-      'jq-shop-detail__note',
-      '商品详情页由 M02 接入：规格、运费、可送达区域、履约方与售后尚未接入；当前不能加入购物车、下单或付款。',
-    ),
-  );
-
-  main.append(createMedia(documentRef, product), info);
-  return [head, main];
+export function focusShopProduct(body, productId) {
+  const card = findProductCard(body, productId);
+  if (card && typeof card.focus === 'function') card.focus();
 }
 
 /**
- * 判断某节点是否位于容器内（用于关闭详情前判断焦点归属）。
- * @param {HTMLElement} container
- * @param {Node | null} node
- * @returns {boolean}
+ * @param {HTMLElement} node
+ * @param {string} productId
+ * @returns {HTMLElement | null}
  */
-function isFocusWithin(container, node) {
-  if (!node) return false;
-  if (container === node) return true;
-  for (const child of /** @type {any} */ (container).childNodes ?? []) {
-    if (isFocusWithin(child, node)) return true;
+function findProductCard(node, productId) {
+  if (node.getAttribute?.('data-product') === productId) return node;
+  for (const child of /** @type {any} */ (node).childNodes ?? []) {
+    const found = findProductCard(child, productId);
+    if (found) return found;
   }
-  return false;
+  return null;
 }
 
 /**
