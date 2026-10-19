@@ -4505,3 +4505,348 @@ button.jq-video-next__row:hover {
     font-size: 17px;
   }
 }
+
+/* ==========================================================================
+   P01「我的」个人中心（Issue #18）
+   单套结构复用 A/B 主题变量；不按主题复制页面，也不把个人中心做成管理后台。
+   记录、订单与会员权益均为显式示例，公共模式不渲染本页。
+   ========================================================================== */
+.jq-mine__profile {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  margin-bottom: 22px;
+  padding: 24px 28px;
+  border: 1px solid var(--accent-soft-border);
+  border-radius: 18px;
+  background:
+    radial-gradient(circle at 92% 12%, var(--accent-soft), transparent 42%), var(--surface);
+  box-shadow: var(--shadow-sm);
+}
+
+.jq-mine__avatar {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 74px;
+  height: 74px;
+  border-radius: 50%;
+  background: var(--accent-strong);
+  color: var(--accent-ink);
+  font-family: var(--font-display);
+  font-size: 32px;
+  font-weight: 800;
+}
+
+.jq-mine__profile-text {
+  min-width: 0;
+}
+
+.jq-mine__eyebrow {
+  margin: 0 0 4px;
+  color: var(--accent-strong);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+
+.jq-mine__name {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(30px, 3vw, 44px);
+  line-height: 1.1;
+}
+
+.jq-mine__note {
+  margin: 8px 0 0;
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.jq-mine__membership {
+  display: grid;
+  gap: 14px;
+  margin-bottom: 24px;
+  padding: 22px 26px;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+}
+
+.jq-mine__membership-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+
+.jq-mine__title-block {
+  min-width: 0;
+}
+
+.jq-mine__section-title {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 800;
+}
+
+.jq-mine__sub {
+  margin: 3px 0 0;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.jq-mine__badge {
+  flex: none;
+  padding: 6px 12px;
+  border: 1px solid var(--accent-soft-border);
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.jq-mine__membership-status {
+  margin: 0;
+  padding: 10px 14px;
+  border-left: 4px solid var(--accent);
+  border-radius: 0 10px 10px 0;
+  background: var(--accent-soft);
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.jq-mine__benefits {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.jq-mine__benefit {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface-2);
+}
+
+.jq-mine__benefit-title {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.jq-mine__benefit-text {
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.jq-mine__membership > .jq-btn {
+  justify-self: start;
+}
+
+.jq-mine__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+  margin-bottom: 18px;
+  align-items: start;
+}
+
+.jq-mine__grid--entries {
+  margin-top: 18px;
+  margin-bottom: 0;
+}
+
+.jq-mine__card {
+  min-width: 0;
+  padding: 20px 22px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+}
+
+/* 订单示例只有一条记录；通栏避免在双列布局里留下半列空白。 */
+.jq-mine__card[data-mine-section='orders'] {
+  grid-column: 1 / -1;
+}
+
+.jq-mine__card-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.jq-mine__records {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.jq-mine__record {
+  display: grid;
+  grid-template-columns: 92px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 14px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface-2);
+}
+
+.jq-mine__thumb {
+  min-width: 0;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.jq-mine__thumb .jq-media {
+  aspect-ratio: 16 / 10;
+}
+
+.jq-mine__record-body {
+  min-width: 0;
+}
+
+.jq-mine__record-title {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.jq-mine__record-meta {
+  margin: 3px 0 0;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.jq-mine__record-note {
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.jq-mine__record-state {
+  display: inline-flex;
+  margin-top: 7px;
+  padding: 3px 10px;
+  border: 1px solid var(--accent-soft-border);
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--ink);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.jq-mine__record .jq-btn {
+  white-space: nowrap;
+}
+
+.jq-mine__record .jq-progress--mine {
+  margin: 8px 0 0;
+}
+
+.jq-mine__empty {
+  margin: 0;
+  padding: 18px;
+  border: 1px dashed var(--border);
+  border-radius: 12px;
+  background: var(--surface-2);
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.jq-mine__card--entry {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+}
+
+.jq-mine__card--entry .jq-btn {
+  margin-top: 12px;
+}
+
+.jq-mine__card--entry .jq-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+@media (max-width: 1100px) {
+  .jq-mine__grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .jq-mine__benefits {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 720px) {
+  .jq-mine__profile {
+    align-items: flex-start;
+    padding: 20px;
+  }
+
+  .jq-mine__avatar {
+    width: 58px;
+    height: 58px;
+    font-size: 26px;
+  }
+
+  .jq-mine__record {
+    grid-template-columns: 76px minmax(0, 1fr);
+  }
+
+  .jq-mine__record .jq-btn {
+    grid-column: 1 / -1;
+    justify-self: start;
+  }
+
+  .jq-mine__card-head {
+    flex-wrap: wrap;
+  }
+}
+
+@media (orientation: portrait) {
+  .jq-mine__profile {
+    padding: 26px 28px;
+  }
+
+  .jq-mine__section-title {
+    font-size: 24px;
+  }
+
+  .jq-mine__record-title {
+    font-size: 19px;
+  }
+
+  .jq-mine__record-meta,
+  .jq-mine__record-note,
+  .jq-mine__note,
+  .jq-mine__empty {
+    font-size: 17px;
+  }
+
+  .jq-mine__record {
+    grid-template-columns: clamp(104px, 14vw, 150px) minmax(0, 1fr) auto;
+    gap: 18px;
+  }
+}

@@ -17,6 +17,7 @@ import {
   getCreationContent,
   getCreationResultContent,
   getHomeContent,
+  getMineContent,
   getProgramContent,
   getProgramDetail,
   getPublicContent,
@@ -31,6 +32,7 @@ import { applyVideoWatchSelection, renderVideoBody } from '../pages/video.js';
 import { renderAiBody } from '../pages/ai.js';
 import { renderCourseBody } from '../pages/course.js';
 import { renderPublicBody } from '../pages/public.js';
+import { renderMineBody } from '../pages/mine.js';
 import { renderCreationBody, resetCreationFlow } from '../pages/creation.js';
 import { renderCreationResultBody } from '../pages/creation-result.js';
 import { renderActivitiesBody } from '../pages/activities.js';
@@ -96,6 +98,8 @@ const NAVIGABLE_ROUTES = new Set([
   'shop',
   // M03 购物车与订单预览：从 M02 商品详情进入，只在页面内保留一条示例记录。
   'cart',
+  // P01 个人中心：样例身份、记录、示例订单与会员权益；只在个人模式可见。
+  'mine',
   ...Object.keys(PROGRAM_ROUTES),
 ]);
 
@@ -261,6 +265,11 @@ export function mountApp(documentRef, preferences, options = {}) {
         cart,
         isPublicMode: () => deviceMode === 'public' || shell.getMode() === 'public',
       });
+    } else if (route === 'mine') {
+      // P01 个人中心：只展示示例记录；外观入口直接复用共享壳的 T02 设置面板。
+      body = renderMineBody(documentRef, getMineContent(), shell.activate, {
+        openSettings: shell.openSettings,
+      });
     } else if (productIdFromRoute(route) !== null) {
       // M02 商品详情：商城列表与 AI 商品卡进入同一 `product:<id>` 语义页。
       body = renderProductDetailBody(
@@ -325,6 +334,16 @@ export function mountApp(documentRef, preferences, options = {}) {
     // cannot expose the private shell on a public terminal; the shared activity
     // directory and detail are the only non-G00 routes a public device may use.
     if (deviceMode === 'public' && !PUBLIC_DEVICE_ROUTES.has(route)) return PUBLIC_ROUTE;
+    // 社区版预览仍是公共上下文：除明确的「退出社区预览」入口（home）与共用的
+    // 活动目录外，残留 / 合成路由不能把预览切回个人中心等私人场景。
+    if (
+      deviceMode === 'personal' &&
+      shell.getMode() === 'public' &&
+      route !== 'home' &&
+      !PUBLIC_DEVICE_ROUTES.has(route)
+    ) {
+      return PUBLIC_ROUTE;
+    }
     // 首页主按钮「继续观看」：按正确节目 / 集进入既有 V02 播放器，而不是空入口。
     if (route === 'continue') return openProgram(home.featured.id);
     const target = isNavigableRoute(route) ? route : 'home';

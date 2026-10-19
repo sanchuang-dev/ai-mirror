@@ -15,6 +15,7 @@ import { creationFixture } from './fixtures/creation.fixture.js';
 import { creationResultFixture } from './fixtures/creation-result.fixture.js';
 import { activityFixture } from './fixtures/activities.fixture.js';
 import { shopFixture } from './fixtures/shop.fixture.js';
+import { mineFixture } from './fixtures/mine.fixture.js';
 
 /** @typedef {import('./fixtures/home.fixture.js').HomeContent} HomeContent */
 /** @typedef {import('./fixtures/video.fixture.js').VideoFixture} VideoContent */
@@ -30,6 +31,7 @@ import { shopFixture } from './fixtures/shop.fixture.js';
 /** @typedef {import('./fixtures/shop.fixture.js').ShopProduct} ShopProduct */
 /** @typedef {import('./fixtures/shop.fixture.js').ShopStore} ShopStore */
 /** @typedef {import('./fixtures/shop.fixture.js').ShopProductDetail} ShopProductDetail */
+/** @typedef {import('./fixtures/mine.fixture.js').MineFixture} MineContent */
 
 /**
  * H01 首页数据：在首页 fixture 之上，把「家门口的活动」接到 L01-A 的唯一活动事实源。
@@ -134,6 +136,17 @@ export function getActivityContent() {
  */
 export function getShopContent() {
   return shopFixture;
+}
+
+/**
+ * P01「我的」个人中心内容：样例身份、记录、示例订单与会员权益说明。
+ *
+ * 只有这一份示例事实源；页面不自行维护第二份记录，也不把示例状态当成
+ * 真实登录、报名、订单或会员订阅。真实后端接入时只替换本函数实现。
+ * @returns {MineContent} 单一结构的示例数据，A/B 主题共用。
+ */
+export function getMineContent() {
+  return mineFixture;
 }
 
 /**
