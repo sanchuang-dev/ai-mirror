@@ -12,13 +12,34 @@ import { createMedia, createNode, createRouteButton } from '../components/kit.js
 /** @typedef {import('../data/fixtures/public.fixture.js').PublicGuestAi} PublicGuestAi */
 
 /**
+ * @typedef {object} PublicBodyOptions
+ * @property {string} [notice] 结束体验 / 模拟超时后的可见反馈，保留到下一次清理。
+ * @property {'cleared' | 'timeout'} [noticeKind] 反馈来源，用于可验证的状态标记。
+ */
+
+/**
  * @param {Document} documentRef
  * @param {PublicContent} content
  * @param {(route: string) => void} activate
+ * @param {PublicBodyOptions} [options]
  * @returns {HTMLElement}
  */
-export function renderPublicBody(documentRef, content, activate) {
+export function renderPublicBody(documentRef, content, activate, options = {}) {
   const body = createNode(documentRef, 'div', 'jq-scene jq-scene--public');
+
+  // 结束体验 / 模拟超时后的反馈：明确说明临时内容已清除，下一段体验从干净状态开始。
+  if (options.notice) {
+    const notice = createNode(
+      documentRef,
+      'p',
+      'jq-banner jq-public-session-notice',
+      options.notice,
+    );
+    notice.setAttribute('role', 'status');
+    notice.setAttribute('aria-live', 'polite');
+    notice.setAttribute('data-session-feedback', options.noticeKind ?? 'cleared');
+    body.append(notice);
+  }
 
   // 社区头图横幅
   const band = createNode(documentRef, 'section', 'jq-public-band');

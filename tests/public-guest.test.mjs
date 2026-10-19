@@ -22,7 +22,7 @@ test('the public AI 趣玩 guest fixture is honest and session-only', () => {
   assert.match(guest.artworkLabel, /预生成/);
   assert.match(guest.artworkLabel, /非真实/);
   assert.match(guest.note, /本次页面会话|清除/);
-  assert.match(guest.clearedText, /没有保存|没有保留/);
+  assert.match(guest.clearedText, /清除|结束整次公共体验/);
 });
 
 test('a public-device guest sees only an in-session sample and can end & clear it', () => {
@@ -36,9 +36,12 @@ test('a public-device guest sees only an in-session sample and can end & clear i
     find(guest, (node) => node.classList.contains('jq-media__img'))[0],
     'the guest sample must render a visible image, not a blank placeholder',
   );
-  assert.ok(actionButton(guest, 'guest-clear'), 'the guest experience exposes 结束体验并清除');
+  assert.ok(
+    actionButton(guest, 'guest-clear'),
+    'the guest experience can clear its own sample without ending the whole session',
+  );
 
-  // 结束体验并清除：示例被清除，页面明确反馈没有保留内容。
+  // 清除本示例作品：只移除这张示例，并明确整次体验要用独立的结束入口。
   actionButton(guest, 'guest-clear').dispatch('click');
   assert.equal(actionButton(guest, 'guest-clear'), undefined, 'the sample is cleared');
   assert.ok(
@@ -47,10 +50,10 @@ test('a public-device guest sees only an in-session sample and can end & clear i
   );
   assert.match(
     find(guest, (node) => node.classList.contains('jq-guest-ai__feedback'))[0].textContent,
-    /没有保存/,
+    /结束整次公共体验/,
   );
 
-  // 可再体验一次，且仍处于公共（游客）上下文。
+  // 可再看一次示例，且仍处于公共（游客）上下文。
   actionButton(guest, 'guest-reopen').dispatch('click');
   assert.ok(actionButton(guest, 'guest-clear'), 'reopen restores the session-only sample');
 });

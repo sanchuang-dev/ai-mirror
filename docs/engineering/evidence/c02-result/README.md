@@ -4,6 +4,7 @@
 > 采集环境：本 Worker runner，Chromium 155（`--headless=new`）+ 一次性 CDP 客户端（按组织 browser-verification Skill，**不入库**），安装 `fonts-noto-cjk` 渲染中文。
 > 这些是**评审证据快照**，不是产品源码；源码见 [`web/`](../../../../web/)，视觉契约见 [`design.md`](../../../../design.md)，主题 Token 见 [`web/assets/tokens.css`](../../../../web/assets/tokens.css)。
 > 本卡只交付「预生成示例作品结果 → 默认私密保存 → 选分享对象 → 二次确认 / 取消」与公共设备上的诚实体验；**不接入真实模型、不上传、不伪造真实发送或网络回执、不持久化**。
+> 后续 **X01（Issue #19）** 已把整次公共体验结束统一到公共顶栏的「结束体验并清除」确认面板；本页 G00 卡片按钮现为「清除本示例作品」。本文件保留 C02 当时的行为快照，公共清理以 [`x01-session-end`](../x01-session-end/README.md) 为准。
 
 ## 交付内容
 
