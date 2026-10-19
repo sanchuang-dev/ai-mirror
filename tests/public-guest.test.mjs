@@ -66,3 +66,40 @@ test('a public terminal boots into G00 with the guest AI demo and no private sur
     'the public terminal never mounts the personal home',
   );
 });
+
+test('G00 exposes visible entries into the shared L01 activity directory', () => {
+  const doc = createFakeDocument();
+  const body = renderPublicBody(doc, getPublicContent(), () => {});
+
+  const entries = find(body, (node) => node.getAttribute('data-route') === 'activity');
+  assert.ok(entries.length >= 2, 'both 现在可报名 and 便民福利 need a directory entry');
+  const labels = entries.map((entry) => entry.textContent).join(' ');
+  assert.match(labels, /全部活动/);
+  assert.match(labels, /全部福利/);
+});
+
+test('a public terminal can enter the shared directory from G00 and open the same detail', () => {
+  const doc = createFakeDocument();
+  const { shell } = mountApp(doc, undefined, { deviceMode: 'public' });
+
+  const entry = find(shell.element, (node) => node.getAttribute('data-route') === 'activity')[0];
+  assert.ok(entry, 'G00 must expose a visible activity directory entry');
+  entry.dispatch('click');
+
+  const scene = find(shell.element, (node) => node.classList.contains('jq-scene--activities'))[0];
+  assert.ok(scene, 'the G00 entry opens the shared directory');
+  assert.equal(shell.getMode(), 'public');
+
+  const detailEntry = find(
+    scene,
+    (node) => node.getAttribute('data-action') === 'activity-detail',
+  )[0];
+  assert.ok(detailEntry, 'the shared directory renders sample detail entries');
+  detailEntry.dispatch('click');
+  assert.equal(
+    find(scene, (node) => node.classList.contains('jq-activity-detail'))[0].hidden,
+    false,
+  );
+  assert.equal(find(shell.element, (node) => node.classList.contains('jq-user')).length, 0);
+  assert.equal(find(shell.element, (node) => node.hasAttribute('data-open-settings')).length, 0);
+});

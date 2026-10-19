@@ -41,9 +41,15 @@ export function renderPublicBody(documentRef, content, activate) {
   band.append(bandText, stats);
   body.append(band);
 
-  // 现在可报名
+  // 现在可报名：入口接进 L01 共用目录，具体条目的详情在同一目录内打开。
   const signupSection = createNode(documentRef, 'section', 'jq-section');
-  signupSection.append(publicSectionHead(documentRef, '现在可报名', '点一下即可登记（示例）'));
+  signupSection.append(
+    publicSectionHead(documentRef, '现在可报名', '点一下即可登记（示例）', {
+      label: '全部活动 ›',
+      route: 'activity',
+      activate,
+    }),
+  );
   const signupGrid = createNode(documentRef, 'div', 'jq-grid jq-grid--signup');
   for (const item of content.signups) {
     signupGrid.append(renderSignup(documentRef, item, activate));
@@ -51,9 +57,15 @@ export function renderPublicBody(documentRef, content, activate) {
   signupSection.append(signupGrid);
   body.append(signupSection);
 
-  // 便民福利
+  // 便民福利：同一目录的福利分类入口，不另建公共详情。
   const welfareSection = createNode(documentRef, 'section', 'jq-section');
-  welfareSection.append(publicSectionHead(documentRef, '便民福利', ''));
+  welfareSection.append(
+    publicSectionHead(documentRef, '便民福利', '', {
+      label: '全部福利 ›',
+      route: 'activity',
+      activate,
+    }),
+  );
   const welfareRow = createNode(documentRef, 'div', 'jq-welfare-row');
   for (const item of content.welfare) {
     const node = createNode(documentRef, 'div', 'jq-welfare');
@@ -178,15 +190,24 @@ function renderGuestAi(documentRef, guest) {
 }
 
 /**
+ * @typedef {object} PublicSectionMore
+ * @property {string} label
+ * @property {string} route
+ * @property {(route: string) => void} activate
+ *
  * @param {Document} documentRef
  * @param {string} title
  * @param {string} sub
+ * @param {PublicSectionMore} [more] 可选的目录入口（公共活动 / 福利共用 L01 目录）。
  * @returns {HTMLElement}
  */
-function publicSectionHead(documentRef, title, sub) {
+function publicSectionHead(documentRef, title, sub, more) {
   const head = createNode(documentRef, 'header', 'jq-section__head');
   head.append(createNode(documentRef, 'h2', 'jq-section__title', title));
   if (sub) head.append(createNode(documentRef, 'span', 'jq-section__sub', sub));
+  if (more) {
+    head.append(createRouteButton(documentRef, 'jq-more', more.label, more.route, more.activate));
+  }
   return head;
 }
 

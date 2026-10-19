@@ -93,6 +93,12 @@ const NAVIGABLE_ROUTES = new Set([
 const PUBLIC_ROUTE = 'public';
 
 /**
+ * 公共设备允许进入的路由：公共首页本身，以及公私共用的活动 / 福利目录与详情。
+ * 任何个人场景（首页、节目、AI、课程、作品、收藏等）仍会被挡回 G00。
+ */
+const PUBLIC_DEVICE_ROUTES = new Set([PUBLIC_ROUTE, 'activity']);
+
+/**
  * Preview-only device selection; production hosts must supply trusted deployment
  * configuration instead of treating this query argument as authentication.
  * @returns {'personal' | 'public'}
@@ -197,8 +203,12 @@ export function mountApp(documentRef, preferences, options = {}) {
     } else if (route === PUBLIC_ROUTE) {
       body = renderPublicBody(documentRef, publicContent, shell.activate);
     } else if (route === 'activity') {
-      // L01-A 示例目录：详情（L01-B）与报名（L02）尚未接入，卡片只给诚实提示。
-      body = renderActivitiesBody(documentRef, getActivityContent(), shell.activate);
+      // L01 共用目录与详情：个人设备回首页，公共设备回公共首页；报名仍属 L02。
+      body = renderActivitiesBody(documentRef, getActivityContent(), shell.activate, {
+        backRoute: deviceMode === 'public' ? PUBLIC_ROUTE : 'home',
+        backLabel: deviceMode === 'public' ? '‹ 返回公共首页' : '‹ 返回首页',
+        resolveBackRoute: () => (shell.getMode() === 'public' ? PUBLIC_ROUTE : 'home'),
+      });
     } else if (route === SEARCH_ROUTE) {
       body = renderProgramsBody(documentRef, programContent, shell.activate, {
         category: 'all',
@@ -249,8 +259,9 @@ export function mountApp(documentRef, preferences, options = {}) {
    */
   function show(route) {
     // Deployment mode is immutable. Even a stale or synthetic private route
-    // cannot expose the private shell on a public terminal.
-    if (deviceMode === 'public' && route !== PUBLIC_ROUTE) return PUBLIC_ROUTE;
+    // cannot expose the private shell on a public terminal; the shared activity
+    // directory and detail are the only non-G00 routes a public device may use.
+    if (deviceMode === 'public' && !PUBLIC_DEVICE_ROUTES.has(route)) return PUBLIC_ROUTE;
     // 首页主按钮「继续观看」：按正确节目 / 集进入既有 V02 播放器，而不是空入口。
     if (route === 'continue') return openProgram(home.featured.id);
     const target = NAVIGABLE_ROUTES.has(route) ? route : 'home';
@@ -260,7 +271,12 @@ export function mountApp(documentRef, preferences, options = {}) {
       scrollPositions.set(activeRoute, shell.body.scrollTop);
     }
     const previous = activeRoute;
-    shell.setMode(target === PUBLIC_ROUTE ? 'public' : 'personal');
+    // 公共设备进入活动目录时仍留在公共壳；个人设备从「社区版预览」进来时也一样，
+    // 避免浏览公共活动时被悄悄切回个人身份。
+    const publicScene =
+      target === PUBLIC_ROUTE ||
+      (target === 'activity' && (deviceMode === 'public' || shell.getMode() === 'public'));
+    shell.setMode(publicScene ? 'public' : 'personal');
     shell.setScene(target);
     const body = bodyFor(target);
     shell.body.replaceChildren(body);

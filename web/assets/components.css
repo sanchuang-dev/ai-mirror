@@ -3277,6 +3277,133 @@ button.jq-video-next__row:hover {
   display: none;
 }
 
+/* ---------- L01-B 活动 / 福利共用详情（Issue #49） ----------
+   详情与目录共用同一份活动数据；个人与公共设备渲染同一套语义 DOM，
+   主题差异仍只来自 tokens.css。 */
+.jq-activities__directory[hidden],
+.jq-activity-detail[hidden] {
+  display: none;
+}
+
+.jq-activity-detail {
+  margin: 0 0 20px;
+  padding: 18px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+  outline: none;
+}
+
+.jq-activity-detail__head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+
+.jq-activity-detail__back {
+  min-height: 48px;
+  padding: 0 18px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.jq-activity-detail__back:hover {
+  border-color: var(--accent);
+}
+
+.jq-activity-detail__badge {
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: var(--accent-strong);
+  color: var(--accent-ink);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.jq-activity-detail__main {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  gap: 22px;
+  align-items: start;
+}
+
+.jq-activity-detail__media .jq-media {
+  aspect-ratio: 16 / 9;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.jq-activity-detail__body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.jq-activity-detail__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(24px, 2.4vw, 32px);
+  line-height: 1.15;
+}
+
+.jq-activity-detail__summary {
+  margin: 0;
+  color: var(--muted);
+  font-size: 16px;
+}
+
+.jq-activity-detail__facts .jq-activity-card__label {
+  width: 5em;
+}
+
+.jq-activity-detail__notice {
+  margin: 0;
+  padding: 10px 14px;
+  border-left: 4px solid var(--accent);
+  border-radius: 0 10px 10px 0;
+  background: var(--accent-soft);
+  color: var(--ink);
+  font-size: 14px;
+}
+
+.jq-activity-detail__actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.jq-activity-detail__feedback {
+  margin: 0;
+  padding: 12px 16px;
+  border: 1px dashed var(--border);
+  border-radius: 12px;
+  background: var(--surface-2);
+  color: var(--ink);
+  font-size: 15px;
+}
+
+.jq-activity-detail__feedback:empty {
+  display: none;
+}
+
+@media (max-width: 900px) {
+  .jq-activity-detail__main {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .jq-activity-detail__media {
+    max-width: 320px;
+  }
+}
+
 @media (orientation: portrait) {
   .jq-activities__grid {
     grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
@@ -3288,6 +3415,11 @@ button.jq-video-next__row:hover {
 
   .jq-activity-card__fact,
   .jq-activity-card__summary {
+    font-size: 17px;
+  }
+
+  .jq-activity-detail__summary,
+  .jq-activity-detail__facts .jq-activity-card__fact {
     font-size: 17px;
   }
 }
