@@ -111,11 +111,14 @@ jobs:
           test -s "$source/assets/tokens.css"
           test -s "$source/data/api.js"
           test -s "$source/pages/home.js"
+          test -s "$source/components/app-shell.js"
+          test -s "$source/components/kit.js"
           test -s "$source/assets/img/art-reading.jpg"
 
-          mkdir -p _site/dev/{assets,data,pages}
+          mkdir -p _site/dev/{assets,components,data,pages}
           cp "$source/index.html" _site/dev/index.html
           cp -R "$source/assets/." _site/dev/assets/
+          cp -R "$source/components/." _site/dev/components/
           cp -R "$source/data/." _site/dev/data/
           cp -R "$source/pages/." _site/dev/pages/
 
@@ -130,6 +133,8 @@ jobs:
           fi
 
           node --check _site/dev/assets/app.js
+          node --check _site/dev/components/app-shell.js
+          node --check _site/dev/components/kit.js
           node --check _site/dev/pages/home.js
           node --check _site/dev/data/api.js
           grep -q 'H01' _site/dev/index.html
@@ -197,6 +202,8 @@ jobs:
           fetch "dev/assets/app.js" dev-app.js
           fetch "dev/assets/tokens.css" dev-tokens.css
           fetch "dev/assets/components.css" dev-components.css
+          fetch "dev/components/app-shell.js" dev-app-shell.js
+          fetch "dev/components/kit.js" dev-kit.js
           fetch "dev/pages/home.js" dev-home.js
           fetch "dev/data/api.js" dev-api.js
           fetch "dev/assets/img/art-reading.jpg" dev-reading.jpg
@@ -207,6 +214,8 @@ jobs:
           test "$(wc -c < "$tmp/reading.jpg")" -gt 5000
           grep -q 'H01' "$tmp/dev-index.html"
           grep -q 'mountHome' "$tmp/dev-app.js"
+          grep -q 'createSceneShell' "$tmp/dev-app-shell.js"
+          grep -q 'createNode' "$tmp/dev-kit.js"
           grep -q 'createHomeController' "$tmp/dev-home.js"
           test "$(wc -c < "$tmp/dev-reading.jpg")" -gt 5000
           echo "Published unchanged OpenDesign / and isolated dev H01 /dev/ verified"
