@@ -97,6 +97,8 @@ export const homeFixture = {
     { id: 'activity', label: '活动', route: 'activity' },
     { id: 'course', label: '课程', route: 'course' },
     { id: 'shop', label: '商城', route: 'shop' },
+    // 常驻个人中心入口：只在个人模式显示，公共模式由共享壳与设备守卫共同隔离。
+    { id: 'mine', label: '我的', route: 'mine' },
   ],
   featured: {
     id: 'zhaoxi-xiang',

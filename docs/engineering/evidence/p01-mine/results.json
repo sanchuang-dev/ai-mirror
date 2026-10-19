@@ -1,0 +1,80 @@
+{
+  "home": {
+    "theme": "a",
+    "nav": [
+      "推荐",
+      "短剧",
+      "戏曲",
+      "老歌",
+      "活动",
+      "课程",
+      "商城",
+      "我的"
+    ]
+  },
+  "mineA": {
+    "opened": true,
+    "theme": "a",
+    "sections": [
+      "history",
+      "works",
+      "favorites",
+      "signups",
+      "orders"
+    ],
+    "records": 10,
+    "membership": "未开通会员（示例）",
+    "texts": {
+      "history": true,
+      "works": true,
+      "favorites": true,
+      "signups": true,
+      "orders": true,
+      "settings": true
+    }
+  },
+  "settings": {
+    "open": true,
+    "title": "设置",
+    "choices": [
+      "a",
+      "b"
+    ]
+  },
+  "history": {
+    "scene": true,
+    "theme": "a"
+  },
+  "works": {
+    "scene": true,
+    "theme": "a"
+  },
+  "mineB": {
+    "theme": "b",
+    "scene": true,
+    "sceneCount": 1
+  },
+  "backHome": {
+    "home": true,
+    "theme": "b"
+  },
+  "publicPreview": {
+    "mode": "public",
+    "hasMineEntry": false,
+    "hasMineScene": false,
+    "hasPrivateUser": false,
+    "hasSettingsEntry": false
+  },
+  "consoleErrors": [],
+  "exceptions": [],
+  "steps": [
+    "home",
+    "mine",
+    "settings",
+    "history/video",
+    "works/create-result",
+    "mine A/B",
+    "back home",
+    "public preview"
+  ]
+}
