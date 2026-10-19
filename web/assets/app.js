@@ -21,8 +21,10 @@ import {
   getProgramDetail,
   getPublicContent,
   getShopContent,
+  getShopProductDetail,
   getVideoContent,
 } from '../data/api.js';
+import { createCart } from '../data/cart.js';
 import { createSceneShell, NO_PREFERENCES } from '../components/app-shell.js';
 import { mountHome, renderHomeBody } from '../pages/home.js';
 import { applyVideoWatchSelection, renderVideoBody } from '../pages/video.js';
@@ -34,6 +36,7 @@ import { renderCreationResultBody } from '../pages/creation-result.js';
 import { renderActivitiesBody } from '../pages/activities.js';
 import { focusShopProduct, renderShopBody, setShopReturnRoute } from '../pages/shop.js';
 import { productIdFromRoute, renderProductDetailBody } from '../pages/product.js';
+import { renderCartBody } from '../pages/cart.js';
 import { clearCreationDraft } from '../data/creation-draft.js';
 import { createWatchLibrary } from '../data/watch.js';
 import {
@@ -91,6 +94,8 @@ const NAVIGABLE_ROUTES = new Set([
   'activity',
   // M01 平台商城首页（平台精选 + 类目 + 店铺来源 + 商品列表 / 必要状态）。
   'shop',
+  // M03 购物车与订单预览：从 M02 商品详情进入，只在页面内保留一条示例记录。
+  'cart',
   ...Object.keys(PROGRAM_ROUTES),
 ]);
 
@@ -154,6 +159,8 @@ export function mountApp(documentRef, preferences, options = {}) {
   // 观看进度 / 收藏同属个人数据：公共设备只用内存实例，绝不读取本机存储。
   const watch =
     deviceMode === 'public' ? createWatchLibrary(null) : (options.watch ?? createWatchLibrary());
+  // M03 示例购物车只存在于当前页面会话：不写存储、不跨设备、不是真实订单。
+  const cart = createCart();
   const home = getHomeContent();
   const publicContent = getPublicContent();
   const programContent = getProgramContent();
@@ -176,6 +183,22 @@ export function mountApp(documentRef, preferences, options = {}) {
   let shell;
 
   /**
+   * M02 → M03 的唯一交接：校验当前商品与示例规格仍可购买后，写入内存购物车并进入预览。
+   * 无货示例规格、缺失详情或未知商品一律拒绝，不生成可结算状态。
+   * @param {'cart' | 'order'} _intent 入口意图；两个入口都进入同一购物车 / 订单预览页。
+   * @param {{ productId: string, specId: string, quantity: number }} selection
+   * @returns {boolean}
+   */
+  function openProductCart(_intent, selection) {
+    const entry = getShopProductDetail(selection.productId);
+    const spec = entry?.detail?.specs.find((candidate) => candidate.id === selection.specId);
+    if (!entry || !spec || spec.availability !== 'sample') return false;
+    cart.setItem(selection.productId, selection.specId, selection.quantity);
+    show('cart');
+    return true;
+  }
+
+  /**
    * 构建（或复用）场景正文。复用保证「导航返回不清空场景的演示状态」。
    * `create-result` 例外：它按最新一次 C01 交接数据重建，不复用缓存，
    * 因此不会把上一次 / 上一位使用者的作品与分享状态留在页面里。
@@ -187,7 +210,8 @@ export function mountApp(documentRef, preferences, options = {}) {
   function bodyFor(route, fromRoute) {
     // All directory routes share one list DOM, retaining keyword, details and scroll state.
     const cacheKey = Object.hasOwn(PROGRAM_ROUTES, route) ? 'programs' : route;
-    const cacheable = route !== 'create-result' && productIdFromRoute(route) === null;
+    const cacheable =
+      route !== 'create-result' && route !== 'cart' && productIdFromRoute(route) === null;
     if (cacheable) {
       const cached = bodies.get(cacheKey);
       if (cached) return cached;
@@ -231,13 +255,22 @@ export function mountApp(documentRef, preferences, options = {}) {
     } else if (route === 'shop') {
       // M01 平台商城：精选 / 类目 / 店铺 / 商品；卡片进入 M02 共用详情路由。
       body = renderShopBody(documentRef, getShopContent(), shell.activate);
+    } else if (route === 'cart') {
+      // M03 购物车与订单预览：金额、确认、取消、失败与清空都在同一示例页完成。
+      body = renderCartBody(documentRef, shell.activate, {
+        cart,
+        isPublicMode: () => deviceMode === 'public' || shell.getMode() === 'public',
+      });
     } else if (productIdFromRoute(route) !== null) {
       // M02 商品详情：商城列表与 AI 商品卡进入同一 `product:<id>` 语义页。
       body = renderProductDetailBody(
         documentRef,
         /** @type {string} */ (productIdFromRoute(route)),
         shell.activate,
-        { returnRoute: fromRoute ?? 'shop' },
+        {
+          returnRoute: fromRoute ?? 'shop',
+          onOpenCart: openProductCart,
+        },
       );
     } else if (route === SEARCH_ROUTE) {
       body = renderProgramsBody(documentRef, programContent, shell.activate, {
@@ -343,9 +376,11 @@ export function mountApp(documentRef, preferences, options = {}) {
         previous !== null && (Object.hasOwn(PROGRAM_ROUTES, previous) || previous === SEARCH_ROUTE);
       applyVideoWatchSelection(body, { returnRoute: fromPrograms ? previous : null });
     }
-    // 商品详情每次进入都从页头开始，不复用上一次停留位置；其它场景仍恢复各自滚动。
+    // 商品详情与购物车每次进入都从页头开始，不复用上一次停留位置；其它场景仍恢复各自滚动。
     shell.body.scrollTop =
-      productIdFromRoute(target) !== null ? 0 : (scrollPositions.get(target) ?? 0);
+      productIdFromRoute(target) !== null || target === 'cart'
+        ? 0
+        : (scrollPositions.get(target) ?? 0);
     activeRoute = target;
     return target;
   }

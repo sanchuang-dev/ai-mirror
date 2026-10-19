@@ -7,12 +7,13 @@
  *
  * 边界：
  * - 规格、价格、运费、区域、配送与售后都是显式 S1 示例，不冒充真实商家、库存或时效；
- * - 「加入购物车 / 查看订单预览」只是 M03 待实现的诚实示例入口，不写购物车、不建订单、
- *   不接支付；点击后给出可取消的说明，并为无货示例规格禁用入口；
+ * - 「加入购物车 / 查看订单预览」进入 M03 的示例购物车与订单预览；只在页面内保留一条
+ *   示例购物车记录，不建真实订单、不接支付；无货示例规格禁用入口；
  * - 只为「上臂式电子血压计」补充完整详情资料；其它商品仍可进入同一路由，但页面会如实
  *   说明资料未补充，不编造规格、库存或履约条件。
  */
 import { createMedia, createNode } from '../components/kit.js';
+import { calculateOrderTotals } from '../data/cart.js';
 import { getShopProductDetail } from '../data/api.js';
 
 /** 商品详情路由前缀；列表卡片与 AI 卡片共用这一个入口格式。 */
@@ -38,7 +39,9 @@ export function productIdFromRoute(route) {
 
 /**
  * @typedef {object} ProductDetailOptions
- * @property {string} [returnRoute] 返回去向：shop 回商品列表，ai 回小暖。
+ * @property {string} [returnRoute] 返回去向：shop 回商品列表，ai 回小暖，cart 回购物车。
+ * @property {(intent: 'cart' | 'order', selection: { productId: string, specId: string, quantity: number }) => void} [onOpenCart]
+ *   进入 M03 购物车 / 订单预览的处理器；未注入时只给出诚实的未装配提示。
  */
 
 /**
@@ -59,7 +62,11 @@ export function renderProductDetailBody(documentRef, productId, activate, option
     documentRef,
     'button',
     'jq-scene__back',
-    returnRoute === 'ai' ? '‹ 返回小暖' : '‹ 返回商品列表',
+    returnRoute === 'ai'
+      ? '‹ 返回小暖'
+      : returnRoute === 'cart'
+        ? '‹ 返回购物车'
+        : '‹ 返回商品列表',
   );
   back.setAttribute('type', 'button');
   back.setAttribute('data-route', returnRoute);
@@ -142,10 +149,14 @@ export function renderProductDetailBody(documentRef, productId, activate, option
   main.append(media, info);
 
   if (detail) {
-    const purchase = buildPurchaseSection(documentRef, detail, product.price);
-    info.append(
-      buildSpecSection(documentRef, detail, (outOfStock) => purchase.setOutOfStock(outOfStock)),
+    const purchase = buildPurchaseSection(
+      documentRef,
+      detail,
+      product.price,
+      product.id,
+      options.onOpenCart,
     );
+    info.append(buildSpecSection(documentRef, detail, (spec) => purchase.setSpec(spec)));
     info.append(purchase.node);
     body.append(main);
     body.append(buildFulfillmentSection(documentRef, detail));
@@ -174,7 +185,7 @@ export function renderProductDetailBody(documentRef, productId, activate, option
 /**
  * @param {Document} documentRef
  * @param {import('../data/fixtures/shop.fixture.js').ShopProductDetail} detail
- * @param {(outOfStock: boolean) => void} onSpecChange
+ * @param {(spec: import('../data/fixtures/shop.fixture.js').ShopProductSpec) => void} onSpecChange
  * @returns {HTMLElement}
  */
 function buildSpecSection(documentRef, detail, onSpecChange) {
@@ -228,7 +239,7 @@ function buildSpecSection(documentRef, detail, onSpecChange) {
     warning.textContent = outOfStock
       ? '无货示例状态：当前规格仅用于演示不可购买的情况，真实库存未接入；加入购物车与订单预览都不可用。'
       : '当前为正常示例状态：库存未接入，本页不显示剩余件数，也不保证真实可售。';
-    onSpecChange(outOfStock);
+    onSpecChange(selected);
   }
 
   syncSpecs();
@@ -238,17 +249,20 @@ function buildSpecSection(documentRef, detail, onSpecChange) {
 /**
  * @typedef {object} PurchaseSection
  * @property {HTMLElement} node
- * @property {(outOfStock: boolean) => void} setOutOfStock 规格切换时同步示例入口可用性。
+ * @property {(spec: import('../data/fixtures/shop.fixture.js').ShopProductSpec) => void} setSpec
+ *   规格切换时同步示例入口与无货状态。
  */
 
 /**
- * 购买区：示例单价、数量、运费与 M03 待实现入口。
+ * 购买区：示例单价、数量、运费与进入 M03 购物车 / 订单预览的入口。
  * @param {Document} documentRef
  * @param {import('../data/fixtures/shop.fixture.js').ShopProductDetail} detail
  * @param {string} priceLabel
+ * @param {string} productId
+ * @param {ProductDetailOptions['onOpenCart']} [onOpenCart]
  * @returns {PurchaseSection}
  */
-function buildPurchaseSection(documentRef, detail, priceLabel) {
+function buildPurchaseSection(documentRef, detail, priceLabel, productId, onOpenCart) {
   const section = createNode(documentRef, 'section', 'jq-product__section');
   section.append(createNode(documentRef, 'h2', 'jq-product__section-title', '价格与数量'));
 
@@ -260,6 +274,10 @@ function buildPurchaseSection(documentRef, detail, priceLabel) {
   section.append(price);
 
   let quantity = 1;
+  /** @type {import('../data/fixtures/shop.fixture.js').ShopProductSpec | null} */
+  let currentSpec = null;
+  let outOfStock = false;
+
   const quantityRow = createNode(documentRef, 'div', 'jq-product__quantity');
   quantityRow.setAttribute('role', 'group');
   quantityRow.setAttribute('aria-label', '演示数量');
@@ -293,11 +311,11 @@ function buildPurchaseSection(documentRef, detail, priceLabel) {
 
   const actions = createNode(documentRef, 'div', 'jq-product__actions');
   const add = /** @type {HTMLButtonElement} */ (
-    createNode(documentRef, 'button', 'jq-btn jq-btn--primary', '加入购物车（示例入口）')
+    createNode(documentRef, 'button', 'jq-btn jq-btn--primary', '加入购物车（示例）')
   );
   add.setAttribute('type', 'button');
   const preview = /** @type {HTMLButtonElement} */ (
-    createNode(documentRef, 'button', 'jq-btn jq-btn--ghost', '查看订单预览（示例入口）')
+    createNode(documentRef, 'button', 'jq-btn jq-btn--ghost', '查看订单预览（示例）')
   );
   preview.setAttribute('type', 'button');
   actions.append(add, preview);
@@ -307,117 +325,93 @@ function buildPurchaseSection(documentRef, detail, priceLabel) {
       documentRef,
       'p',
       'jq-product__note',
-      'M03 待接入：这两个入口只演示取消 / 无货状态，不写入购物车、不生成订单，也不发起支付。',
+      '示例流程：进入 M03 购物车与订单预览；确认后只生成演示回执，不会创建真实订单或发起支付。',
     ),
   );
-
-  const panel = createNode(documentRef, 'div', 'jq-product__action-panel');
-  panel.setAttribute('role', 'status');
-  panel.setAttribute('aria-live', 'polite');
-  panel.hidden = true;
-  const panelTitle = createNode(documentRef, 'p', 'jq-product__action-title');
-  const panelText = createNode(documentRef, 'p', 'jq-product__action-text');
-  const cancel = createNode(documentRef, 'button', 'jq-btn jq-btn--ghost jq-btn--sm', '取消演示');
-  cancel.setAttribute('type', 'button');
-  panel.append(panelTitle, panelText, cancel);
-  section.append(panel);
 
   const status = createNode(documentRef, 'p', 'jq-product__status');
   status.setAttribute('role', 'status');
   status.setAttribute('aria-live', 'polite');
   section.append(status);
 
-  let lastAction = 'cart';
-
   /**
-   * 规格切换时同步入口状态：无货示例规格不允许继续演示购买。
-   * @param {boolean} outOfStock
+   * 规格切换时同步入口状态：无货示例规格不允许继续购买，也不显示可结算金额。
+   * @param {import('../data/fixtures/shop.fixture.js').ShopProductSpec} spec
    */
-  function setOutOfStock(outOfStock) {
+  function setSpec(spec) {
+    currentSpec = spec;
+    outOfStock = spec.availability === 'out-of-stock-example';
     add.disabled = outOfStock;
     preview.disabled = outOfStock;
-    if (outOfStock) {
-      panel.hidden = true;
-      status.textContent = '';
-      total.textContent =
-        '无货示例状态：不提供加入购物车或订单合计。示例单价与示例运费规则仅用于说明。';
-    } else {
-      renderQuantity();
-    }
+    status.textContent = '';
+    renderQuantity();
   }
 
   minus.addEventListener('click', () => {
-    if (quantity <= 1) return;
+    if (outOfStock || quantity <= 1) return;
     quantity -= 1;
     renderQuantity();
   });
   plus.addEventListener('click', () => {
-    if (quantity >= detail.pricing.quantityLimit) return;
+    if (outOfStock || quantity >= detail.pricing.quantityLimit) return;
     quantity += 1;
     renderQuantity();
   });
 
   add.addEventListener('click', () => {
     if (add.disabled) return;
-    openAction('cart');
+    openCart('cart');
   });
   preview.addEventListener('click', () => {
     if (preview.disabled) return;
-    openAction('order');
-  });
-  cancel.addEventListener('click', () => {
-    panel.hidden = true;
-    status.textContent =
-      lastAction === 'cart'
-        ? '已取消演示：没有写入购物车，也没有生成订单。'
-        : '已取消演示：没有生成订单预览，也没有发起支付。';
-    const trigger = lastAction === 'cart' ? add : preview;
-    if (typeof trigger.focus === 'function') trigger.focus();
+    openCart('order');
   });
 
   /**
-   * M03 待实现入口的可见反馈；只切页面状态，不做任何真实交易动作。
-   * @param {'cart' | 'order'} kind
+   * 进入 M03 购物车 / 订单预览。没有装配处理器时只诚实说明，不伪造已加入或已下单。
+   * @param {'cart' | 'order'} intent
    */
-  function openAction(kind) {
-    lastAction = kind;
-    panel.hidden = false;
-    status.textContent = '';
-    if (kind === 'cart') {
-      panelTitle.textContent = 'M03 待实现：加入购物车';
-      panelText.textContent =
-        '这次点击没有写入购物车，也没有创建订单或发起支付。M03 接入后才会提供真实购物车。';
-    } else {
-      panelTitle.textContent = 'M03 待实现：订单预览';
-      panelText.textContent =
-        '没有生成订单预览、价格确认单或支付请求。真实订单与结算归 M03，本页只演示入口与取消状态。';
+  function openCart(intent) {
+    if (outOfStock || !currentSpec) return;
+    if (onOpenCart) {
+      onOpenCart(intent, { productId, specId: currentSpec.id, quantity });
+      return;
     }
-    if (typeof cancel.focus === 'function') cancel.focus();
+    status.textContent =
+      '当前预览未装配 M03 购物车：没有写入购物车、没有生成订单，也没有发起支付。';
   }
 
-  /** 数量变化只更新演示小计，不产生真实占库存或价格承诺。 */
+  /** 数量变化只更新演示金额；无货示例规格始终保持不可结算状态。 */
   function renderQuantity() {
     value.textContent = String(quantity);
+    if (outOfStock) {
+      minus.disabled = true;
+      plus.disabled = true;
+      total.textContent =
+        '无货示例状态：不提供加入购物车或订单合计；数量控件已停用。示例单价与示例运费规则仅用于说明。';
+      return;
+    }
     minus.disabled = quantity <= 1;
     plus.disabled = quantity >= detail.pricing.quantityLimit;
-    const subtotal = detail.pricing.unitPrice * quantity;
-    const shipping = subtotal >= detail.shipping.freeFrom ? 0 : detail.shipping.fee;
+    const totals = calculateOrderTotals(detail, quantity);
     total.textContent =
       '示例小计：¥' +
-      detail.pricing.unitPrice +
+      totals.unitPrice +
       ' × ' +
-      quantity +
+      totals.quantity +
       ' = ¥' +
-      subtotal +
+      totals.subtotal +
       '；示例运费：' +
-      (shipping === 0 ? '免运费（示例满 ¥' + detail.shipping.freeFrom + '）' : '¥' + shipping) +
+      (totals.shipping === 0
+        ? '免运费（示例满 ¥' + detail.shipping.freeFrom + '）'
+        : '¥' + totals.shipping) +
       '；示例合计：¥' +
-      (subtotal + shipping) +
+      totals.total +
       '（仅演示计算，未接入真实结算）';
   }
 
   renderQuantity();
-  return { node: section, setOutOfStock };
+  return { node: section, setSpec };
 }
 
 /**
