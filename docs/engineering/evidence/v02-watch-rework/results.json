@@ -1,0 +1,65 @@
+{
+  "work_item": "sanchuang-dev/ai-mirror#10 【见趣 V02】节目详情、选集与续播路径",
+  "delivery": "V02 replacement candidate (rework): full PR #44 V02 capability + three review fixes, rebuilt on dev",
+  "delivery_base": "dev",
+  "base_sha": "7baf3dfb79a36dd1956322d4abe62f98242184bc",
+  "sha_note": "Evidence corresponds to this working-tree patch on base 7baf3df. The final feat/worker-* commit SHA is assigned by the trusted post-run delivery step; this Worker is not authorized to commit.",
+  "supersedes_note": "This is a new, self-contained candidate. PR #44 remains unmerged pending maintainer reconciliation; none of PR #44's screenshots/evidence are reused here.",
+  "environment": {
+    "chromium": "155.0.8059.0",
+    "preview": "node scripts/preview.mjs @ http://127.0.0.1:4173/",
+    "viewport": "1600x900 (captured 1600x813)",
+    "driver": "bounded Chrome DevTools Protocol client using the full webSocketDebuggerUrl returned by Chrome /json/new",
+    "font_gap": "The runner image lacks CJK fonts, so Chinese glyphs render as tofu boxes in the PNGs. Layout, state and control visibility are still verifiable; exact string content is asserted via DOM text returned over CDP."
+  },
+  "commands": [
+    "npm ci --no-audit --no-fund  -> added 81 packages",
+    "npm run check  -> exit 0 (lint + format:check + typecheck + syntax + test), 64 tests pass, 0 fail",
+    "PORT=4173 node scripts/preview.mjs  -> HTTP 200 at http://127.0.0.1:4173/",
+    "timeout 120s node <cdp-driver>  -> exit 0; see browser_observations"
+  ],
+  "browser_observations": {
+    "detail_open": "朝夕巷",
+    "detail_sample_range": "示例可播放范围：第 05–12 集；其余集数只有示例标注，未接入真实片源。",
+    "player_episode": "第 10 集 · 抽屉里的信",
+    "video_scene_count": 1,
+    "progress_after_four_forward_steps": "40",
+    "resume_note": "已记录示例进度 40%（演示，非真实播放时间）。",
+    "narration_at_episode_10": "示例解说（S1 演示，非真实 AI）：第 10 集示例讲老周在抽屉里翻出一封没寄出的信，决定把它读给街坊听。",
+    "still_alt_at_episode_10": "示例画面：《朝夕巷》第 10 集「抽屉里的信」氛围示意 | 示例画面：下一集预告氛围画面：老街茶馆",
+    "theme_after_switch": "b",
+    "progress_after_theme_switch": "40",
+    "scene_element_preserved_across_theme": true,
+    "after_full_reload_dir": "b",
+    "resume_episode_after_reload_from_home": "第 10 集 · 抽屉里的信",
+    "resume_progress_after_reload_from_home": "40",
+    "unsupported_show_scene": "programs",
+    "unsupported_show_detail_title": "茶馆春秋",
+    "unsupported_show_notice": "暂无示例可播放资源：本节目只有示例简介与集数标注（年代短剧 · 全 46 集），未接入真实片源。",
+    "unsupported_show_video_scene_count": 0,
+    "last_episode": "第 12 集 · 年夜饭之前",
+    "last_episode_next_label": "已经是最后一集",
+    "last_episode_done": "示例可播放范围到第 12 集为止，后面没有更多示例资源。",
+    "console_errors": [],
+    "page_exceptions": []
+  },
+  "covered_defects": {
+    "P2_home_continue_path_and_program_mapping": "Home continue/recommendation cards resolve per program: 朝夕巷 -> existing V02 player; 茶馆春秋/团圆饭 -> their own sample detail with explicit not-playable notice, never mis-played as 朝夕巷. Hero 继续观看 is now a navigable resume route.",
+    "P2_cross_session_resume": "video.js currentSelection() falls back to library.getResume() so a real page reload resumes the last episode/progress (verified with a genuine Chrome navigation followed by home continue -> episode 10 @ 40%). Detail and home resume share the same getResume rule.",
+    "content_consistency": "Per-episode sample still (image/alt) and 小暖说 text now follow the selected episode; switching to episode 10 no longer shows episode-8 imagery or narration."
+  },
+  "screenshots": [
+    { "file": "rework-home-a.png", "proves": "Home in theme A with the continue rail as real program-aware entries" },
+    { "file": "rework-detail-a.png", "proves": "Program detail: sample range 05–12, 01–04 marked unavailable, watch entry present (theme A)" },
+    { "file": "rework-player-a.png", "proves": "Existing single V02 player, episode 10 selected, sample progress 40% (theme A)" },
+    { "file": "rework-player-b.png", "proves": "Same player/scene and progress after switching to theme B" },
+    { "file": "rework-resume-b.png", "proves": "After a real reload, home continue resumes episode 10 at 40% (theme B)" },
+    { "file": "rework-unsupported-b.png", "proves": "茶馆春秋 (no sample source) opens its own detail with the not-playable notice, no player (theme B)" },
+    { "file": "rework-last-a.png", "proves": "Last sample episode 12 gives explicit 'no next' feedback (theme A)" },
+    { "file": "rework-last-b.png", "proves": "Last-episode feedback in theme B" }
+  ],
+  "not_verified": [
+    "Physical / Android large-screen device and portrait-touch acceptance remain a separate verification (browser headless is not device acceptance).",
+    "CJK glyph rendering could not be visually confirmed in this runner image (missing fonts); exact strings were verified via DOM text over CDP."
+  ]
+}
