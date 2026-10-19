@@ -1,0 +1,208 @@
+{
+  "date": "2026-10-19",
+  "chromium": "155.0.8059.0",
+  "viewport": "1600x900",
+  "report": [
+    {
+      "name": "C02 result renders on create-result with an honest demo badge",
+      "ok": true,
+      "detail": "预生成示例作品 · 非真实 AI 生成"
+    },
+    {
+      "name": "the result shows a visible, loaded sample artwork image (not blank)",
+      "ok": true,
+      "detail": "{\"src\":\"./assets/img/art-living.jpg\",\"nat\":1280,\"w\":852.796875}"
+    },
+    {
+      "name": "default private scope with no contact selected",
+      "ok": true,
+      "detail": "默认仅自己可见（未公开）"
+    },
+    {
+      "name": "the C01 input selection reaches the result page",
+      "ok": true,
+      "detail": "来自你的选择：主题「AI 写真」 · 示例素材 · 客厅合影"
+    },
+    {
+      "name": "save marks the artwork saved in-page without upload",
+      "ok": true,
+      "detail": "已保存到我的作品（本机演示）：没有上传，也不会跨设备同步。"
+    },
+    {
+      "name": "picking a contact opens the second confirmation naming that contact",
+      "ok": true,
+      "detail": "再确认一次确认要分享给「小敏」吗？确认后只在本页显示模拟分享结果。确认分享取消"
+    },
+    {
+      "name": "cancelling keeps the artwork private and sends nothing",
+      "ok": true,
+      "detail": "已取消分享：作品仍仅自己可见，没有发送任何消息。"
+    },
+    {
+      "name": "confirming a share shows only a simulated result and demo scope",
+      "ok": true,
+      "detail": "可见范围：仅「老李」可见（演示）"
+    },
+    {
+      "name": "再做一次 returns to the C01 first step",
+      "ok": true,
+      "detail": "theme"
+    },
+    {
+      "name": "再做一次 clears the previous sample selection",
+      "ok": true,
+      "detail": "true"
+    },
+    {
+      "name": "B (暖夜剧场) shows the same single result DOM with the demo badge",
+      "ok": true,
+      "detail": "b"
+    },
+    {
+      "name": "a public terminal shows a loaded guest AI sample with a clear action",
+      "ok": true,
+      "detail": "{\"src\":\"./assets/img/art-living.jpg\",\"nat\":1280}"
+    },
+    {
+      "name": "结束体验并清除 removes the sample and reports nothing kept",
+      "ok": true,
+      "detail": "本次公共体验的示例已清除，没有保存、没有保留任何内容。"
+    },
+    {
+      "name": "no external network requests were made",
+      "ok": true,
+      "detail": "[]"
+    },
+    {
+      "name": "no upload / blob network requests were made",
+      "ok": true,
+      "detail": "[]"
+    },
+    {
+      "name": "no browser exception / console.error / log.error (excl. incidental favicon 404)",
+      "ok": true,
+      "detail": "[]"
+    },
+    {
+      "name": "the only resource error is an incidental favicon 404",
+      "ok": true,
+      "detail": "[]"
+    }
+  ],
+  "requests": [
+    "http://127.0.0.1:4173/?dir=a",
+    "http://127.0.0.1:4173/assets/tokens.css",
+    "http://127.0.0.1:4173/assets/base.css",
+    "http://127.0.0.1:4173/assets/components.css",
+    "http://127.0.0.1:4173/assets/app.js",
+    "http://127.0.0.1:4173/data/preferences.js",
+    "http://127.0.0.1:4173/data/notices.js",
+    "http://127.0.0.1:4173/data/api.js",
+    "http://127.0.0.1:4173/components/app-shell.js",
+    "http://127.0.0.1:4173/pages/home.js",
+    "http://127.0.0.1:4173/pages/video.js",
+    "http://127.0.0.1:4173/pages/ai.js",
+    "http://127.0.0.1:4173/pages/course.js",
+    "http://127.0.0.1:4173/pages/public.js",
+    "http://127.0.0.1:4173/pages/creation.js",
+    "http://127.0.0.1:4173/pages/creation-result.js",
+    "http://127.0.0.1:4173/data/creation-draft.js",
+    "http://127.0.0.1:4173/data/watch.js",
+    "http://127.0.0.1:4173/pages/programs.js",
+    "http://127.0.0.1:4173/data/fixtures/home.fixture.js",
+    "http://127.0.0.1:4173/data/fixtures/video.fixture.js",
+    "http://127.0.0.1:4173/data/fixtures/ai.fixture.js",
+    "http://127.0.0.1:4173/data/fixtures/course.fixture.js",
+    "http://127.0.0.1:4173/data/fixtures/public.fixture.js",
+    "http://127.0.0.1:4173/data/fixtures/programs.fixture.js",
+    "http://127.0.0.1:4173/data/fixtures/creation.fixture.js",
+    "http://127.0.0.1:4173/data/fixtures/creation-result.fixture.js",
+    "http://127.0.0.1:4173/components/kit.js",
+    "http://127.0.0.1:4173/assets/img/art-reading.jpg",
+    "http://127.0.0.1:4173/assets/img/art-teahouse.jpg",
+    "http://127.0.0.1:4173/assets/img/art-food.jpg",
+    "http://127.0.0.1:4173/assets/img/art-festival.jpg",
+    "http://127.0.0.1:4173/assets/img/art-opera.jpg",
+    "http://127.0.0.1:4173/assets/img/art-classic.jpg",
+    "http://127.0.0.1:4173/assets/img/art-guzheng.jpg",
+    "http://127.0.0.1:4173/assets/img/art-taichi.jpg",
+    "http://127.0.0.1:4173/assets/img/art-tea.jpg",
+    "http://127.0.0.1:4173/assets/img/art-living.jpg",
+    "http://127.0.0.1:4173/assets/img/art-calligraphy.jpg",
+    "http://127.0.0.1:4173/?dir=b",
+    "http://127.0.0.1:4173/assets/tokens.css",
+    "http://127.0.0.1:4173/assets/base.css",
+    "http://127.0.0.1:4173/assets/components.css",
+    "http://127.0.0.1:4173/assets/app.js",
+    "http://127.0.0.1:4173/data/preferences.js",
+    "http://127.0.0.1:4173/data/notices.js",
+    "http://127.0.0.1:4173/data/api.js",
+    "http://127.0.0.1:4173/components/app-shell.js",
+    "http://127.0.0.1:4173/pages/home.js",
+    "http://127.0.0.1:4173/pages/video.js",
+    "http://127.0.0.1:4173/pages/ai.js",
+    "http://127.0.0.1:4173/pages/course.js",
+    "http://127.0.0.1:4173/pages/public.js",
+    "http://127.0.0.1:4173/pages/creation.js",
+    "http://127.0.0.1:4173/pages/creation-result.js",
+    "http://127.0.0.1:4173/data/creation-draft.js",
+    "http://127.0.0.1:4173/data/watch.js",
+    "http://127.0.0.1:4173/pages/programs.js",
+    "http://127.0.0.1:4173/components/kit.js",
+    "http://127.0.0.1:4173/data/fixtures/home.fixture.js",
+    "http://127.0.0.1:4173/data/fixtures/video.fixture.js",
+    "http://127.0.0.1:4173/data/fixtures/ai.fixture.js",
+    "http://127.0.0.1:4173/data/fixtures/course.fixture.js",
+    "http://127.0.0.1:4173/data/fixtures/public.fixture.js",
+    "http://127.0.0.1:4173/data/fixtures/programs.fixture.js",
+    "http://127.0.0.1:4173/data/fixtures/creation.fixture.js",
+    "http://127.0.0.1:4173/data/fixtures/creation-result.fixture.js",
+    "http://127.0.0.1:4173/assets/img/art-reading.jpg",
+    "http://127.0.0.1:4173/assets/img/art-teahouse.jpg",
+    "http://127.0.0.1:4173/assets/img/art-food.jpg",
+    "http://127.0.0.1:4173/assets/img/art-festival.jpg",
+    "http://127.0.0.1:4173/assets/img/art-opera.jpg",
+    "http://127.0.0.1:4173/assets/img/art-classic.jpg",
+    "http://127.0.0.1:4173/assets/img/art-guzheng.jpg",
+    "http://127.0.0.1:4173/assets/img/art-taichi.jpg",
+    "http://127.0.0.1:4173/assets/img/art-tea.jpg",
+    "http://127.0.0.1:4173/assets/img/art-living.jpg",
+    "http://127.0.0.1:4173/assets/img/art-calligraphy.jpg",
+    "http://127.0.0.1:4173/?device=public",
+    "http://127.0.0.1:4173/assets/tokens.css",
+    "http://127.0.0.1:4173/assets/base.css",
+    "http://127.0.0.1:4173/assets/components.css",
+    "http://127.0.0.1:4173/assets/app.js",
+    "http://127.0.0.1:4173/data/preferences.js",
+    "http://127.0.0.1:4173/data/notices.js",
+    "http://127.0.0.1:4173/data/api.js",
+    "http://127.0.0.1:4173/components/app-shell.js",
+    "http://127.0.0.1:4173/pages/home.js",
+    "http://127.0.0.1:4173/pages/video.js",
+    "http://127.0.0.1:4173/pages/ai.js",
+    "http://127.0.0.1:4173/pages/course.js",
+    "http://127.0.0.1:4173/pages/public.js",
+    "http://127.0.0.1:4173/pages/creation.js",
+    "http://127.0.0.1:4173/pages/creation-result.js",
+    "http://127.0.0.1:4173/data/creation-draft.js",
+    "http://127.0.0.1:4173/data/watch.js",
+    "http://127.0.0.1:4173/pages/programs.js",
+    "http://127.0.0.1:4173/data/fixtures/home.fixture.js",
+    "http://127.0.0.1:4173/data/fixtures/video.fixture.js",
+    "http://127.0.0.1:4173/data/fixtures/ai.fixture.js",
+    "http://127.0.0.1:4173/data/fixtures/course.fixture.js",
+    "http://127.0.0.1:4173/data/fixtures/public.fixture.js",
+    "http://127.0.0.1:4173/data/fixtures/programs.fixture.js",
+    "http://127.0.0.1:4173/data/fixtures/creation.fixture.js",
+    "http://127.0.0.1:4173/data/fixtures/creation-result.fixture.js",
+    "http://127.0.0.1:4173/components/kit.js",
+    "http://127.0.0.1:4173/assets/img/art-taichi.jpg",
+    "http://127.0.0.1:4173/assets/img/art-reading.jpg",
+    "http://127.0.0.1:4173/assets/img/art-tea.jpg",
+    "http://127.0.0.1:4173/assets/img/art-festival.jpg",
+    "http://127.0.0.1:4173/assets/img/art-calligraphy.jpg",
+    "http://127.0.0.1:4173/assets/img/art-guzheng.jpg",
+    "http://127.0.0.1:4173/assets/img/art-living.jpg"
+  ],
+  "errors": []
+}

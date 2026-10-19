@@ -14,6 +14,7 @@ import {
   getAiContent,
   getCourseContent,
   getCreationContent,
+  getCreationResultContent,
   getHomeContent,
   getProgramContent,
   getProgramDetail,
@@ -26,7 +27,9 @@ import { applyVideoWatchSelection, renderVideoBody } from '../pages/video.js';
 import { renderAiBody } from '../pages/ai.js';
 import { renderCourseBody } from '../pages/course.js';
 import { renderPublicBody } from '../pages/public.js';
-import { renderCreationBody } from '../pages/creation.js';
+import { renderCreationBody, resetCreationFlow } from '../pages/creation.js';
+import { renderCreationResultBody } from '../pages/creation-result.js';
+import { clearCreationDraft } from '../data/creation-draft.js';
 import { createWatchLibrary } from '../data/watch.js';
 import {
   focusProgramsSearch,
@@ -73,6 +76,8 @@ const NAVIGABLE_ROUTES = new Set([
   'public',
   // 首页「随手玩点新花样」的 AI 趣玩入口：进入 C01 主题选择 / 素材授权演示页。
   'create',
+  // C01「模拟生成」后的 C02 作品结果页：预生成示例作品 → 私密保存 → 分享确认。
+  'create-result',
   SEARCH_ROUTE,
   // 首页「继续观看」是正式续播入口：按正确节目 / 集进入既有 V02 播放器，
   // 不再只是发出一条 Toast。
@@ -147,14 +152,19 @@ export function mountApp(documentRef, preferences, options = {}) {
 
   /**
    * 构建（或复用）场景正文。复用保证「导航返回不清空场景的演示状态」。
+   * `create-result` 例外：它按最新一次 C01 交接数据重建，不复用缓存，
+   * 因此不会把上一次 / 上一位使用者的作品与分享状态留在页面里。
    * @param {string} route
    * @returns {HTMLElement}
    */
   function bodyFor(route) {
     // All directory routes share one list DOM, retaining keyword, details and scroll state.
     const cacheKey = Object.hasOwn(PROGRAM_ROUTES, route) ? 'programs' : route;
-    const cached = bodies.get(cacheKey);
-    if (cached) return cached;
+    const cacheable = route !== 'create-result';
+    if (cacheable) {
+      const cached = bodies.get(cacheKey);
+      if (cached) return cached;
+    }
     /** @type {HTMLElement} */
     let body;
     if (route === 'video') {
@@ -163,8 +173,23 @@ export function mountApp(documentRef, preferences, options = {}) {
     else if (route === 'course') {
       body = renderCourseBody(documentRef, getCourseContent(), shell.activate);
     } else if (route === 'create') {
-      // 首页「随手玩点新花样」的 AI 趣玩入口（C01）：主题选择 + 素材授权 + 模拟生成说明。
+      // 首页「随手玩点新花样」的 AI 趣玩入口（C01）：主题选择 + 素材授权 + 模拟生成。
       body = renderCreationBody(documentRef, getCreationContent(), shell.activate);
+    } else if (route === 'create-result') {
+      // C02 作品结果：默认仅自己可见 → 保存（演示）→ 选分享对象 → 二次确认 / 取消。
+      body = renderCreationResultBody(documentRef, getCreationResultContent(), shell.activate, {
+        onRestart: () => {
+          // 再做一次：清空 C01 场景与其交接数据，从第 1 步重新开始。
+          resetCreationFlow(bodyFor('create'));
+          show('create');
+        },
+        onReturnToCreation: () => show('create'),
+        onDiscard: () => {
+          // 放弃：丢弃交接数据，不保存、不分享，回首页。
+          clearCreationDraft();
+          show('home');
+        },
+      });
     } else if (route === PUBLIC_ROUTE) {
       body = renderPublicBody(documentRef, publicContent, shell.activate);
     } else if (route === SEARCH_ROUTE) {
@@ -186,7 +211,7 @@ export function mountApp(documentRef, preferences, options = {}) {
         },
       });
     } else body = renderHomeBody(documentRef, home, shell.activate, { openProgram });
-    bodies.set(cacheKey, body);
+    if (cacheable) bodies.set(cacheKey, body);
     return body;
   }
 

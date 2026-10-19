@@ -2880,3 +2880,286 @@ button.jq-video-next__row:hover {
     grid-template-columns: repeat(1, minmax(0, 1fr));
   }
 }
+
+/* ---------- AI 趣玩 C02：作品结果 / 私密保存 / 主动分享确认 ----------
+   复用既有面板、卡片、按钮与背景 Token；只补这套结果页缺的排布，
+   不新增品牌色、字体或第三套视觉语言（design.md §6）。 */
+.jq-result__badge {
+  display: inline-flex;
+  align-items: center;
+  margin: 0 0 14px;
+  padding: 6px 14px;
+  border: 1px solid var(--accent-soft-border);
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.jq-result__feedback {
+  margin: 0 0 14px;
+  padding: 12px 16px;
+  border: 1px solid var(--accent-soft-border);
+  border-radius: 12px;
+  background: var(--accent-soft);
+  color: var(--ink);
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.jq-result__feedback[hidden] {
+  display: none;
+}
+
+.jq-result {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(300px, 1fr);
+  gap: 24px;
+  align-items: start;
+}
+
+.jq-result__artwork {
+  display: flex;
+  flex-direction: column;
+}
+
+.jq-result__artwork .jq-media {
+  aspect-ratio: 4 / 3;
+}
+
+/* 画面上再压一层诚实标注：一眼能看出是示例作品，不是真实生成。 */
+.jq-result__watermark {
+  position: absolute;
+  left: 12px;
+  bottom: 12px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: rgba(20, 24, 32, 0.72);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.jq-result__meta {
+  padding: 16px 18px 20px;
+}
+
+.jq-result__name {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(20px, 2vw, 26px);
+}
+
+.jq-result__origin {
+  margin: 8px 0 0;
+  color: var(--ink);
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.jq-result__note {
+  margin: 8px 0 0;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.jq-result__aside {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.jq-result__card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 18px 20px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+}
+
+.jq-result__h2 {
+  margin: 0;
+  font-size: 19px;
+}
+
+.jq-result__h3 {
+  margin: 0;
+  font-size: 17px;
+}
+
+/* hidden 属性需要显式声明才能盖过 .jq-btn 的 display，保存后按钮才真正收起。 */
+.jq-result__card .jq-btn[hidden] {
+  display: none;
+}
+
+.jq-result__scope {
+  margin: 0;
+  padding: 8px 12px;
+  border: 1px solid var(--ok);
+  border-radius: 10px;
+  color: var(--ok);
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.jq-result__contacts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.jq-result__contact {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 60px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+}
+
+.jq-result__contact[aria-pressed='true'] {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.jq-result__avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: var(--surface-2);
+  color: var(--ink);
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.jq-result__contact-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.jq-result__contact-name {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.jq-result__contact-demo {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.jq-result__confirm,
+.jq-result__shared {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 16px;
+  border: 1px solid var(--accent-soft-border);
+  border-radius: 12px;
+  background: var(--accent-soft);
+}
+
+.jq-result__confirm[hidden],
+.jq-result__shared[hidden] {
+  display: none;
+}
+
+.jq-result__actions-inline {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.jq-result__actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 22px;
+}
+
+/* ---------- 公共设备 AI 趣玩临时体验（C02） ---------- */
+.jq-guest-ai {
+  display: flex;
+  flex-direction: column;
+}
+
+.jq-guest-ai__feedback {
+  margin: 10px 0 0;
+  padding: 10px 14px;
+  border: 1px solid var(--accent-soft-border);
+  border-radius: 10px;
+  background: var(--accent-soft);
+  color: var(--ink);
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.jq-guest-ai__feedback[hidden] {
+  display: none;
+}
+
+.jq-guest-ai__card {
+  display: grid;
+  grid-template-columns: minmax(0, 280px) minmax(0, 1fr);
+  gap: 0;
+  margin-top: 12px;
+}
+
+.jq-guest-ai__card .jq-media {
+  aspect-ratio: 4 / 3;
+}
+
+.jq-guest-ai__body {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 16px 18px;
+}
+
+.jq-guest-ai__name {
+  margin: 0;
+  font-size: 18px;
+}
+
+.jq-guest-ai__cleared {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 12px;
+  padding: 18px 20px;
+  border: 1px dashed var(--border);
+  border-radius: 14px;
+  background: var(--surface);
+}
+
+.jq-guest-ai__cleared-title {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 700;
+}
+
+@media (max-width: 1100px) {
+  .jq-result {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .jq-guest-ai__card {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

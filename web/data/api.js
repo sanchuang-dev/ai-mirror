@@ -12,6 +12,7 @@ import { courseFixture } from './fixtures/course.fixture.js';
 import { publicFixture } from './fixtures/public.fixture.js';
 import { programFixture } from './fixtures/programs.fixture.js';
 import { creationFixture } from './fixtures/creation.fixture.js';
+import { creationResultFixture } from './fixtures/creation-result.fixture.js';
 
 /** @typedef {import('./fixtures/home.fixture.js').HomeFixture} HomeContent */
 /** @typedef {import('./fixtures/video.fixture.js').VideoFixture} VideoContent */
@@ -21,6 +22,7 @@ import { creationFixture } from './fixtures/creation.fixture.js';
 /** @typedef {import('./fixtures/programs.fixture.js').ProgramFixture} ProgramContent */
 /** @typedef {import('./fixtures/programs.fixture.js').ProgramItem} ProgramItem */
 /** @typedef {import('./fixtures/creation.fixture.js').CreationFixture} CreationContent */
+/** @typedef {import('./fixtures/creation-result.fixture.js').CreationResultFixture} CreationResultContent */
 
 /**
  * H01 个人首页内容。
@@ -76,6 +78,14 @@ export function getProgramContent() {
  */
 export function getCreationContent() {
   return creationFixture;
+}
+
+/**
+ * AI 趣玩 C02 作品结果内容（预生成示例作品 / 私密保存 / 主动分享确认文案）。
+ * @returns {CreationResultContent} 单一结构的示例数据，A/B 主题共用。
+ */
+export function getCreationResultContent() {
+  return creationResultFixture;
 }
 
 /**

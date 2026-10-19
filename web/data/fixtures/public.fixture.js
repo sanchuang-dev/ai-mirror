@@ -26,6 +26,17 @@
  * @property {string} image
  * @property {string} imageAlt
  *
+ * @typedef {object} PublicGuestAi
+ * @property {string} title
+ * @property {string} notice
+ * @property {{ title: string, tone: string, image: string, imageAlt: string }} artwork
+ * @property {string} artworkLabel
+ * @property {string} note
+ * @property {string} clearCta
+ * @property {string} clearedTitle
+ * @property {string} clearedText
+ * @property {string} reopenCta
+ *
  * @typedef {object} PublicFixture
  * @property {{ level: string, notice: string }} demo
  * @property {{ logo: string, sub: string }} brand
@@ -36,6 +47,7 @@
  * @property {PublicWelfare[]} welfare
  * @property {PublicCourse[]} courses
  * @property {string[]} services
+ * @property {PublicGuestAi} guestAi
  */
 
 /** @type {PublicFixture} */
@@ -125,4 +137,23 @@ export const publicFixture = {
     },
   ],
   services: ['社保查询', '医院挂号', '公交卡充值', '政务办事', '紧急呼叫'],
+  // 公共设备 / 游客的 AI 趣玩临时体验（C02）：只在本次页面会话展示虚构样本，
+  // 不读取也不写入个人作品、联系人或持久化记录；随时可「结束体验并清除」。
+  guestAi: {
+    title: 'AI 趣玩 · 公共体验',
+    notice:
+      'AI 趣玩公共体验（S1 演示）：只展示预生成的示例作品，不接真实模型、不读取任何个人信息。',
+    artwork: {
+      title: '预生成示例作品（示例）',
+      tone: 'warm',
+      image: 'art-living.jpg',
+      imageAlt: '公共体验预生成示例作品：客厅里的生活场景',
+    },
+    artworkLabel: '预生成示例作品 · 非真实 AI 生成',
+    note: '公共体验只在本次页面会话展示：结束体验后立即清除，不留到下一位使用者。',
+    clearCta: '结束体验并清除',
+    clearedTitle: '已结束体验',
+    clearedText: '本次公共体验的示例已清除，没有保存、没有保留任何内容。',
+    reopenCta: '再体验一次',
+  },
 };

@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { mountApp } from '../web/assets/app.js';
 import { getCreationContent } from '../web/data/api.js';
+import { clearCreationDraft, readCreationDraft } from '../web/data/creation-draft.js';
 import { describeRoute } from '../web/data/notices.js';
 import { renderCreationBody } from '../web/pages/creation.js';
 import { collect, createFakeDocument } from './helpers/fake-dom.mjs';
@@ -45,6 +46,14 @@ function render() {
   return { doc, body };
 }
 
+/** 带 activate 记录的重渲染：用于验证「模拟生成」把路由与交接数据交给 C02。 */
+/** @param {(route: string) => void} activate */
+function renderWithActivate(activate) {
+  const doc = createFakeDocument();
+  const body = renderCreationBody(doc, getCreationContent(), activate);
+  return { doc, body };
+}
+
 /** 点「下一步」进入素材步骤，返回该正文节点。 */
 /** @param {import('./helpers/fake-dom.mjs').FakeNode} body */
 function toSourceStep(body) {
@@ -75,24 +84,23 @@ test('C01 fixture is explicitly S1 and carries the themes, sources and consent c
   }
 });
 
-test('the route notices stay honest for C01 and the not-yet-built C02 result', () => {
+test('the route notices stay honest for the C01 flow and the C02 result', () => {
   assert.match(describeRoute('create'), /示例|演示/);
   assert.match(describeRoute('create'), /未接入真实模型/);
   assert.match(describeRoute('create-result'), /C02/);
-  assert.match(describeRoute('create-result'), /尚未实现|不会伪造/);
+  assert.match(describeRoute('create-result'), /预生成/);
+  assert.match(describeRoute('create-result'), /没有真实生成|没有真的/);
 });
 
 test('C01 renders one single-theme flow: one h1, one stepper, only the first step visible', () => {
   const { body } = render();
+  const content = getCreationContent();
   assert.equal(find(body, (node) => node.tagName === 'H1').length, 1);
   assert.equal(find(body, (node) => node.hasAttribute('data-dir')).length, 0);
-  assert.equal(
-    byClass(body, 'jq-create__steps').childNodes.length,
-    getCreationContent().steps.length,
-  );
+  assert.equal(byClass(body, 'jq-create__steps').childNodes.length, content.steps.length);
   assert.equal(
     find(body, (node) => node.hasAttribute('data-step') && node.tagName === 'SECTION').length,
-    4,
+    content.steps.length,
   );
   assert.equal(visiblePanel(body).getAttribute('data-step'), 'theme');
   assert.equal(find(body, (node) => node.hasAttribute('data-theme')).length, 4);
@@ -140,11 +148,13 @@ test('refusing authorization drops the selected material instead of keeping it',
   assert.equal(stillSelected.length, 0, 'refusal must not keep the private material selected');
 });
 
-test('the example-material path previews the asset and ends before any real generation', () => {
-  const { body } = render();
+test('the example-material path previews the asset and hands a media-free draft to C02', () => {
+  clearCreationDraft();
+  const routes = [];
+  const { body } = renderWithActivate((route) => routes.push(route));
   toSourceStep(body);
   find(body, (node) => node.getAttribute('data-source') === 'example')[0].dispatch('click');
-  find(body, (node) => node.hasAttribute('data-sample'))[0].dispatch('click');
+  find(body, (node) => node.hasAttribute('data-sample'))[1].dispatch('click');
   find(body, (node) => node.getAttribute('data-consent') === 'agree')[0].dispatch('click');
 
   const previewPanel = visiblePanel(body);
@@ -164,18 +174,15 @@ test('the example-material path previews the asset and ends before any real gene
   assert.match(generate.textContent, /模拟生成/);
   generate.dispatch('click');
 
-  const donePanel = visiblePanel(body);
-  assert.equal(donePanel.getAttribute('data-step'), 'done');
-  assert.match(feedbackText(body), /没有真实生成结果/);
-  assert.match(
-    find(donePanel, (node) => node.classList.contains('jq-create__note'))[0].textContent,
-    /不会伪造生成完成/,
-  );
-  // 下一步衔接入口指向未实现的 C02，而不是伪造的作品页。
-  assert.ok(
-    find(donePanel, (node) => node.getAttribute('data-route') === 'create-result')[0],
-    'the C02 hand-off entry must exist and stay labelled as not implemented',
-  );
+  // 点击「模拟生成」直接进入 C02 结果页，且只交接不含私有媒体的最少演示数据。
+  assert.deepEqual(routes, ['create-result']);
+  const draft = readCreationDraft();
+  assert.ok(draft, 'the generation must hand a draft to the C02 result page');
+  assert.equal(draft.themeId, 'portrait');
+  assert.equal(draft.sourceKind, 'example');
+  assert.equal(draft.sampleTitle, '公园读报');
+  assert.equal(JSON.stringify(draft).includes('blob:'), false);
+  clearCreationDraft();
 });
 
 test('revoking from the preview clears the material and returns to the source step', () => {
@@ -252,6 +259,30 @@ test('a local picture is previewed in-browser and released on revoke, never uplo
   } finally {
     URL.revokeObjectURL = originalRevoke;
   }
+});
+
+test('generating from a local picture never hands the file name or blob address to C02', () => {
+  clearCreationDraft();
+  const routes = [];
+  const { body } = renderWithActivate((route) => routes.push(route));
+  toSourceStep(body);
+  find(body, (node) => node.getAttribute('data-source') === 'local')[0].dispatch('click');
+  const input = byClass(body, 'jq-create__file');
+  const file = new Blob(['sample']);
+  Object.defineProperty(file, 'name', { value: 'sijia.jpg' });
+  input.files = [file];
+  input.dispatch('change');
+  find(body, (node) => node.getAttribute('data-consent') === 'agree')[0].dispatch('click');
+  find(body, (node) => node.getAttribute('data-action') === 'generate')[0].dispatch('click');
+
+  assert.deepEqual(routes, ['create-result']);
+  const draft = readCreationDraft();
+  assert.ok(draft);
+  assert.equal(draft.sourceKind, 'local');
+  const serialized = JSON.stringify(draft);
+  assert.equal(serialized.includes('sijia'), false, 'the local file name must not travel to C02');
+  assert.equal(serialized.includes('blob:'), false, 'the blob address must not travel to C02');
+  clearCreationDraft();
 });
 
 test('the AI 趣玩 entry is reachable from H01 and keeps its flow state across theme switches', () => {
