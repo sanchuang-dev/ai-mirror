@@ -242,6 +242,17 @@ test('a public-terminal launch cannot navigate to private routes or read persona
     assert.equal(find(shell.element, (node) => node.classList.contains('jq-home-body')).length, 0);
     assert.equal(find(shell.element, (node) => node.classList.contains('jq-user')).length, 0);
   }
+
+  // L01 活动 / 福利目录与详情是公私共用面：公共设备可进入，但仍留在公共壳。
+  assert.equal(show('activity'), 'activity');
+  assert.equal(shell.getMode(), 'public');
+  assert.equal(
+    find(shell.element, (node) => node.classList.contains('jq-scene--activities')).length,
+    1,
+  );
+  assert.equal(find(shell.element, (node) => node.classList.contains('jq-user')).length, 0);
+  assert.equal(find(shell.element, (node) => node.hasAttribute('data-open-settings')).length, 0);
+
   shell.applyTheme('b');
   assert.equal(doc.documentElement.getAttribute('data-dir'), 'b');
 });

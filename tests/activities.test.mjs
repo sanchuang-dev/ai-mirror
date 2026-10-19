@@ -8,9 +8,22 @@ import { collect, createFakeDocument } from './helpers/fake-dom.mjs';
 /** @param {import('./helpers/fake-dom.mjs').FakeNode} root */
 const find = (root, predicate) => collect(root, predicate);
 
+/** @param {import('./helpers/fake-dom.mjs').FakeNode} root */
+const textOf = (root) =>
+  collect(root, () => true)
+    .map((node) => node.textContent ?? '')
+    .join(' ');
+
 /** @param {import('./helpers/fake-dom.mjs').FakeNode} body */
 const resultsNode = (body) =>
   find(body, (node) => node.classList.contains('jq-activities__results'))[0];
+
+/** @param {import('./helpers/fake-dom.mjs').FakeNode} body */
+const directoryNode = (body) =>
+  find(body, (node) => node.classList.contains('jq-activities__directory'))[0];
+
+/** @param {import('./helpers/fake-dom.mjs').FakeNode} body */
+const detailNode = (body) => find(body, (node) => node.classList.contains('jq-activity-detail'))[0];
 
 /** @param {import('./helpers/fake-dom.mjs').FakeNode} body */
 const stateOf = (body) => resultsNode(body).getAttribute('data-state');
@@ -51,6 +64,13 @@ function clickCategory(body, id) {
 function submitKeyword(body, keyword) {
   searchField(body).value = keyword;
   searchForm(body).dispatch('submit', { preventDefault() {} });
+}
+
+/** @param {import('./helpers/fake-dom.mjs').FakeNode} body @param {number} [index] */
+function clickDetail(body, index = 0) {
+  const entry = find(body, (node) => node.getAttribute('data-action') === 'activity-detail')[index];
+  assert.ok(entry, 'expected a detail entry on the sample cards');
+  entry.dispatch('click');
 }
 
 /** @param {import('../web/components/app-shell.js').SceneShell} shell @param {string} route */
@@ -183,25 +203,96 @@ test('keyword filtering has a real hit, an explicit empty state and a way back',
   assert.equal(stateOf(body), 'ok');
 });
 
-test('a detail entry is honest about L01-B and never claims signup success', () => {
+test('a sample opens one shared detail with required facts and an honest L02 entry', () => {
   const doc = createFakeDocument();
   const body = renderActivitiesBody(doc, content, () => {});
-  const feedback = find(body, (node) => node.classList.contains('jq-activities__feedback'))[0];
+  const first = content.items[0];
 
-  find(body, (node) => node.getAttribute('data-action') === 'activity-detail')[0].dispatch('click');
-  assert.match(feedback.textContent, /L01-B/);
-  assert.match(feedback.textContent, /尚未接入|不会产生/);
-  assert.doesNotMatch(feedback.textContent, /报名成功|已报名/);
+  clickDetail(body);
+  const detail = detailNode(body);
+  const directory = directoryNode(body);
+  assert.equal(detail.hidden, false, 'the detail view must be visible after clicking a sample');
+  assert.equal(directory.hidden, true, 'the directory is hidden but kept for its state');
 
-  // 注入详情去向时交给调用方（L01-B 接入点），不在本卡伪造详情。
-  const opened = [];
-  const withDetail = renderActivitiesBody(doc, content, () => {}, {
-    onOpenDetail: (item) => opened.push(item.id),
-  });
-  find(withDetail, (node) => node.getAttribute('data-action') === 'activity-detail')[0].dispatch(
-    'click',
+  const detailText = textOf(detail);
+  for (const expected of [
+    first.title,
+    first.time,
+    first.place,
+    first.area,
+    first.audience,
+    first.provider,
+    first.price,
+  ]) {
+    assert.ok(detailText.includes(expected), 'the shared detail must show ' + expected);
+  }
+  assert.match(detailText, /活动 · 示例/);
+  assert.match(detailText, /虚构示例/);
+  assert.match(detailText, /未提供 \/ 演示待确认/);
+  assert.match(detailText, /(L02)/);
+
+  // 报名入口只解释未接入：不产生已报名状态，也不显示报名成功。
+  const signup = find(detail, (node) => node.getAttribute('data-action') === 'activity-signup')[0];
+  assert.ok(signup, 'the detail may offer an L02 placeholder entry');
+  signup.dispatch('click');
+  const detailFeedback = find(detail, (node) =>
+    node.classList.contains('jq-activity-detail__feedback'),
+  )[0];
+  assert.match(detailFeedback.textContent, /L02/);
+  assert.match(detailFeedback.textContent, /不会/);
+  assert.doesNotMatch(textOf(detail), /报名成功|已报名/);
+  assert.equal(resultsNode(body).getAttribute('data-state'), 'ok');
+
+  // 返回目录：详情关闭，目录与列表状态仍在。
+  const back = find(
+    detail,
+    (node) => node.getAttribute('data-action') === 'activity-detail-back',
+  )[0];
+  assert.ok(back, 'the detail must provide a real return path');
+  back.dispatch('click');
+  assert.equal(detail.hidden, true);
+  assert.equal(directory.hidden, false);
+  assert.deepEqual(
+    itemIds(body),
+    content.items.map((item) => item.id),
   );
-  assert.deepEqual(opened, [content.items[0].id]);
+});
+
+test('returning from a detail keeps the selected category and keyword', () => {
+  const doc = createFakeDocument();
+  const body = renderActivitiesBody(doc, content, () => {});
+
+  clickCategory(body, 'welfare');
+  submitKeyword(body, '理发');
+  const filtered = itemIds(body);
+  assert.deepEqual(filtered, ['lifa']);
+
+  clickDetail(body);
+  assert.equal(stateOf(body), 'ok');
+  const back = find(
+    detailNode(body),
+    (node) => node.getAttribute('data-action') === 'activity-detail-back',
+  )[0];
+  back.dispatch('click');
+
+  assert.equal(pressedCategory(body), 'welfare');
+  assert.equal(searchField(body).value, '理发');
+  assert.deepEqual(itemIds(body), filtered);
+});
+
+test('missing detail data is labelled as not provided instead of invented', () => {
+  const doc = createFakeDocument();
+  const sparse = {
+    ...content,
+    items: [{ ...content.items[0], place: '', provider: '' }],
+  };
+  const body = renderActivitiesBody(doc, sparse, () => {});
+
+  clickDetail(body);
+  const detailText = textOf(detailNode(body));
+  const fallbacks = detailText.match(/未提供 \/ 演示待确认/g) ?? [];
+  assert.ok(fallbacks.length >= 2, 'each missing fact must show the shared fallback text');
+  assert.doesNotMatch(detailText, /余\s*\d+|步行|距离|米|公里/);
 });
 
 test('H01 activity entries open the real directory inside the shared shell', () => {
@@ -230,13 +321,79 @@ test('H01 activity entries open the real directory inside the shared shell', () 
   for (const signup of signups) assert.equal(signup.getAttribute('data-route'), 'activity');
 });
 
-test('public device mode still cannot reach the personal directory', () => {
+test('a public terminal enters the same directory and detail inside the public shell', () => {
   const doc = createFakeDocument();
   const { show, shell } = mountApp(doc, undefined, { deviceMode: 'public' });
-  assert.equal(show('activity'), 'public');
+
+  assert.equal(show('activity'), 'activity');
+  assert.equal(shell.getMode(), 'public');
+  const scene = find(shell.element, (node) => node.classList.contains('jq-scene--activities'))[0];
+  assert.ok(scene, 'the public terminal may browse the shared L01 directory');
+
+  // 公共壳仍不含个人身份、私人数据、设置或 AI 常驻入口。
+  assert.equal(find(shell.element, (node) => node.classList.contains('jq-home-body')).length, 0);
+  assert.equal(find(shell.element, (node) => node.classList.contains('jq-user')).length, 0);
+  assert.equal(find(shell.element, (node) => node.hasAttribute('data-open-settings')).length, 0);
+  assert.equal(find(shell.element, (node) => node.classList.contains('jq-ai-fab'))[0].hidden, true);
+
+  // 同一份详情：标题与数据来自同一活动 fixture。
+  clickDetail(scene);
+  const detail = detailNode(scene);
+  assert.equal(detail.hidden, false);
+  assert.ok(textOf(detail).includes(content.items[0].title));
+
+  const detailBack = find(
+    detail,
+    (node) => node.getAttribute('data-action') === 'activity-detail-back',
+  )[0];
+  detailBack.dispatch('click');
+  assert.equal(directoryNode(scene).hidden, false);
+  assert.equal(detailNode(scene).hidden, true);
+
+  // 目录的「返回」在公共设备回到 G00，而不是个人首页。
+  const sceneBack = find(scene, (node) => node.classList.contains('jq-scene__back'))[0];
+  assert.equal(sceneBack.getAttribute('data-route'), 'public');
+  sceneBack.dispatch('click');
   assert.equal(shell.getMode(), 'public');
   assert.equal(
-    find(shell.element, (node) => node.classList.contains('jq-scene--activities')).length,
-    0,
+    find(shell.element, (node) => node.classList.contains('jq-scene--public')).length,
+    1,
   );
+  assert.equal(find(shell.element, (node) => node.classList.contains('jq-home-body')).length, 0);
+});
+
+test('leaving the scene from an open detail closes it for the next visit', () => {
+  const doc = createFakeDocument();
+  const { shell } = mountApp(doc, undefined);
+
+  clickRoute(shell, 'activity');
+  const scene = find(shell.element, (node) => node.classList.contains('jq-scene--activities'))[0];
+  clickDetail(scene);
+  assert.equal(detailNode(scene).hidden, false);
+
+  find(scene, (node) => node.classList.contains('jq-scene__back'))[0].dispatch('click');
+  assert.equal(find(shell.element, (node) => node.classList.contains('jq-home-body')).length, 1);
+
+  clickRoute(shell, 'activity');
+  const revisited = find(shell.element, (node) =>
+    node.classList.contains('jq-scene--activities'),
+  )[0];
+  assert.equal(detailNode(revisited).hidden, true, 'a fresh directory visit starts on the list');
+  assert.equal(directoryNode(revisited).hidden, false);
+});
+
+test('switching A/B theme keeps the same open detail DOM', () => {
+  const doc = createFakeDocument();
+  const { shell } = mountApp(doc, undefined);
+
+  clickRoute(shell, 'activity');
+  const scene = find(shell.element, (node) => node.classList.contains('jq-scene--activities'))[0];
+  clickDetail(scene);
+  const detail = detailNode(scene);
+
+  shell.applyTheme('b');
+  assert.equal(doc.documentElement.getAttribute('data-dir'), 'b');
+  assert.equal(detailNode(scene), detail, 'theme switching must not rebuild the detail');
+  assert.equal(detail.hidden, false);
+  assert.equal(find(detail, (node) => node.hasAttribute('data-dir')).length, 0);
 });
