@@ -1,0 +1,892 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<script>if(window.innerWidth<=700 && !new URLSearchParams(location.search).has("desktop")) location.replace("mobile.html");</script>
+<title>闺蜜机 · 首轮视觉方向探索（A 日光客厅 / B 暖夜剧场）</title>
+<style>
+/* OD-LAYOUT-PRIMITIVES v1 — structure only: display, flex/grid, overflow, wrapping, ratio.
+   Put this @layer first; product CSS outside the layer always wins. */
+@layer od-layout {
+  :where(.od-stack,.od-row,.od-row-top,.od-cluster,.od-grid,.od-field,.od-stat,.od-cell,.od-tile) > :where(*) { min-width: 0; }
+
+  .od-stack   { display: flex; flex-direction: column; gap: var(--od-gap, 8px); }
+  .od-row     { display: flex; align-items: center; gap: var(--od-gap, 8px); }
+  .od-row-top { display: flex; align-items: flex-start; gap: var(--od-gap, 8px); }
+  .od-cluster { display: flex; flex-wrap: wrap; align-items: center; gap: var(--od-gap, 8px); }
+  .od-fill    { flex: 1 1 0; min-width: 0; }
+  .od-fixed   { flex: none; }
+  .od-grid    { display: grid; gap: var(--od-gap, 12px); grid-template-columns: repeat(var(--od-cols, 3), minmax(0, 1fr)); }
+
+  .od-stat, .od-field, .od-cell { display: grid; gap: var(--od-gap, 2px); }
+  :where(.od-stat,.od-field,.od-cell) > :where(*) { display: block; }
+  .od-tile { display: grid; grid-template-rows: auto 1fr; }
+  :where(.od-tile) > :where(*) { display: block; }
+
+  .od-media { display: block; width: 100%; height: auto; aspect-ratio: var(--od-ratio, auto); }
+  .od-media-cover { object-fit: cover; }
+
+  .od-truncate { display: block; max-width: 100%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+  .od-clamp-2, .od-clamp-3 { display: -webkit-box; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere; }
+  .od-clamp-2 { -webkit-line-clamp: 2; }
+  .od-clamp-3 { -webkit-line-clamp: 3; }
+  .od-lines-2 { min-height: calc(2 * 1.4em); }
+  .od-nowrap  { white-space: nowrap; }
+  .od-keep    { word-break: keep-all; overflow-wrap: anywhere; }
+
+  .od-screen { display: grid; grid-template-rows: auto minmax(0, 1fr) auto; height: 100%; }
+  .od-scroll { overflow-y: auto; overscroll-behavior: contain; min-height: 0; }
+
+  .od-rail { display: flex; gap: var(--od-gap, 8px); overflow-x: auto; scroll-snap-type: x proximity; scrollbar-width: none;
+             padding-inline: var(--od-rail-pad, 16px); scroll-padding-inline: var(--od-rail-pad, 16px); }
+  .od-rail::-webkit-scrollbar { display: none; }
+  :where(.od-rail) > :where(*) { flex: none; scroll-snap-align: start; }
+  :where(.od-rail) > :where(:last-child) { margin-inline-end: var(--od-rail-pad, 16px); }
+
+  .od-spacer { flex: none; visibility: hidden; pointer-events: none; }
+  .od-touch  { min-width: 44px; min-height: 44px; }
+}
+/* /OD-LAYOUT-PRIMITIVES v1 */
+</style>
+<link rel="stylesheet" href="assets/app.css" />
+<link rel="stylesheet" href="assets/jianqu-v02.css" />
+</head>
+<body>
+
+<!-- ============ 原型调试悬浮球 + 呼出面板（原型工具，非产品 UI） ============ -->
+<button type="button" class="debug-ball" id="debugBall" aria-expanded="false" aria-controls="debugPanel" aria-label="打开原型调试面板">
+  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.2V6"/><path d="M5.5 8h13l1 3.4H4.5z"/><rect x="6.5" y="11.4" width="11" height="8.4" rx="2.2"/><path d="M9.5 15.6h5"/></svg>
+  <span class="debug-dot" aria-hidden="true"></span>
+</button>
+<aside class="debug-panel" id="debugPanel" hidden aria-label="原型调试面板">
+  <div class="db-head">
+    <span class="db-title">原型调试面板</span>
+    <button type="button" class="db-close" id="debugClose" aria-label="收起调试面板">✕</button>
+  </div>
+  <p class="db-sub">闺蜜机 · 家庭版 / 社区版 · 21.5–32″ 横屏大屏</p>
+  <p class="db-label">版本入口</p>
+  <div class="rb-modes" role="group" aria-label="版本入口">
+    <button type="button" class="rb-btn is-on" data-mode-btn="home" aria-pressed="true">家庭版</button>
+    <button type="button" class="rb-btn" data-mode-btn="community" aria-pressed="false">社区版</button>
+  </div>
+  <p class="db-label">视觉方向</p>
+  <div class="rb-dirs" role="group" aria-label="视觉方向">
+    <button type="button" class="rb-btn is-on" data-dir-btn="a" aria-pressed="true">A · 日光客厅</button>
+    <button type="button" class="rb-btn" data-dir-btn="b" aria-pressed="false">B · 暖夜剧场</button>
+    <button type="button" class="rb-btn" data-dir-btn="compare" aria-pressed="false">A／B 对照</button>
+  </div>
+  <p class="db-label">页面</p>
+  <nav class="rb-screens" role="tablist" aria-label="关键页面">
+    <button type="button" class="rb-tab is-on" role="tab" data-screen-btn="home" data-mode="home" aria-selected="true">01 个人首页</button>
+    <button type="button" class="rb-tab" role="tab" data-screen-btn="video" data-mode="home" aria-selected="false">02 视频观看</button>
+    <button type="button" class="rb-tab" role="tab" data-screen-btn="ai" data-mode="home" aria-selected="false">03 AI 伙伴</button>
+    <button type="button" class="rb-tab" role="tab" data-screen-btn="course" data-mode="home" aria-selected="false">04 数字人课程</button>
+    <button type="button" class="rb-tab" role="tab" data-screen-btn="public" data-mode="community" aria-selected="false" hidden>01 社区首页</button>
+  </nav>
+  <button type="button" class="rb-btn rb-ghost" id="adaptBtn" aria-expanded="false" aria-controls="adaptPanel">适配说明</button>
+</aside>
+
+<aside class="adapt-panel" id="adaptPanel" hidden aria-label="横竖屏适配说明">
+  <h2>横竖屏适配思路</h2>
+  <p><strong>主方向：横屏大屏。</strong>闺蜜机是 21.5–32″ 桌面/靠墙终端，观看距离约 1.5–3 米，因此以横屏 16:9 为主画布设计：内容用「宽幅 hero + 横向内容轨」承载，一屏能同时看到 4–6 张内容，符合「窝在沙发里连续看半小时」的场景。</p>
+  <p><strong>竖屏（未来可能的立式/窄面型号）：</strong>不重排成手机版，而是把横屏的「横向内容轨」折叠为「纵向大字单列」——hero 变为纵向大图叠加标题，内容轨改两列网格，导航从顶部内容条改为底部四条 dock，字号与触摸目标不变。核心内容顺序（继续看 → 精选 → 本地活动 → 创作）保持一致。</p>
+  <p><strong>公共模式：</strong>用于社区空间/展厅，默认落在横屏且加大标题与二维码/报名按钮，供 1–2 米外站立操作。</p>
+</aside>
+
+<!-- ============ 画布 ============ -->
+<main class="stage-wrap">
+  <div class="stage" id="stage">
+
+    <!-- ================= 方向 A ·「日光客厅」浅色杂志式 ================= -->
+
+    <!-- A / 01 个人首页 -->
+    <section class="screen a-screen" data-dir="a" data-screen="home" aria-label="A 日光客厅 · 个人首页">
+      <header class="a-topbar">
+        <div class="a-brand">
+          <span class="a-logo">闺蜜机</span>
+          <span class="a-brandsub">客厅里的好伙伴</span>
+        </div>
+        <nav class="a-nav" aria-label="内容分区">
+          <button type="button" class="a-navitem is-on" data-goto="home">推荐</button>
+          <button type="button" class="a-navitem" data-goto="video">短剧</button>
+          <button type="button" class="a-navitem" data-goto="video">戏曲</button>
+          <button type="button" class="a-navitem" data-goto="video">音乐</button>
+          <button type="button" class="a-navitem" data-goto="video">活动</button>
+          <button type="button" class="a-navitem" data-goto="course">课程</button>
+          <button type="button" class="a-navitem" data-goto="home">商城</button>
+        </nav>
+        <div class="a-topright">
+          <span class="a-datestamp">10月15日 周三 · 下午好</span>
+          <button type="button" class="entry-chip" data-goto="public">社区版 ›</button>
+          <button type="button" class="a-searchbtn">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg>
+            搜一搜
+          </button>
+          <div class="a-user"><span class="a-avatar" aria-hidden="true">兰</span><span class="a-uname">王秀兰</span></div>
+        </div>
+      </header>
+
+      <div class="a-main od-scroll">
+        <section class="a-hero-row">
+          <article class="a-hero">
+            <div class="a-hero-media">
+              <img class="od-media" src="assets/img/art-reading.jpg" width="1280" height="853" alt="短剧《朝夕巷》剧照：两位老人在公园长椅上读报聊天" />
+              <div class="a-hero-veil"></div>
+              <span class="a-hero-tag">继续追剧</span>
+            </div>
+            <div class="a-hero-body">
+              <p class="a-eyebrow">第 8 集 · 家庭生活</p>
+              <h1 class="a-hero-title">朝夕巷</h1>
+              <p class="a-hero-desc od-clamp-2">老巷子里的柴米油盐，一段谁都绕不开的邻里情。</p>
+              <div class="a-progress" aria-label="观看进度 64%"><span style="width:64%"></span></div>
+              <p class="a-hero-progress-text">看到 12:36 · 共 45 分钟</p>
+              <div class="a-hero-actions">
+                <button type="button" class="btn btn-primary a-btn" data-goto="video">继续观看</button>
+                <button type="button" class="btn btn-ghost a-btn">加入片单</button>
+              </div>
+            </div>
+          </article>
+
+          <aside class="a-side">
+            <h2 class="a-side-title">今天也为你备好了</h2>
+            <ul class="a-minilist">
+              <li class="a-mini">
+                <img class="a-mini-thumb" src="assets/img/art-teahouse.jpg" width="1280" height="787" alt="" />
+                <div class="od-fill"><p class="a-mini-name od-truncate">茶馆春秋</p><p class="a-mini-meta od-truncate">年代 · 全 46 集</p></div>
+              </li>
+              <li class="a-mini">
+                <img class="a-mini-thumb" src="assets/img/art-opera.jpg" width="1280" height="886" alt="" />
+                <div class="od-fill"><p class="a-mini-name od-truncate">豫剧《朝阳沟》</p><p class="a-mini-meta od-truncate">戏曲 · 经典选段</p></div>
+              </li>
+              <li class="a-mini">
+                <img class="a-mini-thumb" src="assets/img/art-guzheng.jpg" width="1157" height="1280" alt="" />
+                <div class="od-fill"><p class="a-mini-name od-truncate">老歌金曲联唱</p><p class="a-mini-meta od-truncate">音乐 · 60 分钟</p></div>
+              </li>
+            </ul>
+            <div class="a-companion">
+              <span class="orb orb-sm" aria-hidden="true"></span>
+              <div class="od-fill">
+                <p class="a-companion-name">小暖 · 在线</p>
+                <p class="a-companion-line od-clamp-2">找不到想看的，跟我说一句就行。</p>
+              </div>
+              <button type="button" class="btn btn-ghost a-btn-sm" data-goto="ai">问小暖</button>
+            </div>
+          </aside>
+        </section>
+
+        <section class="a-section">
+          <header class="a-sec-head">
+            <h2 class="a-sec-title">今日精选</h2>
+            <span class="a-sec-sub">按你常看的口味挑的</span>
+            <button type="button" class="a-more">全部 ›</button>
+          </header>
+          <div class="od-rail a-rail" style="--od-gap:20px">
+            <article class="a-poster">
+              <div class="a-poster-media"><img class="od-media od-media-cover" style="--od-ratio:3/4" src="assets/img/art-teahouse.jpg" width="1280" height="787" alt="年代短剧《茶馆春秋》" /></div>
+              <span class="a-badge">更新 3 集</span>
+              <h3 class="a-poster-name od-truncate">茶馆春秋</h3>
+              <p class="a-poster-meta od-truncate">年代 · 全 46 集</p>
+            </article>
+            <article class="a-poster">
+              <div class="a-poster-media"><img class="od-media od-media-cover" style="--od-ratio:3/4" src="assets/img/art-festival.jpg" width="1280" height="853" alt="生活喜剧《老来俏》" /></div>
+              <span class="a-badge a-badge-hot">热播</span>
+              <h3 class="a-poster-name od-truncate">老来俏</h3>
+              <p class="a-poster-meta od-truncate">生活喜剧 · 26 集</p>
+            </article>
+            <article class="a-poster">
+              <div class="a-poster-media"><img class="od-media od-media-cover" style="--od-ratio:3/4" src="assets/img/art-food.jpg" width="1280" height="960" alt="家庭短剧《团圆饭》" /></div>
+              <h3 class="a-poster-name od-truncate">团圆饭</h3>
+              <p class="a-poster-meta od-truncate">家庭 · 全 30 集</p>
+            </article>
+            <article class="a-poster">
+              <div class="a-poster-media"><img class="od-media od-media-cover" style="--od-ratio:3/4" src="assets/img/art-opera.jpg" width="1280" height="886" alt="豫剧《朝阳沟》舞台照" /></div>
+              <h3 class="a-poster-name od-truncate">豫剧《朝阳沟》</h3>
+              <p class="a-poster-meta od-truncate">戏曲 · 经典选段</p>
+            </article>
+            <article class="a-poster">
+              <div class="a-poster-media"><img class="od-media od-media-cover" style="--od-ratio:3/4" src="assets/img/art-classic.jpg" width="765" height="1280" alt="越剧《梁山伯与祝英台》" /></div>
+              <h3 class="a-poster-name od-truncate">越剧《梁祝》</h3>
+              <p class="a-poster-meta od-truncate">戏曲 · 全本</p>
+            </article>
+            <article class="a-poster">
+              <div class="a-poster-media"><img class="od-media od-media-cover" style="--od-ratio:3/4" src="assets/img/art-guzheng.jpg" width="1157" height="1280" alt="传统民乐合奏" /></div>
+              <h3 class="a-poster-name od-truncate">民乐老歌</h3>
+              <p class="a-poster-meta od-truncate">音乐 · 歌单</p>
+            </article>
+          </div>
+        </section>
+
+        <section class="a-section">
+          <header class="a-sec-head">
+            <h2 class="a-sec-title">家门口的活动</h2>
+            <span class="a-sec-sub">云栖社区 · 本周末</span>
+            <button type="button" class="a-more">全部 ›</button>
+          </header>
+          <div class="a-act-grid">
+            <article class="a-act">
+              <img class="od-media a-act-media" src="assets/img/art-taichi.jpg" width="1280" height="853" alt="公园里的太极晨练" />
+              <div class="a-act-body">
+                <h3 class="a-act-name od-truncate">晨练太极</h3>
+                <p class="a-act-meta od-truncate">云栖公园 · 周六 7:00</p>
+                <div class="a-act-foot">
+                  <span class="a-chip a-chip-free">免费</span>
+                  <button type="button" class="btn btn-ghost a-btn-sm act-signup">报名</button>
+                </div>
+              </div>
+            </article>
+            <article class="a-act">
+              <img class="od-media a-act-media" src="assets/img/art-tea.jpg" width="1280" height="853" alt="邻里中心的茶艺课茶具" />
+              <div class="a-act-body">
+                <h3 class="a-act-name od-truncate">邻里茶艺课</h3>
+                <p class="a-act-meta od-truncate">活动中心 · 周日 15:00</p>
+                <div class="a-act-foot">
+                  <span class="a-chip">余 8 位</span>
+                  <button type="button" class="btn btn-ghost a-btn-sm act-signup">报名</button>
+                </div>
+              </div>
+            </article>
+            <article class="a-act">
+              <img class="od-media a-act-media" src="assets/img/art-reading.jpg" width="1280" height="853" alt="社区书屋的老友读报会" />
+              <div class="a-act-body">
+                <h3 class="a-act-name od-truncate">老友读报会</h3>
+                <p class="a-act-meta od-truncate">社区书屋 · 每天 9:30</p>
+                <div class="a-act-foot">
+                  <span class="a-chip a-chip-free">免费</span>
+                  <button type="button" class="btn btn-ghost a-btn-sm act-signup">报名</button>
+                </div>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <section class="a-section">
+          <header class="a-sec-head">
+            <h2 class="a-sec-title">随手玩点新花样</h2>
+            <span class="a-sec-sub">把日子过成作品</span>
+          </header>
+          <div class="a-create-grid">
+            <article class="a-create">
+              <img class="od-media od-media-cover" style="--od-ratio:1/1" src="assets/img/art-living.jpg" width="1280" height="854" alt="AI 写真示例：客厅里的生活照" />
+              <h3 class="a-create-name">AI 写真</h3>
+              <p class="a-create-sub od-truncate">给你的家拍一张全家福</p>
+            </article>
+            <article class="a-create">
+              <img class="od-media od-media-cover" style="--od-ratio:1/1" src="assets/img/art-calligraphy.jpg" width="719" height="1280" alt="书画创作：文房四宝" />
+              <h3 class="a-create-name">写福字 · 书画</h3>
+              <p class="a-create-sub od-truncate">提笔写一副自己的字</p>
+            </article>
+            <article class="a-create">
+              <img class="od-media od-media-cover" style="--od-ratio:1/1" src="assets/img/art-classic.jpg" width="765" height="1280" alt="老照片修复参考" />
+              <h3 class="a-create-name">老照片修复</h3>
+              <p class="a-create-sub od-truncate">让旧时光重新清晰</p>
+            </article>
+            <article class="a-create">
+              <img class="od-media od-media-cover" style="--od-ratio:1/1" src="assets/img/art-tea.jpg" width="1280" height="853" alt="人生故事录音场景" />
+              <h3 class="a-create-name">人生故事</h3>
+              <p class="a-create-sub od-truncate">说说你的老故事，替你留存</p>
+            </article>
+          </div>
+        </section>
+      </div>
+
+      <button type="button" class="orb-fab" data-goto="ai">
+        <span class="orb orb-xs" aria-hidden="true"></span>
+        问问小暖
+      </button>
+    </section>
+
+    <!-- A / 02 视频观看 -->
+    <section class="screen a-screen screen-dark-media" data-dir="a" data-screen="video" aria-label="A 日光客厅 · 视频观看">
+      <header class="a-topbar a-topbar-sub">
+        <button type="button" class="btn btn-ghost a-btn-sm a-back" data-goto="home">‹ 返回首页</button>
+        <div class="a-titleblock">
+          <h1 class="a-video-title">朝夕巷 <span class="a-video-ep">第 8 集 · 一碗阳春面</span></h1>
+        </div>
+        <div class="a-topright">
+          <button type="button" class="a-iconbtn">追剧</button>
+          <button type="button" class="a-iconbtn">分享</button>
+        </div>
+      </header>
+
+      <div class="a-video-wrap">
+        <article class="a-player">
+          <img class="od-media a-player-media" src="assets/img/art-reading.jpg" width="1280" height="853" alt="《朝夕巷》第 8 集画面" />
+          <div class="a-player-veil"></div>
+          <button type="button" class="a-playbtn" aria-label="播放">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l11-6.5z"/></svg>
+          </button>
+          <div class="a-player-bar">
+            <div class="a-player-progress"><span style="width:28%"></span></div>
+            <div class="a-player-controls">
+              <span class="a-tc">12:36 / 45:00</span>
+              <div class="od-fill"></div>
+              <button type="button" class="a-tbtn">画质 · 高清</button>
+              <button type="button" class="a-tbtn">字幕</button>
+              <button type="button" class="a-tbtn">全屏</button>
+            </div>
+          </div>
+          <button type="button" class="a-ask-ai" data-toggle="ai-note">
+            <span class="orb orb-xs" aria-hidden="true"></span> 问问小暖：这段讲了啥
+          </button>
+          <aside class="a-ai-note" data-panel="ai-note" hidden>
+            <p class="a-ai-note-name">小暖说</p>
+            <p>这一集讲的是：老周把母亲留下的面馆重新开张，邻居们悄悄来帮忙。看到 12:36 处，后面会出现那段呼应的「阳春面」。</p>
+          </aside>
+        </article>
+
+        <aside class="a-video-side">
+          <div class="a-video-side-head">
+            <h2>接着看</h2>
+            <span class="a-chip">已追 8 集</span>
+          </div>
+          <div class="a-episode-strip">
+            <button type="button" class="a-ep">05</button>
+            <button type="button" class="a-ep">06</button>
+            <button type="button" class="a-ep">07</button>
+            <button type="button" class="a-ep is-on">08</button>
+            <button type="button" class="a-ep">09</button>
+            <button type="button" class="a-ep">10</button>
+            <button type="button" class="a-ep">11</button>
+            <button type="button" class="a-ep">12</button>
+          </div>
+          <div class="a-video-next">
+            <p class="a-video-next-label">下一集预告</p>
+            <div class="a-next-row">
+              <img class="a-next-thumb" src="assets/img/art-teahouse.jpg" width="1280" height="787" alt="" />
+              <div class="od-fill"><p class="a-mini-name od-truncate">第 9 集 · 老街坊</p><p class="a-mini-meta od-truncate">45 分钟 · 后天更新</p></div>
+            </div>
+          </div>
+          <div class="a-buddy">
+            <p class="a-buddy-title">看剧搭子 <span class="a-chip">老李 · 也在看</span></p>
+            <ul class="a-buddy-list">
+              <li><span class="a-buddy-ava" aria-hidden="true">李</span><p class="od-fill">这面条看着就香，回头我也做一碗。</p></li>
+              <li><span class="a-buddy-ava" aria-hidden="true">张</span><p class="od-fill">老周这脾气，跟我家那口子一模一样。</p></li>
+            </ul>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <!-- A / 03 AI 伙伴交互 -->
+    <section class="screen a-screen" data-dir="a" data-screen="ai" aria-label="A 日光客厅 · AI 伙伴交互">
+      <div class="a-ai-grid">
+        <aside class="a-ai-presence">
+          <button type="button" class="entry-chip a-ai-back" data-goto="home">‹ 返回首页</button>
+          <span class="orb orb-lg" aria-hidden="true"></span>
+          <h1 class="a-ai-name">小暖</h1>
+          <p class="a-ai-role">你的生活搭子 · 一直在</p>
+          <div class="a-wave" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+          <div class="a-ai-status">
+            <span class="a-chip">正在帮你找</span>
+            <p class="a-ai-status-text">周末能报名的太极课</p>
+          </div>
+          <div class="a-ai-styles">
+            <p class="a-ai-styles-label">说话方式</p>
+            <button type="button" class="a-stylechip is-on">慢慢讲</button>
+            <button type="button" class="a-stylechip">说重点</button>
+            <button type="button" class="a-stylechip">唠家常</button>
+          </div>
+        </aside>
+
+        <section class="a-ai-stream od-scroll">
+          <div class="a-bubble a-bubble-user">
+            <p>帮我找个周末能报的太极课</p>
+          </div>
+          <div class="a-bubble a-bubble-ai">
+            <p>找着了，云栖公园周六早上有晨练太极，免费，实际距离请以地图和场地信息为准。要不要我直接替你报上？</p>
+          </div>
+
+          <article class="a-svc-card">
+            <img class="od-media a-svc-media" src="assets/img/art-taichi.jpg" width="1280" height="853" alt="晨练太极活动" />
+            <div class="a-svc-body">
+              <h3 class="a-svc-name">晨练太极 · 入门班</h3>
+              <p class="a-svc-meta">云栖公园 · 周六 7:00–8:00 · 免费</p>
+              <p class="a-svc-desc od-clamp-2">零基础可上，跟着教练一招一式来。已报 12 人，还差 6 人开课。</p>
+              <div class="a-svc-actions">
+                <button type="button" class="btn btn-primary a-btn-sm act-signup">替我报名</button>
+                <button type="button" class="btn btn-ghost a-btn-sm">先看看时间</button>
+              </div>
+            </div>
+          </article>
+
+          <div class="a-bubble a-bubble-user">
+            <p>顺便看看有没有好用的血压计</p>
+          </div>
+          <div class="a-bubble a-bubble-ai">
+            <p>挑了两款适合家里用的，字大、能存测量记录。</p>
+          </div>
+
+          <article class="a-svc-card a-svc-card-product">
+            <img class="od-media a-svc-media" src="assets/img/art-living.jpg" width="1280" height="854" alt="家用电子血压计" />
+            <div class="a-svc-body">
+              <h3 class="a-svc-name">上臂式电子血压计</h3>
+              <p class="a-svc-meta">大屏大字 · 一键测量 · 支持语音播报</p>
+              <p class="a-svc-price">¥199 <span>会员价 ¥179</span></p>
+              <div class="a-svc-actions">
+                <button type="button" class="btn btn-primary a-btn-sm">加入购物车</button>
+                <button type="button" class="btn btn-ghost a-btn-sm">讲讲怎么用</button>
+              </div>
+            </div>
+          </article>
+
+          <div class="a-ai-quick">
+            <button type="button" class="a-qchip">找附近活动</button>
+            <button type="button" class="a-qchip">查一件商品</button>
+            <button type="button" class="a-qchip">讲讲这门课</button>
+            <button type="button" class="a-qchip">用手机帮我做</button>
+          </div>
+          <div class="a-ai-input">
+            <span class="a-ai-input-hint">跟小暖说句话…</span>
+            <button type="button" class="a-ai-send">说给它听</button>
+          </div>
+        </section>
+      </div>
+    </section>
+
+    <!-- A / 04 数字人课程 -->
+    <section class="screen a-screen" data-dir="a" data-screen="course" aria-label="A 日光客厅 · 数字人课程">
+      <header class="a-topbar a-topbar-sub">
+        <button type="button" class="btn btn-ghost a-btn-sm a-back" data-goto="home">‹ 我的课程</button>
+        <div class="a-titleblock">
+          <h1 class="a-course-title">手机拍好照 · 第 3 讲</h1>
+          <p class="a-course-sub">构图：把想拍的东西放对位置</p>
+        </div>
+        <div class="a-topright">
+          <span class="a-chip">已学 3/8 讲</span>
+          <button type="button" class="a-iconbtn">记笔记</button>
+        </div>
+      </header>
+
+      <div class="a-course-wrap">
+        <article class="a-course-stage">
+          <div class="a-course-board">
+            <img class="od-media a-course-boardimg" src="assets/img/art-taichi.jpg" width="1280" height="853" alt="教学示范图：公园里的人物构图" />
+            <svg class="a-rule3" viewBox="0 0 1200 800" preserveAspectRatio="none" aria-hidden="true">
+              <line x1="400" y1="0" x2="400" y2="800"/><line x1="800" y1="0" x2="800" y2="800"/>
+              <line x1="0" y1="266" x2="1200" y2="266"/><line x1="0" y1="533" x2="1200" y2="533"/>
+            </svg>
+            <span class="a-course-pin" style="left:31%;top:44%">人物放在交叉点</span>
+          </div>
+        </article>
+
+        <aside class="a-course-side">
+          <div class="a-presenter">
+            <span class="a-presenter-ava" aria-hidden="true">妹</span>
+            <div class="od-fill">
+              <p class="a-presenter-name">邻家阿妹</p>
+              <p class="a-presenter-style od-truncate">温柔细讲 · 语速慢</p>
+            </div>
+            <span class="a-wave a-wave-sm" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>
+          </div>
+
+          <div class="a-teacher-pick">
+            <p class="a-teacher-label">换个讲法</p>
+            <button type="button" class="a-teacher is-on" data-teacher="邻家阿妹|温柔细讲 · 语速慢">
+              <span class="a-tava a-tava-1" aria-hidden="true">妹</span>
+              <span class="od-fill"><span class="a-tname">邻家阿妹</span><span class="a-tdesc">温柔细讲</span></span>
+              <span class="a-voice">女声 · 慢</span>
+            </button>
+            <button type="button" class="a-teacher" data-teacher="茶馆先生|慢条斯理 · 带例子">
+              <span class="a-tava a-tava-2" aria-hidden="true">茶</span>
+              <span class="od-fill"><span class="a-tname">茶馆先生</span><span class="a-tdesc">慢条斯理</span></span>
+              <span class="a-voice">男声 · 中</span>
+            </button>
+            <button type="button" class="a-teacher" data-teacher="开心大姐|说笑教学 · 爱举例">
+              <span class="a-tava a-tava-3" aria-hidden="true">俏</span>
+              <span class="od-fill"><span class="a-tname">开心大姐</span><span class="a-tdesc">说笑教学</span></span>
+              <span class="a-voice">女声 · 快</span>
+            </button>
+          </div>
+
+          <div class="a-outline">
+            <p class="a-teacher-label">本讲要讲</p>
+            <ol class="a-outline-list">
+              <li class="is-on">三分法：把画面切成九宫格</li>
+              <li>把人放在交叉点上</li>
+              <li>留一点“走路的方向”</li>
+              <li>动手拍一张试试</li>
+            </ol>
+          </div>
+
+          <div class="a-course-controls">
+            <button type="button" class="btn btn-ghost a-btn-sm">‹ 上一节</button>
+            <button type="button" class="btn btn-primary a-btn-sm">下一节 ›</button>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <!-- A / 05 公共服务模式 -->
+    <section class="screen a-screen screen-public" data-dir="a" data-screen="public" aria-label="A 日光客厅 · 公共服务模式">
+      <header class="a-topbar a-topbar-public">
+        <div class="a-brand">
+          <span class="a-logo">闺蜜机 · 社区版</span>
+          <span class="a-brandsub">云栖社区活动中心 · 1 号厅</span>
+        </div>
+        <div class="od-fill"></div>
+        <span class="a-public-note">本机为公共终端，不含个人内容</span>
+        <span class="a-datestamp">10月15日 周三 · 14:20</span>
+        <button type="button" class="entry-chip" data-goto="home">‹ 返回家庭版</button>
+      </header>
+
+      <div class="a-main od-scroll">
+        <section class="a-public-band">
+          <div class="a-public-band-text">
+            <p class="a-eyebrow">本周社区</p>
+            <h1 class="a-public-title">重阳节·邻里敬老周</h1>
+            <p class="a-public-desc">义诊、理发、文艺演出陆续开场，凭社区卡即可参加。</p>
+          </div>
+          <div class="a-public-band-stats">
+            <div class="a-stat"><span class="a-stat-num od-nowrap">12</span><span class="a-stat-cap">场活动</span></div>
+            <div class="a-stat"><span class="a-stat-num od-nowrap">6</span><span class="a-stat-cap">项免费福利</span></div>
+            <div class="a-stat"><span class="a-stat-num od-nowrap">3</span><span class="a-stat-cap">门公共课</span></div>
+          </div>
+        </section>
+
+        <section class="a-section">
+          <header class="a-sec-head"><h2 class="a-sec-title">现在可报名</h2><span class="a-sec-sub">点一下即可登记</span></header>
+          <div class="a-act-grid a-act-grid-4">
+            <article class="a-act">
+              <img class="od-media a-act-media" src="assets/img/art-taichi.jpg" width="1280" height="853" alt="太极课" />
+              <div class="a-act-body">
+                <h3 class="a-act-name od-truncate">太极入门课</h3>
+                <p class="a-act-meta od-truncate">周六 7:00 · 广场东侧</p>
+                <div class="a-act-foot"><span class="a-chip">余 6 位</span><button type="button" class="btn btn-primary a-btn-sm act-signup">报名</button></div>
+              </div>
+            </article>
+            <article class="a-act">
+              <img class="od-media a-act-media" src="assets/img/art-reading.jpg" width="1280" height="853" alt="防诈骗讲座" />
+              <div class="a-act-body">
+                <h3 class="a-act-name od-truncate">防诈骗讲座</h3>
+                <p class="a-act-meta od-truncate">周五 10:00 · 多功能厅</p>
+                <div class="a-act-foot"><span class="a-chip a-chip-free">免费</span><button type="button" class="btn btn-primary a-btn-sm act-signup">报名</button></div>
+              </div>
+            </article>
+            <article class="a-act">
+              <img class="od-media a-act-media" src="assets/img/art-tea.jpg" width="1280" height="853" alt="茶艺体验" />
+              <div class="a-act-body">
+                <h3 class="a-act-name od-truncate">茶艺体验</h3>
+                <p class="a-act-meta od-truncate">周日 15:00 · 茶室</p>
+                <div class="a-act-foot"><span class="a-chip">余 8 位</span><button type="button" class="btn btn-primary a-btn-sm act-signup">报名</button></div>
+              </div>
+            </article>
+            <article class="a-act">
+              <img class="od-media a-act-media" src="assets/img/art-festival.jpg" width="1280" height="853" alt="重阳文艺演出" />
+              <div class="a-act-body">
+                <h3 class="a-act-name od-truncate">重阳文艺演出</h3>
+                <p class="a-act-meta od-truncate">周六 18:30 · 中心广场</p>
+                <div class="a-act-foot"><span class="a-chip a-chip-free">免费</span><button type="button" class="btn btn-primary a-btn-sm act-signup">报名</button></div>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <section class="a-section">
+          <header class="a-sec-head"><h2 class="a-sec-title">便民福利</h2></header>
+          <div class="a-welfare-row">
+            <div class="a-welfare"><span class="a-welfare-ico" aria-hidden="true">＋</span><p class="a-welfare-name">免费量血压</p><p class="a-welfare-sub od-truncate">每日 9:00–11:00</p></div>
+            <div class="a-welfare"><span class="a-welfare-ico" aria-hidden="true">✂</span><p class="a-welfare-name">便民理发</p><p class="a-welfare-sub od-truncate">周三下午 · 5 元</p></div>
+            <div class="a-welfare"><span class="a-welfare-ico" aria-hidden="true">☎</span><p class="a-welfare-name">手机课堂</p><p class="a-welfare-sub od-truncate">教挂号、缴费</p></div>
+            <div class="a-welfare"><span class="a-welfare-ico" aria-hidden="true">☂</span><p class="a-welfare-name">爱心雨伞</p><p class="a-welfare-sub od-truncate">前台自助借用</p></div>
+          </div>
+        </section>
+
+        <section class="a-section">
+          <header class="a-sec-head"><h2 class="a-sec-title">公共课程</h2></header>
+          <div class="a-rail a-rail-courses od-rail" style="--od-gap:20px">
+            <article class="a-course-card"><img class="od-media od-media-cover" style="--od-ratio:16/9" src="assets/img/art-calligraphy.jpg" width="719" height="1280" alt="书法课" /><div class="a-course-card-body"><h3 class="od-truncate">书法入门</h3><p class="od-truncate">数字人讲师 · 8 节</p></div></article>
+            <article class="a-course-card"><img class="od-media od-media-cover" style="--od-ratio:16/9" src="assets/img/art-guzheng.jpg" width="1157" height="1280" alt="民乐欣赏" /><div class="a-course-card-body"><h3 class="od-truncate">民乐欣赏</h3><p class="od-truncate">数字人讲师 · 6 节</p></div></article>
+            <article class="a-course-card"><img class="od-media od-media-cover" style="--od-ratio:16/9" src="assets/img/art-taichi.jpg" width="1280" height="853" alt="居家养生" /><div class="a-course-card-body"><h3 class="od-truncate">居家养生</h3><p class="od-truncate">数字人讲师 · 10 节</p></div></article>
+          </div>
+        </section>
+
+        <section class="a-section">
+          <header class="a-sec-head"><h2 class="a-sec-title">常用服务</h2></header>
+          <div class="a-service-row">
+            <button type="button" class="a-service">社保查询<span>›</span></button>
+            <button type="button" class="a-service">医院挂号<span>›</span></button>
+            <button type="button" class="a-service">公交卡充值<span>›</span></button>
+            <button type="button" class="a-service">政务办事<span>›</span></button>
+            <button type="button" class="a-service">紧急呼叫<span>›</span></button>
+          </div>
+        </section>
+      </div>
+    </section>
+
+    <!-- ================= 方向 B ·「暖夜剧场」暗色沉浸式 ================= -->
+
+    <!-- B / 01 个人首页 -->
+    <section class="screen b-screen" data-dir="b" data-screen="home" aria-label="B 暖夜剧场 · 个人首页">
+      <header class="b-topbar">
+        <div class="b-greet">
+          <p class="b-hello">晚上好，秀兰</p>
+          <p class="b-hello-sub">今晚想看点什么？</p>
+        </div>
+        <div class="od-fill"></div>
+        <button type="button" class="b-search"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg>搜内容、活动、商品</button>
+        <button type="button" class="entry-chip entry-chip-light" data-goto="public">社区版 ›</button>
+        <div class="b-user"><span class="b-avatar" aria-hidden="true">兰</span></div>
+      </header>
+
+      <div class="b-main od-scroll">
+        <article class="b-hero">
+          <img class="od-media b-hero-media" src="assets/img/art-festival.jpg" width="1280" height="853" alt="短剧《老来俏》氛围画面：夜色中的民俗演出" />
+          <div class="b-hero-grad"></div>
+          <div class="b-hero-body">
+            <p class="b-hero-eyebrow">继续追剧 · 第 8 集</p>
+            <h1 class="b-hero-title">老来俏</h1>
+            <p class="b-hero-meta">生活喜剧 · 更新至 26 集 · 9.3 分</p>
+            <p class="b-hero-desc od-clamp-2">退休以后的第一支广场舞，跳出的是热气腾腾的日子。</p>
+            <div class="b-hero-actions">
+              <button type="button" class="btn btn-gold b-btn" data-goto="video">▶ 继续观看 · 12:36</button>
+              <button type="button" class="btn btn-outline-light b-btn">＋ 加入片单</button>
+            </div>
+          </div>
+          <div class="b-hero-progress"><span style="width:64%"></span></div>
+        </article>
+
+        <section class="b-section">
+          <header class="b-sec-head"><h2 class="b-sec-title">接着看</h2><span class="b-sec-sub">你追到一半的都在这里</span></header>
+          <div class="od-rail b-rail" style="--od-gap:18px">
+            <article class="b-poster"><div class="b-poster-media"><img class="od-media od-media-cover" style="--od-ratio:16/10" src="assets/img/art-reading.jpg" width="1280" height="853" alt="《朝夕巷》" /><span class="b-prog"><i style="width:64%"></i></span></div><h3 class="b-poster-name od-truncate">朝夕巷</h3><p class="b-poster-meta od-truncate">第 8 集 · 还剩 32 分钟</p></article>
+            <article class="b-poster"><div class="b-poster-media"><img class="od-media od-media-cover" style="--od-ratio:16/10" src="assets/img/art-teahouse.jpg" width="1280" height="787" alt="《茶馆春秋》" /><span class="b-prog"><i style="width:30%"></i></span></div><h3 class="b-poster-name od-truncate">茶馆春秋</h3><p class="b-poster-meta od-truncate">第 14 集 · 还剩 40 分钟</p></article>
+            <article class="b-poster"><div class="b-poster-media"><img class="od-media od-media-cover" style="--od-ratio:16/10" src="assets/img/art-food.jpg" width="1280" height="960" alt="《团圆饭》" /><span class="b-prog"><i style="width:12%"></i></span></div><h3 class="b-poster-name od-truncate">团圆饭</h3><p class="b-poster-meta od-truncate">第 2 集 · 刚开始</p></article>
+          </div>
+        </section>
+
+        <section class="b-section">
+          <header class="b-sec-head"><h2 class="b-sec-title">戏迷都爱看</h2><span class="b-sec-sub">戏曲 · 老调新听</span></header>
+          <div class="od-rail b-rail" style="--od-gap:18px">
+            <article class="b-poster b-poster-portrait"><div class="b-poster-media"><img class="od-media od-media-cover" style="--od-ratio:3/4" src="assets/img/art-opera.jpg" width="1280" height="886" alt="豫剧《朝阳沟》" /></div><h3 class="b-poster-name od-truncate">豫剧《朝阳沟》</h3><p class="b-poster-meta od-truncate">经典选段 · 全本</p></article>
+            <article class="b-poster b-poster-portrait"><div class="b-poster-media"><img class="od-media od-media-cover" style="--od-ratio:3/4" src="assets/img/art-classic.jpg" width="765" height="1280" alt="越剧《梁祝》" /></div><h3 class="b-poster-name od-truncate">越剧《梁祝》</h3><p class="b-poster-meta od-truncate">全本 · 高清</p></article>
+            <article class="b-poster b-poster-portrait"><div class="b-poster-media"><img class="od-media od-media-cover" style="--od-ratio:3/4" src="assets/img/art-guzheng.jpg" width="1157" height="1280" alt="民乐合奏" /></div><h3 class="b-poster-name od-truncate">民乐合奏</h3><p class="b-poster-meta od-truncate">曲牌 · 歌单</p></article>
+            <article class="b-poster b-poster-portrait"><div class="b-poster-media"><img class="od-media od-media-cover" style="--od-ratio:3/4" src="assets/img/art-festival.jpg" width="1280" height="853" alt="民俗演出" /></div><h3 class="b-poster-name od-truncate">民俗大戏</h3><p class="b-poster-meta od-truncate">非遗 · 集锦</p></article>
+          </div>
+        </section>
+
+        <section class="b-section">
+          <header class="b-sec-head"><h2 class="b-sec-title">家门口</h2><span class="b-sec-sub">云栖社区 · 本周末</span></header>
+          <div class="b-act-grid">
+            <article class="b-act"><img class="od-media b-act-media" src="assets/img/art-taichi.jpg" width="1280" height="853" alt="晨练太极" /><div class="b-act-body"><h3 class="b-act-name od-truncate">晨练太极</h3><p class="b-act-meta od-truncate">周六 7:00 · 云栖公园</p></div></article>
+            <article class="b-act"><img class="od-media b-act-media" src="assets/img/art-tea.jpg" width="1280" height="853" alt="邻里茶艺课" /><div class="b-act-body"><h3 class="b-act-name od-truncate">邻里茶艺课</h3><p class="b-act-meta od-truncate">周日 15:00 · 活动中心</p></div></article>
+            <article class="b-act"><img class="od-media b-act-media" src="assets/img/art-reading.jpg" width="1280" height="853" alt="老友读报会" /><div class="b-act-body"><h3 class="b-act-name od-truncate">老友读报会</h3><p class="b-act-meta od-truncate">每天 9:30 · 社区书屋</p></div></article>
+          </div>
+        </section>
+      </div>
+
+      <button type="button" class="b-orb-fab" data-goto="ai"><span class="orb orb-sm" aria-hidden="true"></span> 小暖</button>
+      <nav class="b-dock" aria-label="主导航">
+        <button type="button" class="b-dockitem is-on" data-goto="home">首页</button>
+        <button type="button" class="b-dockitem" data-goto="video">短剧</button>
+        <button type="button" class="b-dockitem" data-goto="video">戏曲</button>
+        <button type="button" class="b-dockitem" data-goto="video">活动</button>
+        <button type="button" class="b-dockitem" data-goto="home">我的</button>
+      </nav>
+    </section>
+
+    <!-- B / 02 视频观看 -->
+    <section class="screen b-screen" data-dir="b" data-screen="video" aria-label="B 暖夜剧场 · 视频观看">
+      <article class="b-player">
+        <img class="od-media b-player-media" src="assets/img/art-festival.jpg" width="1280" height="853" alt="《老来俏》播放画面" />
+        <div class="b-player-grad"></div>
+        <header class="b-player-top">
+          <button type="button" class="btn btn-outline-light b-btn-sm" data-goto="home">‹ 返回</button>
+          <div class="b-player-title"><h1>老来俏</h1><p>第 8 集 · 广场舞队成立</p></div>
+          <div class="od-fill"></div>
+          <button type="button" class="b-iconbtn">追剧</button>
+        </header>
+        <button type="button" class="b-playbtn" aria-label="播放"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l11-6.5z"/></svg></button>
+        <div class="b-player-controls">
+          <div class="b-player-progress"><span style="width:28%"></span></div>
+          <div class="b-player-row">
+            <span class="b-tc">12:36 / 45:00</span>
+            <div class="od-fill"></div>
+            <button type="button" class="b-tbtn">选集</button>
+            <button type="button" class="b-tbtn">画质</button>
+            <button type="button" class="b-tbtn">字幕</button>
+          </div>
+        </div>
+        <button type="button" class="b-ask-ai" data-toggle="b-ai-note"><span class="orb orb-xs" aria-hidden="true"></span> 问问小暖</button>
+        <aside class="b-ai-note" data-panel="b-ai-note" hidden>
+          <p class="b-ai-note-name">小暖 · 不打断你</p>
+          <p>这一集是广场舞队刚成立，后面那段排练很热闹。要我把这一段记进你的「喜欢的片段」吗？</p>
+        </aside>
+      </article>
+      <aside class="b-ep-panel">
+        <div class="b-ep-head"><h2>选集</h2><span class="b-chip">已追 8 集</span></div>
+        <div class="b-ep-grid">
+          <button type="button" class="b-ep">05</button><button type="button" class="b-ep">06</button>
+          <button type="button" class="b-ep">07</button><button type="button" class="b-ep is-on">08</button>
+          <button type="button" class="b-ep">09</button><button type="button" class="b-ep">10</button>
+          <button type="button" class="b-ep">11</button><button type="button" class="b-ep">12</button>
+        </div>
+        <div class="b-buddy">
+          <p class="b-buddy-title">看剧搭子 · 老李 <span class="b-chip">也在看</span></p>
+          <p class="b-buddy-msg">这段我笑得不行，你看到没？</p>
+        </div>
+      </aside>
+    </section>
+
+    <!-- B / 03 AI 伙伴交互 -->
+    <section class="screen b-screen" data-dir="b" data-screen="ai" aria-label="B 暖夜剧场 · AI 伙伴交互">
+      <div class="b-ai-wrap">
+        <aside class="b-ai-stage">
+          <button type="button" class="entry-chip entry-chip-light b-ai-back" data-goto="home">‹ 返回首页</button>
+          <span class="orb orb-xl" aria-hidden="true"></span>
+          <h1 class="b-ai-name">小暖</h1>
+          <p class="b-ai-role">一直在，随时喊我</p>
+          <div class="a-wave b-wave" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+          <div class="b-ai-status"><span class="b-chip b-chip-gold">正在帮你找</span><p>周末能报的太极课</p></div>
+          <div class="b-ai-styles">
+            <button type="button" class="b-stylechip is-on">慢慢讲</button>
+            <button type="button" class="b-stylechip">说重点</button>
+            <button type="button" class="b-stylechip">唠家常</button>
+          </div>
+        </aside>
+        <section class="b-ai-stream od-scroll">
+          <div class="b-bubble b-bubble-user"><p>帮我找个周末能报的太极课</p></div>
+          <div class="b-bubble b-bubble-ai"><p>找到了，云栖公园周六早上有晨练太极，免费，步行距离待核实。要我直接替你报上吗？</p></div>
+          <article class="b-svc">
+            <img class="od-media b-svc-media" src="assets/img/art-taichi.jpg" width="1280" height="853" alt="晨练太极" />
+            <div class="b-svc-body">
+              <h3 class="b-svc-name">晨练太极 · 入门班</h3>
+              <p class="b-svc-meta">云栖公园 · 周六 7:00–8:00 · 免费</p>
+              <div class="b-svc-actions"><button type="button" class="btn btn-gold b-btn-sm act-signup">替我报名</button><button type="button" class="btn btn-outline-light b-btn-sm">看时间</button></div>
+            </div>
+          </article>
+          <div class="b-bubble b-bubble-user"><p>顺便看看有没有好用的血压计</p></div>
+          <div class="b-bubble b-bubble-ai"><p>挑了两款字大、能存记录的，适合放家里用。</p></div>
+          <article class="b-svc">
+            <img class="od-media b-svc-media" src="assets/img/art-living.jpg" width="1280" height="854" alt="家用电子血压计" />
+            <div class="b-svc-body">
+              <h3 class="b-svc-name">上臂式电子血压计</h3>
+              <p class="b-svc-meta">大屏大字 · 一键测量 · 语音播报</p>
+              <p class="b-svc-price">¥199 <span>会员价 ¥179</span></p>
+              <div class="b-svc-actions"><button type="button" class="btn btn-gold b-btn-sm">加入购物车</button><button type="button" class="btn btn-outline-light b-btn-sm">讲讲怎么用</button></div>
+            </div>
+          </article>
+          <div class="b-ai-quick">
+            <button type="button" class="b-qchip">找附近活动</button>
+            <button type="button" class="b-qchip">查一件商品</button>
+            <button type="button" class="b-qchip">讲讲这门课</button>
+            <button type="button" class="b-qchip">用手机帮我做</button>
+          </div>
+          <div class="b-ai-input"><span>跟小暖说句话…</span><button type="button" class="btn btn-gold b-btn-sm">说给它听</button></div>
+        </section>
+      </div>
+    </section>
+
+    <!-- B / 04 数字人课程 -->
+    <section class="screen b-screen" data-dir="b" data-screen="course" aria-label="B 暖夜剧场 · 数字人课程">
+      <header class="b-course-top">
+        <button type="button" class="btn btn-outline-light b-btn-sm" data-goto="home">‹ 我的课程</button>
+        <div class="b-course-title"><h1>手机拍好照 · 第 3 讲</h1><p>构图：把想拍的东西放对位置</p></div>
+        <div class="od-fill"></div>
+        <span class="b-chip">已学 3/8 讲</span>
+      </header>
+      <div class="b-course-wrap">
+        <article class="b-course-board">
+          <img class="od-media b-course-boardimg" src="assets/img/art-taichi.jpg" width="1280" height="853" alt="教学示范：公园人物构图" />
+          <svg class="a-rule3 b-rule3" viewBox="0 0 1200 800" preserveAspectRatio="none" aria-hidden="true">
+            <line x1="400" y1="0" x2="400" y2="800"/><line x1="800" y1="0" x2="800" y2="800"/>
+            <line x1="0" y1="266" x2="1200" y2="266"/><line x1="0" y1="533" x2="1200" y2="533"/>
+          </svg>
+          <span class="b-course-pin" style="left:31%;top:44%">人物放在交叉点</span>
+        </article>
+        <aside class="b-course-side">
+          <div class="b-presenter">
+            <span class="b-presenter-ava" aria-hidden="true">妹</span>
+            <div class="od-fill"><p class="b-presenter-name">邻家阿妹</p><p class="b-presenter-style od-truncate">温柔细讲 · 语速慢</p></div>
+            <span class="a-wave a-wave-sm" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>
+          </div>
+          <p class="b-teacher-label">换个讲法</p>
+          <button type="button" class="b-teacher is-on" data-teacher="邻家阿妹|温柔细讲 · 语速慢"><span class="b-tava b-tava-1" aria-hidden="true">妹</span><span class="od-fill"><span class="b-tname">邻家阿妹</span><span class="b-tdesc">温柔细讲</span></span><span class="b-voice">女声 · 慢</span></button>
+          <button type="button" class="b-teacher" data-teacher="茶馆先生|慢条斯理 · 带例子"><span class="b-tava b-tava-2" aria-hidden="true">茶</span><span class="od-fill"><span class="b-tname">茶馆先生</span><span class="b-tdesc">慢条斯理</span></span><span class="b-voice">男声 · 中</span></button>
+          <button type="button" class="b-teacher" data-teacher="开心大姐|说笑教学 · 爱举例"><span class="b-tava b-tava-3" aria-hidden="true">俏</span><span class="od-fill"><span class="b-tname">开心大姐</span><span class="b-tdesc">说笑教学</span></span><span class="b-voice">女声 · 快</span></button>
+          <div class="b-course-controls"><button type="button" class="btn btn-outline-light b-btn-sm">‹ 上一节</button><button type="button" class="btn btn-gold b-btn-sm">下一节 ›</button></div>
+        </aside>
+      </div>
+    </section>
+
+    <!-- B / 05 公共服务模式 -->
+    <section class="screen b-screen" data-dir="b" data-screen="public" aria-label="B 暖夜剧场 · 公共服务模式">
+      <header class="b-public-top">
+        <div><h1 class="b-public-logo">闺蜜机 · 社区版</h1><p class="b-public-loc">云栖社区活动中心 · 1 号厅</p></div>
+        <div class="od-fill"></div>
+        <span class="b-public-note">本机为公共终端，不含个人内容</span>
+        <button type="button" class="entry-chip entry-chip-light" data-goto="home">‹ 返回家庭版</button>
+      </header>
+      <div class="b-main od-scroll">
+        <section class="b-public-hero">
+          <div><p class="b-hero-eyebrow">本周社区</p><h2 class="b-public-title">重阳节 · 邻里敬老周</h2><p class="b-public-desc">义诊、理发、文艺演出陆续开场，凭社区卡即可参加。</p></div>
+          <div class="b-public-stats">
+            <div class="b-stat"><span class="b-stat-num od-nowrap">12</span><span class="b-stat-cap">场活动</span></div>
+            <div class="b-stat"><span class="b-stat-num od-nowrap">6</span><span class="b-stat-cap">项免费福利</span></div>
+            <div class="b-stat"><span class="b-stat-num od-nowrap">3</span><span class="b-stat-cap">门公共课</span></div>
+          </div>
+        </section>
+        <section class="b-section">
+          <header class="b-sec-head"><h2 class="b-sec-title">现在可报名</h2></header>
+          <div class="b-act-grid b-act-grid-4">
+            <article class="b-act"><img class="od-media b-act-media" src="assets/img/art-taichi.jpg" width="1280" height="853" alt="太极入门课" /><div class="b-act-body"><h3 class="b-act-name od-truncate">太极入门课</h3><p class="b-act-meta od-truncate">周六 7:00 · 广场东侧</p><button type="button" class="btn btn-gold b-btn-sm act-signup">报名 · 余 6 位</button></div></article>
+            <article class="b-act"><img class="od-media b-act-media" src="assets/img/art-reading.jpg" width="1280" height="853" alt="防诈骗讲座" /><div class="b-act-body"><h3 class="b-act-name od-truncate">防诈骗讲座</h3><p class="b-act-meta od-truncate">周五 10:00 · 多功能厅</p><button type="button" class="btn btn-gold b-btn-sm act-signup">报名 · 免费</button></div></article>
+            <article class="b-act"><img class="od-media b-act-media" src="assets/img/art-tea.jpg" width="1280" height="853" alt="茶艺体验" /><div class="b-act-body"><h3 class="b-act-name od-truncate">茶艺体验</h3><p class="b-act-meta od-truncate">周日 15:00 · 茶室</p><button type="button" class="btn btn-gold b-btn-sm act-signup">报名 · 余 8 位</button></div></article>
+            <article class="b-act"><img class="od-media b-act-media" src="assets/img/art-festival.jpg" width="1280" height="853" alt="重阳文艺演出" /><div class="b-act-body"><h3 class="b-act-name od-truncate">重阳文艺演出</h3><p class="b-act-meta od-truncate">周六 18:30 · 中心广场</p><button type="button" class="btn btn-gold b-btn-sm act-signup">报名 · 免费</button></div></article>
+          </div>
+        </section>
+        <section class="b-section">
+          <header class="b-sec-head"><h2 class="b-sec-title">便民福利</h2></header>
+          <div class="b-welfare-row">
+            <div class="b-welfare"><p class="b-welfare-name">免费量血压</p><p class="b-welfare-sub od-truncate">每日 9:00–11:00</p></div>
+            <div class="b-welfare"><p class="b-welfare-name">便民理发</p><p class="b-welfare-sub od-truncate">周三下午 · 5 元</p></div>
+            <div class="b-welfare"><p class="b-welfare-name">手机课堂</p><p class="b-welfare-sub od-truncate">教挂号、缴费</p></div>
+            <div class="b-welfare"><p class="b-welfare-name">爱心雨伞</p><p class="b-welfare-sub od-truncate">前台自助借用</p></div>
+          </div>
+        </section>
+        <section class="b-section">
+          <header class="b-sec-head"><h2 class="b-sec-title">常用服务</h2></header>
+          <div class="b-service-row">
+            <button type="button" class="b-service">社保查询<span>›</span></button>
+            <button type="button" class="b-service">医院挂号<span>›</span></button>
+            <button type="button" class="b-service">公交卡充值<span>›</span></button>
+            <button type="button" class="b-service">政务办事<span>›</span></button>
+            <button type="button" class="b-service">紧急呼叫<span>›</span></button>
+          </div>
+        </section>
+      </div>
+    </section>
+
+    <!-- ================= A／B 首页对照 ================= -->
+    <section class="screen cmp-screen" data-dir="compare" data-screen="compare" aria-label="A／B 首页对照">
+      <header class="cmp-head">
+        <h1 class="cmp-title">个人首页 · 两个方向对照</h1>
+        <p class="cmp-sub">同一批内容、同一个人的设备，两种气质：左边是「日光客厅」的明亮杂志感，右边是「暖夜剧场」的暗色沉浸感。</p>
+      </header>
+      <div class="cmp-panes">
+        <div class="cmp-pane" data-dir="a">
+          <div class="cmp-pane-head">
+            <span class="cmp-pane-name">A · 日光客厅</span>
+            <span class="cmp-pane-tags">浅色 · 杂志式 · 内容轨</span>
+            <div class="cmp-swatches"><i style="background:#F5F6F8"></i><i style="background:#E4572E"></i><i style="background:#1F9E8F"></i><i style="background:#1B1E23"></i></div>
+          </div>
+          <div class="cmp-scaler" data-cmp-clone="a"></div>
+        </div>
+        <div class="cmp-pane" data-dir="b">
+          <div class="cmp-pane-head">
+            <span class="cmp-pane-name">B · 暖夜剧场</span>
+            <span class="cmp-pane-tags">暗色 · 沉浸式 · 影院感</span>
+            <div class="cmp-swatches"><i style="background:#16141C"></i><i style="background:#E9B25C"></i><i style="background:#4FC3B5"></i><i style="background:#F3EFE8"></i></div>
+          </div>
+          <div class="cmp-scaler" data-cmp-clone="b"></div>
+        </div>
+      </div>
+    </section>
+
+  </div>
+</main>
+
+<script src="assets/app.js"></script>
+<script src="assets/jianqu-v02.js"></script>
+</body>
+</html>

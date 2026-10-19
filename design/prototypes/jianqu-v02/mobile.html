@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="zh-CN">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>见趣 · 随身接力概念</title>
+<style>
+:root{font-family:"PingFang SC","Microsoft YaHei",system-ui,sans-serif;color:#1d302b;background:#f8f7f3;font-synthesis:none}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%}button{font:inherit;cursor:pointer}
+a{color:inherit;text-decoration:none}
+header{position:sticky;top:0;z-index:5;padding:18px 20px 13px;background:#f8f7f3eb;backdrop-filter:blur(14px);border-bottom:1px solid #e6e8e1}
+.brand{display:flex;align-items:center;justify-content:space-between}
+.logo{font-size:24px;font-weight:860;letter-spacing:-.07em}
+.logo small{font-size:12px;font-weight:600;letter-spacing:0;color:#718079;margin-left:8px}
+.pill{border:1px solid #d6dfd8;border-radius:99px;padding:7px 12px;background:#fff;font-size:12px;font-weight:700}
+main{max-width:600px;margin:0 auto;padding:23px 20px 105px}
+.greeting{font-size:29px;font-weight:850;line-height:1.27;letter-spacing:-.03em;margin:0 0 9px}
+.note{margin:0 0 22px;color:#728079;font-size:14px;line-height:1.6}
+.hero{position:relative;display:flex;min-height:255px;border-radius:24px;overflow:hidden;background:#334c42;color:white;box-shadow:0 14px 32px #2b403724}
+.hero img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.66}
+.hero:after{position:absolute;content:"";inset:0;background:linear-gradient(90deg,#122b25dd 0%,#122b2590 55%,#122b2510)}
+.hero-content{position:relative;z-index:1;padding:28px 24px;max-width:77%;display:flex;flex-direction:column;align-items:start}
+.eyebrow{font-size:11px;font-weight:850;letter-spacing:.1em;color:#c5ebd5}
+.hero h2{font-size:31px;line-height:1.15;margin:10px 0 9px;letter-spacing:.04em}
+.hero p{font-size:13px;color:#e2e8e3;line-height:1.65;margin:0}
+.hero button{border:0;border-radius:100px;background:#fff;color:#215c4c;font-weight:800;padding:12px 22px;margin-top:auto}
+.section{margin:30px 0 0}
+.section-title{font-weight:830;font-size:21px;letter-spacing:-.025em;margin:0 0 14px}
+.row{display:flex;gap:14px;align-items:center;background:#fff;border:1px solid #e6eae4;border-radius:18px;padding:12px;margin-bottom:11px;box-shadow:0 3px 12px #15271d05}
+.thumb{width:88px;height:88px;flex:none;border-radius:12px;object-fit:cover}
+.row-body{flex:1;min-width:0}.row h3{font-size:17px;margin:0 0 5px}.row p{font-size:13px;color:#708079;margin:0 0 10px;line-height:1.5}
+.link{border:0;background:none;color:#206d59;font-weight:780;font-size:13px;padding:0}
+.works{display:flex;gap:12px}
+.work{flex:1;padding:21px 10px;background:#e7eee8;border:1px solid #d7e4d8;border-radius:18px;text-align:center}
+.work .emoji{font-size:29px;display:block;margin-bottom:8px}.work span:last-child{font-weight:700;font-size:13px}
+.notice{background:#f4ece0;border-left:3px solid #c79b62;padding:12px 15px;margin-top:25px;border-radius:0 8px 8px 0;font-size:12px;color:#7b6650;line-height:1.7}
+nav{position:fixed;bottom:0;left:0;right:0;background:#fffef8ef;backdrop-filter:blur(12px);border-top:1px solid #e4e9e3;padding:12px max(14px,env(safe-area-inset-left)) max(12px,env(safe-area-inset-bottom));display:flex;justify-content:space-around;z-index:8}
+nav button{border:none;background:none;color:#74817b;display:flex;flex-direction:column;gap:5px;align-items:center;font-size:12px;font-weight:700;min-width:65px}
+nav button.on{color:#22765f}nav button b{font-size:22px;line-height:1}
+.dialog[hidden]{display:none}.dialog{position:fixed;z-index:20;inset:0;background:#121b19a8;display:grid;place-items:end center}
+.sheet{background:white;border-radius:24px 24px 0 0;max-width:600px;width:100%;padding:26px 23px 31px}
+.sheet h2{margin:0 0 9px;font-size:23px}.sheet p{color:#64756c;line-height:1.7}
+.sheet button{border:0;background:#216f5b;color:white;width:100%;height:53px;border-radius:13px;font-weight:700;margin-top:10px}
+@media (min-width:650px){.dialog{place-items:center}.sheet{border-radius:25px}}
+</style></head>
+<body>
+<header><div class="brand"><span class="logo">见趣<small>随身接力</small></span><a href="index.html?desktop=1" class="pill">看大屏设计 ↗</a></div></header>
+<main>
+  <h1 class="greeting">出门在外，<br>精彩也能接着来。</h1>
+  <p class="note">只保留真正需要随身做的事。不把闺蜜机缩成一部手机。</p>
+  <article class="hero">
+    <img src="assets/img/art-reading.jpg" alt="两位长者在公园读报的生活场景示意">
+    <div class="hero-content">
+      <span class="eyebrow">追剧接力 · 演示记录</span>
+      <h2>朝夕巷</h2><p>上次看到第 8 集<br>回到大屏，可以接着看。</p>
+      <button data-action="continue">查看续播说明</button>
+    </div>
+  </article>
+  <section class="section"><h2 class="section-title">家门口，值得去看看</h2>
+    <div class="row"><img class="thumb" src="assets/img/art-taichi.jpg" alt="太极晨练示意"><div class="row-body"><h3>晨练太极</h3><p>周六 7:00 · 云栖公园 · 免费</p><button class="link" data-action="event">查看报名方式 ›</button></div></div>
+    <div class="row"><img class="thumb" src="assets/img/art-tea.jpg" alt="茶艺课示意"><div class="row-body"><h3>邻里茶艺课</h3><p>周日 15:00 · 活动中心 · 示例活动</p><button class="link" data-action="event">查看报名方式 ›</button></div></div>
+  </section>
+  <section class="section"><h2 class="section-title">我的生活作品</h2><div class="works">
+    <button class="work" data-action="works"><span class="emoji">✍️</span><span>书画作品</span></button>
+    <button class="work" data-action="works"><span class="emoji">📷</span><span>AI 趣玩</span></button>
+    <button class="work" data-action="works"><span class="emoji">📚</span><span>人生故事</span></button>
+  </div></section>
+  <aside class="notice">本页是独立的手机 H5 接力概念，不是闺蜜机的缩放版本；当前未绑定账户、未接入真实播放、订单或活动接口。<a href="./CREDITS.md" style="color:inherit;text-decoration:underline">查看素材署名与授权</a>。</aside>
+</main>
+<nav aria-label="手机随身版主导航">
+  <button class="on" data-action="home"><b>⌂</b>首页</button>
+  <button data-action="event"><b>◈</b>活动</button>
+  <button data-action="works"><b>▧</b>作品</button>
+  <button data-action="me"><b>◉</b>我的</button>
+</nav>
+<div class="dialog" id="dialog" hidden><section role="dialog" aria-modal="true" class="sheet" aria-labelledby="sheetTitle"><h2 id="sheetTitle"></h2><p id="sheetContent"></p><button id="close">知道了，返回</button></section></div>
+<script>
+const texts={continue:["大屏续播","未来通过见趣独立账户同步观看进度，当前是示例记录，不支持真实播放。"],event:["报名接力","未来可在手机确认活动身份与报名信息；当前没有真实报名接口，也不会生成有效凭证。"],works:["我的私人作品","作品默认只对本人可见。主动选择并确认分享后，指定家人或朋友才能看到。"],me:["我的权益","会员、订单和隐私由本人管理。子女代付会员不获得聊天记忆读取权限。"]};
+const dialog=document.getElementById("dialog");
+document.addEventListener("click",e=>{const b=e.target.closest("[data-action]");if(!b)return;let action=b.dataset.action;if(action==="home"){dialog.hidden=true;window.scrollTo({top:0,behavior:"smooth"});return}const t=texts[action];if(t){document.getElementById("sheetTitle").textContent=t[0];document.getElementById("sheetContent").textContent=t[1];dialog.hidden=false}});
+document.getElementById("close").onclick=()=>dialog.hidden=true;
+dialog.addEventListener("click",e=>{if(e.target===dialog)dialog.hidden=true});
+document.addEventListener("keydown",e=>{if(e.key==="Escape")dialog.hidden=true});
+</script></body></html>
