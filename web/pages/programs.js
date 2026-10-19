@@ -15,15 +15,16 @@
  * 先关闭旧详情并清空其内容，因此旧的 V02 播放入口一并失效；若读屏 / 键盘焦点仍落在
  * 旧详情内，焦点会恢复到结果区，再次点击节目才展示对应详情。不重建整个场景，只清这一段。
  *
- * 边界（Issue #9）：真实节目详情 / 选集 / 播放器不在本卡范围内。仅《朝夕巷》与已有
- * V02 示例播放页存在一致映射，其余节目如实标注「详情待接入（V02 后续 Issue #10）」，
- * 不冒充任何一集。
+ * 边界（Issue #10）：这里只做单套节目详情（简介 / 选集 / 追剧 / 观看入口），并把选集 /
+ * 继续观看接入既有 V02 示例播放器。示例可播放范围来自 `data/api.js` 的 `getProgramDetail`，
+ * 与播放器共用同一份数据；未接入片源的节目与集都如实反馈，不把这本封面图伪装成真实流媒体。
  */
 import { createMedia, createNode, createRouteButton } from '../components/kit.js';
-import { searchPrograms } from '../data/api.js';
+import { getProgramDetail, searchPrograms } from '../data/api.js';
+import { createWatchLibrary } from '../data/watch.js';
 
 /** A program scene owns its search/category state; the shell only asks it to change. */
-/** @type {WeakMap<HTMLElement, {selectCategory: (category: string) => void, focusSearch: () => void}>} */
+/** @type {WeakMap<HTMLElement, {selectCategory: (category: string) => void, focusSearch: () => void, refreshDetail: () => void, openProgram: (programId: string) => boolean}>} */
 const programControls = new WeakMap();
 
 /** @param {HTMLElement} body @param {string} category */
@@ -37,9 +38,32 @@ export function focusProgramsSearch(body) {
   programControls.get(body)?.focusSearch();
 }
 
+/**
+ * 返回节目场景时刷新已打开的示例详情（续播进度 / 追剧状态可能已在播放器里变化）。
+ * 详情未打开时是无副作用的空操作。Call only after the body is inserted into the shell.
+ * @param {HTMLElement} body
+ */
+export function refreshProgramDetail(body) {
+  programControls.get(body)?.refreshDetail();
+}
+
+/**
+ * 打开指定节目的示例详情（跨场景入口，如首页「接着看」指向未接入片源的节目）。
+ * 未找到该节目时返回 false 并不改变当前列表。Call only after the body is inserted into the shell.
+ * @param {HTMLElement} body
+ * @param {string} programId
+ * @returns {boolean}
+ */
+export function openProgramDetail(body, programId) {
+  return programControls.get(body)?.openProgram(programId) ?? false;
+}
+
 /** @typedef {import('../data/fixtures/programs.fixture.js').ProgramFixture} ProgramContent */
 /** @typedef {import('../data/fixtures/programs.fixture.js').ProgramItem} ProgramItem */
 /** @typedef {import('../data/api.js').ProgramSearchResult} ProgramSearchResult */
+/** @typedef {import('../data/api.js').ProgramDetail} ProgramDetail */
+/** @typedef {import('../data/api.js').ProgramEpisode} ProgramEpisode */
+/** @typedef {import('../data/watch.js').WatchLibrary} WatchLibrary */
 
 /**
  * @typedef {object} ProgramsOptions
@@ -48,6 +72,7 @@ export function focusProgramsSearch(body) {
  * @property {(category: string) => void} [onCategoryChange] 分类被用户改变时同步外壳导航状态。
  * @property {(query: { keyword?: string, category?: string }) => Promise<ProgramSearchResult>} [search]
  *   可注入的数据出口（测试用）；缺省使用 `web/data/api.js` 的 `searchPrograms`。
+ * @property {WatchLibrary} [library] 示例进度 / 追剧收藏；缺省只在当前页面内存里保存。
  */
 
 /**
@@ -59,6 +84,7 @@ export function focusProgramsSearch(body) {
  */
 export function renderProgramsBody(documentRef, content, activate, options = {}) {
   const search = options.search ?? searchPrograms;
+  const library = options.library ?? createWatchLibrary(null);
   const body = createNode(documentRef, 'div', 'jq-scene jq-scene--programs');
   if (options.searchOpen) body.classList.add('jq-programs--search');
 
@@ -116,9 +142,9 @@ export function renderProgramsBody(documentRef, content, activate, options = {})
   });
   body.append(tabs);
 
-  // ---------- 节目详情入口（示例边界，可返回列表；放在结果之前保证可见） ----------
+  // ---------- 节目详情（示例边界，可返回列表；放在结果之前保证可见） ----------
   const detail = createNode(documentRef, 'aside', 'jq-program-detail');
-  detail.setAttribute('aria-label', '节目详情入口（示例）');
+  detail.setAttribute('aria-label', '节目详情（示例）');
   detail.setAttribute('tabindex', '-1');
   detail.hidden = true;
   body.append(detail);
@@ -138,6 +164,11 @@ export function renderProgramsBody(documentRef, content, activate, options = {})
   /** 打开详情时接收焦点的卡片，用于「返回列表」时把焦点交回。 */
   /** @type {HTMLElement | null} */
   let openedCard = null;
+  /** 当前打开的节目；为 null 表示详情关闭。 */
+  /** @type {ProgramItem | null} */
+  let openedProgram = null;
+  /** 详情内的示例反馈（追剧 / 未接入片源等），重渲染后仍保留。 */
+  let detailMessage = '';
 
   /** @param {string} id @returns {string} */
   function categoryLabel(id) {
@@ -171,6 +202,8 @@ export function renderProgramsBody(documentRef, content, activate, options = {})
    */
   function closeDetail() {
     openedCard = null;
+    openedProgram = null;
+    detailMessage = '';
     if (detail.hidden) return;
     detail.hidden = true;
     detail.replaceChildren();
@@ -240,14 +273,65 @@ export function renderProgramsBody(documentRef, content, activate, options = {})
     load();
   }
 
-  /** 打开示例详情入口：展示节目信息与接入边界，并保留可返回路径。 */
-  /** @param {ProgramItem} program @param {HTMLElement} card */
+  /** 详情内容按当前节目与本地状态重渲染；只在详情打开时使用。 */
+  function renderDetailContent() {
+    const program = openedProgram;
+    if (!program) return;
+    const spec = getProgramDetail(program.id);
+    detail.replaceChildren(
+      ...buildDetailNodes(documentRef, program, spec, library, {
+        message: detailMessage,
+        onClose: closeDetailFromButton,
+        onEpisode: (episodeId) => {
+          library.setSelection({ programId: program.id, episodeId });
+          activate('video');
+        },
+        onUnavailable: (episode, spec) => {
+          const range = spec.sampleRange ? spec.sampleRange.from + '–' + spec.sampleRange.to : '';
+          detailMessage =
+            '第 ' +
+            episode.label +
+            ' 集不在示例可播放范围（第 ' +
+            range +
+            ' 集）内，未接入真实片源。';
+          renderDetailContent();
+        },
+        onFeedback: (message) => {
+          detailMessage = message;
+          renderDetailContent();
+        },
+      }),
+    );
+  }
+
+  /** 打开节目详情：展示简介 / 选集 / 追剧 / 观看入口，并保留可返回路径。 */
+  /** @param {ProgramItem} program @param {HTMLElement | null} card */
   function openDetail(program, card) {
     openedCard = card;
-    detail.replaceChildren(...renderDetail(documentRef, program, activate, closeDetailFromButton));
+    openedProgram = program;
+    detailMessage = '';
+    renderDetailContent();
     detail.hidden = false;
     if (typeof detail.scrollIntoView === 'function') detail.scrollIntoView({ block: 'nearest' });
     if (typeof detail.focus === 'function') detail.focus();
+  }
+
+  /** 返回节目场景时刷新续播 / 追剧状态；详情未打开时是空操作。 */
+  function refreshDetail() {
+    if (openedProgram && !detail.hidden) renderDetailContent();
+  }
+
+  /**
+   * 打开指定节目的示例详情（供首页跨场景入口使用）；节目不在示例目录时返回 false
+   * 且不改变当前列表，由调用方保证仍停留在可用的目录视图。
+   * @param {string} programId
+   * @returns {boolean}
+   */
+  function openProgramById(programId) {
+    const program = content.programs.find((item) => item.id === programId);
+    if (!program) return false;
+    openDetail(program, null);
+    return true;
   }
 
   /** 「返回节目列表」：关闭详情并把焦点交回触发的卡片，卡片不在时回到结果区。 */
@@ -269,6 +353,8 @@ export function renderProgramsBody(documentRef, content, activate, options = {})
     focusSearch: () => {
       if (typeof field.focus === 'function') field.focus();
     },
+    refreshDetail,
+    openProgram: openProgramById,
   });
   updateTabs();
   load();
@@ -462,19 +548,47 @@ function renderAction(documentRef, className, label, onClick) {
 }
 
 /**
- * 示例详情入口：节目信息 + 明确的接入边界 + 可返回路径。
+ * @typedef {object} DetailHandlers
+ * @property {string} message 当前示例反馈文案（追剧 / 未接入片源等）。
+ * @property {() => void} onClose
+ * @property {(episodeId: string) => void} onEpisode 选择某一集并进入既有 V02 示例播放器。
+ * @property {(episode: ProgramEpisode, spec: ProgramDetail) => void} onUnavailable 选中未接入片源的集。
+ * @property {(message: string) => void} onFeedback 追剧等本身不跳转的反馈。
+ */
+
+/**
+ * 单个节目详情：简介 + 选集 + 追剧 + 观看入口，可返回列表。
+ * 只组合来自 `getProgramDetail` 的示例数据，不在这里再拼第二份节目 / 集数来源。
  * @param {Document} documentRef
  * @param {ProgramItem} program
- * @param {(route: string) => void} activate
- * @param {() => void} onClose
+ * @param {ProgramDetail | null} spec
+ * @param {WatchLibrary} library
+ * @param {DetailHandlers} handlers
  * @returns {HTMLElement[]}
  */
-function renderDetail(documentRef, program, activate, onClose) {
+function buildDetailNodes(documentRef, program, spec, library, handlers) {
   const head = createNode(documentRef, 'div', 'jq-program-detail__head');
   const close = createNode(documentRef, 'button', 'jq-program-detail__close', '‹ 返回节目列表');
   close.setAttribute('type', 'button');
-  close.addEventListener('click', onClose);
-  head.append(close);
+  close.addEventListener('click', handlers.onClose);
+
+  const favorite = library.isFavorite(program.id);
+  const favoriteBtn = createNode(
+    documentRef,
+    'button',
+    'jq-program-detail__favorite',
+    favorite ? '已追剧' : '追剧 · 加入片单',
+  );
+  favoriteBtn.setAttribute('type', 'button');
+  favoriteBtn.setAttribute('aria-pressed', favorite ? 'true' : 'false');
+  favoriteBtn.addEventListener('click', () => {
+    const result = library.toggleFavorite(program.id);
+    const note = result.persisted ? '' : '（本机无法保存，本次只在当前页面有效）';
+    handlers.onFeedback(
+      (result.favorite ? '已加入追剧片单（示例）。' : '已取消追剧（示例）。') + note,
+    );
+  });
+  head.append(close, favoriteBtn);
 
   const main = createNode(documentRef, 'div', 'jq-program-detail__main');
   const info = createNode(documentRef, 'div', 'jq-program-detail__body');
@@ -486,30 +600,135 @@ function renderDetail(documentRef, program, activate, onClose) {
       documentRef,
       'p',
       'jq-program-detail__note',
-      '节目详情与选集尚未接入：按当前计划由 V02 后续（Issue #10）落地，此处为示例入口。',
+      '详情、选集与观看入口均为 S1 示例：未接入真实版权片源、DRM 或跨设备账户同步。',
     ),
   );
-  if (program.demoRoute) {
-    const actions = createNode(documentRef, 'div', 'jq-program-detail__actions');
-    actions.append(
-      createRouteButton(
-        documentRef,
-        'jq-btn jq-btn--primary jq-btn--sm',
-        '去看 V02 示例播放',
-        program.demoRoute,
-        activate,
-      ),
-    );
+
+  if (!spec) {
     info.append(
       createNode(
         documentRef,
         'p',
-        'jq-program-detail__text',
-        '仅《' + program.title + '》与现有 V02 示例播放页关联；其余节目等待详情页接入。',
+        'jq-program-detail__notice',
+        '未找到该节目的示例详情：示例节目目录里没有这个节目。',
       ),
-      actions,
+    );
+  } else if (!spec.playable) {
+    info.append(
+      createNode(
+        documentRef,
+        'p',
+        'jq-program-detail__notice',
+        '暂无示例可播放资源：本节目只有示例简介与集数标注（' +
+          program.meta +
+          '），未接入真实片源。',
+      ),
+    );
+  } else {
+    info.append(...buildWatchNodes(documentRef, program, spec, library, handlers));
+  }
+
+  if (!library.available) {
+    // 存储不可用时明确显示内存回退，不伪造持久化。
+    info.append(
+      createNode(
+        documentRef,
+        'p',
+        'jq-program-detail__fallback',
+        '本机不能保存示例进度 / 追剧：本次只在当前页面内有效，刷新后会从头开始。',
+      ),
     );
   }
+
+  const feedback = createNode(documentRef, 'p', 'jq-program-detail__feedback', handlers.message);
+  feedback.setAttribute('role', 'status');
+  feedback.setAttribute('aria-live', 'polite');
+  info.append(feedback);
+
   main.append(createMedia(documentRef, program), info);
   return [head, main];
+}
+
+/**
+ * 观看入口 + 选集：只列出 `getProgramDetail` 给出的集，示例可播放的集可进入播放器，
+ * 其余集如实反馈未接入片源，不把封面图伪装成真实流媒体。
+ * @param {Document} documentRef
+ * @param {ProgramItem} program
+ * @param {ProgramDetail} spec
+ * @param {WatchLibrary} library
+ * @param {DetailHandlers} handlers
+ * @returns {HTMLElement[]}
+ */
+function buildWatchNodes(documentRef, program, spec, library, handlers) {
+  const available = spec.episodes.filter((episode) => episode.available);
+  const selection = library.getSelection();
+  const selectedId = selection && selection.programId === program.id ? selection.episodeId : null;
+  const resume = library.getResume(program.id);
+  const currentId = selectedId ?? resume?.episodeId ?? null;
+  const target =
+    available.find((episode) => episode.id === selectedId)?.id ??
+    available.find((episode) => episode.id === resume?.episodeId)?.id ??
+    available[0].id;
+
+  const watch = createNode(documentRef, 'div', 'jq-program-detail__watch');
+  const continueFromResume = resume !== null && resume.episodeId === target;
+  const primary = createNode(
+    documentRef,
+    'button',
+    'jq-btn jq-btn--primary jq-btn--sm',
+    continueFromResume
+      ? '继续观看 第 ' + target + ' 集（示例进度 ' + resume.percent + '%）'
+      : '观看 第 ' + target + ' 集（示例）',
+  );
+  primary.setAttribute('type', 'button');
+  // 既有验收与外壳导航都按 data-route 识别正式播放入口，这里保持一致。
+  primary.setAttribute('data-route', 'video');
+  primary.addEventListener('click', () => handlers.onEpisode(target));
+  watch.append(primary);
+  if (spec.sampleRange) {
+    watch.append(
+      createNode(
+        documentRef,
+        'p',
+        'jq-program-detail__range',
+        '示例可播放范围：第 ' +
+          spec.sampleRange.from +
+          '–' +
+          spec.sampleRange.to +
+          ' 集；其余集数只有示例标注，未接入真实片源。',
+      ),
+    );
+  }
+
+  const episodes = createNode(documentRef, 'div', 'jq-program-detail__episodes');
+  const label = createNode(
+    documentRef,
+    'p',
+    'jq-program-detail__episodes-label',
+    '选集（共 ' + spec.episodes.length + ' 集，可播 ' + available.length + ' 集）',
+  );
+  const strip = createNode(documentRef, 'div', 'jq-episode-strip');
+  strip.setAttribute('role', 'group');
+  strip.setAttribute('aria-label', '选集');
+  for (const episode of spec.episodes) {
+    const node = createNode(documentRef, 'button', 'jq-ep', episode.label);
+    node.setAttribute('type', 'button');
+    node.setAttribute('data-episode', episode.id);
+    if (episode.available) {
+      const current = episode.id === currentId;
+      node.setAttribute('aria-pressed', current ? 'true' : 'false');
+      if (current) node.classList.add('jq-ep--current');
+      node.addEventListener('click', () => handlers.onEpisode(episode.id));
+    } else {
+      node.classList.add('jq-ep--unavailable');
+      node.setAttribute('aria-disabled', 'true');
+      node.setAttribute('aria-pressed', 'false');
+      node.setAttribute('aria-label', '第 ' + episode.label + ' 集：示例资源未接入');
+      node.addEventListener('click', () => handlers.onUnavailable(episode, spec));
+    }
+    strip.append(node);
+  }
+  episodes.append(label, strip);
+
+  return [watch, episodes];
 }

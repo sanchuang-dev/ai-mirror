@@ -29,6 +29,8 @@
  * @property {string} [tag]
  * @property {boolean} [recommended] 是否属于「推荐」集合。
  * @property {'video'} [demoRoute] 已有示例场景的一致映射；目前仅《朝夕巷》→ V02。
+ * @property {number} [episodeCount] 节目总集数（示例标注）。可播放节目用它列出全部集，
+ *   其中只有 V02 示例范围内的集为「可播放」，其余集如实标注未接入片源。
  *
  * @typedef {object} ProgramFixture
  * @property {{ level: string, notice: string }} demo
@@ -70,6 +72,7 @@ export const programFixture = {
       tag: '继续追剧',
       recommended: true,
       demoRoute: 'video',
+      episodeCount: 12,
     },
     {
       id: 'chaguan-chunqiu',

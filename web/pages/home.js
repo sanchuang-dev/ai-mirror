@@ -61,13 +61,21 @@ export function createHomeController() {
 }
 
 /**
+ * @typedef {object} HomeBodyOptions
+ * @property {(programId: string) => void} [openProgram] 节目卡片的真实去向解析：可播节目进既有
+ *   V02 播放器，未接入示例片源的节目进对应详情。缺省时退回统一 `video` 路由（独立预览的诚实示例反馈）。
+ */
+
+/**
  * 构建 H01 首页正文（不含顶栏 / 设置 / 反馈），供共享壳与独立预览共用。
  * @param {Document} documentRef
  * @param {HomeContent} content
  * @param {(route: string) => void} activate 共享壳的统一入口动作
+ * @param {HomeBodyOptions} [options]
  * @returns {HTMLElement}
  */
-export function renderHomeBody(documentRef, content, activate) {
+export function renderHomeBody(documentRef, content, activate, options = {}) {
+  const openProgram = options.openProgram;
   const body = createNode(documentRef, 'div', 'jq-home-body');
 
   body.append(createNode(documentRef, 'p', 'jq-banner', content.demo.notice));
@@ -121,7 +129,7 @@ export function renderHomeBody(documentRef, content, activate) {
   );
   const continueRail = createNode(documentRef, 'div', 'jq-rail jq-rail--continue');
   for (const card of content.continueWatching) {
-    continueRail.append(renderCard(documentRef, card, activate, true));
+    continueRail.append(renderCard(documentRef, card, activate, true, openProgram));
   }
   continueSection.append(continueRail);
   body.append(continueSection);
@@ -139,7 +147,7 @@ export function renderHomeBody(documentRef, content, activate) {
   );
   const pickRail = createNode(documentRef, 'div', 'jq-rail');
   for (const card of content.recommendations) {
-    pickRail.append(renderCard(documentRef, card, activate, false));
+    pickRail.append(renderCard(documentRef, card, activate, false, openProgram));
   }
   pickSection.append(pickRail);
   body.append(pickSection);
@@ -237,10 +245,16 @@ export function renderHome(
  * @param {HomeCard} card
  * @param {(route: string) => void} onActivate
  * @param {boolean} withProgress
+ * @param {((programId: string) => void) | undefined} openProgram
  * @returns {HTMLElement}
  */
-function renderCard(documentRef, card, onActivate, withProgress) {
-  const node = createRouteButton(documentRef, 'jq-card', '', 'video', onActivate);
+function renderCard(documentRef, card, onActivate, withProgress, openProgram) {
+  const node = createNode(documentRef, 'button', 'jq-card');
+  node.setAttribute('type', 'button');
+  // 保留 data-route：既有导航契约与测试仍把它识别为正式播放入口。
+  node.setAttribute('data-route', 'video');
+  // 记录节目 id：卡片不再是「统一进《朝夕巷》」，而是按节目解析真实去向。
+  node.setAttribute('data-program', card.id);
   const media = createMedia(documentRef, {
     tone: card.tone,
     image: card.image,
@@ -252,6 +266,12 @@ function renderCard(documentRef, card, onActivate, withProgress) {
     media.append(createProgress(documentRef, card.progress, 'jq-progress jq-progress--card'));
   }
   node.setAttribute('aria-label', card.title + '，' + card.meta + '（示例内容）');
+  node.addEventListener('click', () => {
+    // 有节目映射时按节目进入（可播→播放器，未接入→对应详情），绝不统一错播《朝夕巷》；
+    // 缺省（独立预览）退回统一示例入口反馈。
+    if (openProgram) openProgram(card.id);
+    else onActivate('video');
+  });
   node.append(
     media,
     createNode(documentRef, 'span', 'jq-card__name', card.title),

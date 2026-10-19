@@ -15,17 +15,21 @@ import {
   getCourseContent,
   getHomeContent,
   getProgramContent,
+  getProgramDetail,
   getPublicContent,
   getVideoContent,
 } from '../data/api.js';
 import { createSceneShell, NO_PREFERENCES } from '../components/app-shell.js';
 import { mountHome, renderHomeBody } from '../pages/home.js';
-import { renderVideoBody } from '../pages/video.js';
+import { applyVideoWatchSelection, renderVideoBody } from '../pages/video.js';
 import { renderAiBody } from '../pages/ai.js';
 import { renderCourseBody } from '../pages/course.js';
 import { renderPublicBody } from '../pages/public.js';
+import { createWatchLibrary } from '../data/watch.js';
 import {
   focusProgramsSearch,
+  openProgramDetail,
+  refreshProgramDetail,
   renderProgramsBody,
   selectProgramsCategory,
 } from '../pages/programs.js';
@@ -66,6 +70,9 @@ const NAVIGABLE_ROUTES = new Set([
   'course',
   'public',
   SEARCH_ROUTE,
+  // 首页「继续观看」是正式续播入口：按正确节目 / 集进入既有 V02 播放器，
+  // 不再只是发出一条 Toast。
+  'continue',
   ...Object.keys(PROGRAM_ROUTES),
 ]);
 
@@ -97,7 +104,7 @@ function readThemeFromLocation() {
  * 装配并挂载整站演示。返回共享壳与路由函数，便于验证。
  * @param {Document} documentRef
  * @param {import('../data/preferences.js').ThemePreferences} [preferences]
- * @param {{ deviceMode?: 'personal' | 'public' }} [options]
+ * @param {{ deviceMode?: 'personal' | 'public', watch?: import('../data/watch.js').WatchLibrary }} [options]
  * @returns {{ shell: import('../components/app-shell.js').SceneShell, show: (route: string) => string }}
  */
 export function mountApp(documentRef, preferences, options = {}) {
@@ -110,6 +117,9 @@ export function mountApp(documentRef, preferences, options = {}) {
   const deviceMode = options.deviceMode ?? 'personal';
   const effectivePreferences =
     deviceMode === 'public' ? NO_PREFERENCES : (preferences ?? createThemePreferences());
+  // 观看进度 / 收藏同属个人数据：公共设备只用内存实例，绝不读取本机存储。
+  const watch =
+    deviceMode === 'public' ? createWatchLibrary(null) : (options.watch ?? createWatchLibrary());
   const home = getHomeContent();
   const publicContent = getPublicContent();
   const programContent = getProgramContent();
@@ -124,6 +134,9 @@ export function mountApp(documentRef, preferences, options = {}) {
   const scrollPositions = new Map();
   /** @type {string | null} */
   let activeRoute = null;
+  /** 需要进入目录后打开示例详情的节目（首页指向未接入片源的节目时使用）。 */
+  /** @type {string | null} */
+  let pendingProgramDetail = null;
 
   /** @type {import('../components/app-shell.js').SceneShell} */
   let shell;
@@ -140,8 +153,9 @@ export function mountApp(documentRef, preferences, options = {}) {
     if (cached) return cached;
     /** @type {HTMLElement} */
     let body;
-    if (route === 'video') body = renderVideoBody(documentRef, getVideoContent(), shell.activate);
-    else if (route === 'ai') body = renderAiBody(documentRef, getAiContent(), shell.activate);
+    if (route === 'video') {
+      body = renderVideoBody(documentRef, getVideoContent(), shell.activate, { library: watch });
+    } else if (route === 'ai') body = renderAiBody(documentRef, getAiContent(), shell.activate);
     else if (route === 'course') {
       body = renderCourseBody(documentRef, getCourseContent(), shell.activate);
     } else if (route === PUBLIC_ROUTE) {
@@ -150,10 +164,12 @@ export function mountApp(documentRef, preferences, options = {}) {
       body = renderProgramsBody(documentRef, programContent, shell.activate, {
         category: 'all',
         searchOpen: true,
+        library: watch,
       });
     } else if (Object.hasOwn(PROGRAM_ROUTES, route)) {
       body = renderProgramsBody(documentRef, programContent, shell.activate, {
         category: PROGRAM_ROUTES[route],
+        library: watch,
         onCategoryChange: (category) => {
           const nextRoute = PROGRAM_CATEGORY_ROUTES[category] ?? 'programs';
           if (activeRoute !== null && Object.hasOwn(PROGRAM_ROUTES, activeRoute)) {
@@ -162,9 +178,29 @@ export function mountApp(documentRef, preferences, options = {}) {
           }
         },
       });
-    } else body = renderHomeBody(documentRef, home, shell.activate);
+    } else body = renderHomeBody(documentRef, home, shell.activate, { openProgram });
     bodies.set(cacheKey, body);
     return body;
+  }
+
+  /**
+   * 首页节目卡片的真实去向解析：可播节目按最近观看集进既有 V02 播放器；
+   * 未接入示例片源的节目进入目录中该节目的示例详情并给出明确不可播反馈，
+   * 绝不把《茶馆春秋》《团圆饭》等错播成《朝夕巷》。
+   * @param {string} programId
+   * @returns {string} 实际进入的路由
+   */
+  function openProgram(programId) {
+    const detail = getProgramDetail(programId);
+    if (detail && detail.playable) {
+      const resume = watch.getResume(programId);
+      // 有最近观看记录时按该节目 / 集续播；否则不注入会话选择，播放器用示例默认集。
+      if (resume) watch.setSelection({ programId, episodeId: resume.episodeId });
+      return show('video');
+    }
+    // 未接入片源（或目录中不存在该节目）：转到节目目录，随后打开对应示例详情。
+    pendingProgramDetail = programId;
+    return show('programs');
   }
 
   /**
@@ -176,12 +212,15 @@ export function mountApp(documentRef, preferences, options = {}) {
     // Deployment mode is immutable. Even a stale or synthetic private route
     // cannot expose the private shell on a public terminal.
     if (deviceMode === 'public' && route !== PUBLIC_ROUTE) return PUBLIC_ROUTE;
+    // 首页主按钮「继续观看」：按正确节目 / 集进入既有 V02 播放器，而不是空入口。
+    if (route === 'continue') return openProgram(home.featured.id);
     const target = NAVIGABLE_ROUTES.has(route) ? route : 'home';
     if (activeRoute === target) return target;
 
     if (activeRoute !== null) {
       scrollPositions.set(activeRoute, shell.body.scrollTop);
     }
+    const previous = activeRoute;
     shell.setMode(target === PUBLIC_ROUTE ? 'public' : 'personal');
     shell.setScene(target);
     const body = bodyFor(target);
@@ -189,10 +228,24 @@ export function mountApp(documentRef, preferences, options = {}) {
     if (Object.hasOwn(PROGRAM_ROUTES, target)) {
       // External header navigation must also select the category on the cached scene.
       selectProgramsCategory(body, PROGRAM_ROUTES[target]);
+      // 返回节目场景时刷新已打开详情的续播 / 追剧状态（详情未打开是空操作）。
+      refreshProgramDetail(body);
     }
     if (target === SEARCH_ROUTE) {
       // Search focus is only valid after the body is connected to the mounted shell.
       focusProgramsSearch(body);
+      refreshProgramDetail(body);
+    }
+    if (pendingProgramDetail && Object.hasOwn(PROGRAM_ROUTES, target)) {
+      // 首页指向未接入片源的节目：进入目录后打开其示例详情，给出明确的不可播反馈。
+      openProgramDetail(body, pendingProgramDetail);
+      pendingProgramDetail = null;
+    }
+    if (target === 'video') {
+      // 只有从节目目录 / 搜索进入时才提供「返回节目详情」，并记住原路由以恢复详情状态。
+      const fromPrograms =
+        previous !== null && (Object.hasOwn(PROGRAM_ROUTES, previous) || previous === SEARCH_ROUTE);
+      applyVideoWatchSelection(body, { returnRoute: fromPrograms ? previous : null });
     }
     shell.body.scrollTop = scrollPositions.get(target) ?? 0;
     activeRoute = target;
