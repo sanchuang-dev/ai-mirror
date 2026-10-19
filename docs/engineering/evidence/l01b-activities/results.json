@@ -1,0 +1,93 @@
+{
+  "steps": {
+    "devtoolsLine": "DevTools listening on ws://127.0.0.1:9445/devtools/browser/a06e25a9-d00e-43dd-abf9-14140c5fc3e3",
+    "personalHome": {
+      "hasHome": true,
+      "activityEntries": 8
+    },
+    "personalDirectory": {
+      "state": "ok",
+      "ids": [
+        "lifa"
+      ],
+      "category": "welfare",
+      "keyword": "理发",
+      "detailHidden": true
+    },
+    "personalDetail": {
+      "hidden": false,
+      "title": "便民理发",
+      "text": "‹ 返回目录\n福利 · 示例\n便民理发\n\n社区里的便民理发点，剪个清爽的短发。\n\n时间\n周三下午\n地点\n社区活动中心 1 层\n区域\n云栖社区\n参加资格\n社区居民均可参加（示例条件）\n提供方\n社区便民服务点（虚构示例）\n费用\n示例价 ¥5\n\n以上时间、地点、区域、参加资格、提供方与费用均为虚构示例；名额、实时余量与到达时间：未提供 / 演示待确认。\n\n报名（L02 待实现）",
+      "directoryHidden": true,
+      "signupEntries": 1
+    },
+    "personalDetailThemeB": {
+      "dir": "b",
+      "detailHidden": false,
+      "title": "便民理发"
+    },
+    "signupPlaceholder": {
+      "feedback": "报名（L02）尚未实现：这里不会提交真实身份、不会生成核销凭证，也不会记录任何报名状态。",
+      "claimsSuccess": false
+    },
+    "personalReturned": {
+      "detailHidden": true,
+      "directoryHidden": false,
+      "category": "welfare",
+      "keyword": "理发",
+      "ids": [
+        "lifa"
+      ]
+    },
+    "publicG00": {
+      "publicHeader": true,
+      "entries": [
+        "全部活动 ›",
+        "全部福利 ›"
+      ],
+      "hasUser": false,
+      "hasSettings": false,
+      "aiHidden": true,
+      "personalHome": false
+    },
+    "publicDirectory": {
+      "hasScene": true,
+      "publicHeader": true,
+      "backRoute": "public",
+      "backLabel": "‹ 返回公共首页",
+      "hasUser": false,
+      "hasSettings": false
+    },
+    "publicDetail": {
+      "hidden": false,
+      "title": "晨练太极",
+      "samePublicShell": true,
+      "hasUser": false,
+      "hasSettings": false
+    },
+    "publicReturnedDirectory": {
+      "detailHidden": true,
+      "directoryHidden": false,
+      "backRoute": "public"
+    },
+    "publicReturnedG00": {
+      "hasPublicScene": true,
+      "publicHeader": true,
+      "hasUser": false,
+      "hasSettings": false,
+      "personalHome": false
+    }
+  },
+  "errors": [],
+  "consoleErrors": [],
+  "screenshots": [
+    "l01b-personal-directory-filtered-a.png",
+    "l01b-personal-detail-a.png",
+    "l01b-personal-detail-b.png",
+    "l01b-public-g00-a.png",
+    "l01b-public-directory-a.png",
+    "l01b-public-detail-a.png",
+    "l01b-public-detail-b.png"
+  ],
+  "passed": true
+}
