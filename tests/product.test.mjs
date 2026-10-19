@@ -54,7 +54,7 @@ test('M02 detail reuses the M01 product/store facts and labels every sample cond
   assert.equal(detail.shipping.freeFrom, 299);
   assert.equal(detail.shipping.fee, 12);
   assert.match(detail.shipping.note, /示例规则/);
-  assert.match(detail.shipping.note, /M03/);
+  assert.match(detail.shipping.note, /购物车与订单预览/);
 
   for (const field of ['region', 'fulfillmentParty', 'delivery', 'afterSales', 'stockNote']) {
     assert.ok(detail[field], field + ' must be present');
@@ -108,12 +108,12 @@ test('the detail page shows specs, quantity, sample price, shipping, region, par
   assert.match(total.textContent, /示例合计：¥211/);
   assert.match(total.textContent, /未接入真实结算/);
 
-  // M02 不提供真实结算动作。
+  // M02 不提供真实结算动作，只交接给 M03 示例购物车。
   assert.equal(byText(body, '去结算').length, 0);
   assert.equal(byText(body, '立即购买').length, 0);
   assert.equal(byText(body, '提交订单').length, 0);
-  assert.ok(byText(body, '加入购物车（示例入口）')[0]);
-  assert.ok(byText(body, '查看订单预览（示例入口）')[0]);
+  assert.ok(byText(body, '加入购物车（示例）')[0]);
+  assert.ok(byText(body, '查看订单预览（示例）')[0]);
 });
 
 test('quantity is a bounded demo control and updates the sample subtotal honestly', () => {
@@ -141,17 +141,20 @@ test('quantity is a bounded demo control and updates the sample subtotal honestl
   assert.equal(plus.disabled, false);
 });
 
-test('the out-of-stock sample spec disables both M03 placeholder entries', () => {
+test('the out-of-stock sample spec disables purchase and never restores a payable amount', () => {
   const doc = createFakeDocument();
   const body = renderProductDetailBody(doc, 'blood-pressure', () => {});
-  const add = byText(body, '加入购物车（示例入口）')[0];
-  const preview = byText(body, '查看订单预览（示例入口）')[0];
+  const add = byText(body, '加入购物车（示例）')[0];
+  const preview = byText(body, '查看订单预览（示例）')[0];
   const warning = byClass(body, 'jq-product__stock')[0];
+  const plus = find(body, (node) => node.getAttribute('aria-label') === '增加演示数量')[0];
+  const minus = find(body, (node) => node.getAttribute('aria-label') === '减少演示数量')[0];
 
   assert.match(warning.textContent, /当前为正常示例状态/);
   assert.match(warning.textContent, /库存未接入/);
   assert.equal(add.disabled, false);
   assert.equal(preview.disabled, false);
+  assert.equal(minus.disabled, true);
 
   specButton(body, 'gift').dispatch('click');
   assert.equal(specButton(body, 'gift').getAttribute('aria-pressed'), 'true');
@@ -159,50 +162,66 @@ test('the out-of-stock sample spec disables both M03 placeholder entries', () =>
   assert.match(warning.textContent, /无货示例状态/);
   assert.equal(add.disabled, true);
   assert.equal(preview.disabled, true);
+  assert.equal(plus.disabled, true);
+  assert.equal(minus.disabled, true);
   assert.match(byClass(body, 'jq-product__total')[0].textContent, /不提供加入购物车或订单合计/);
 
-  // 即使合成事件绕过浏览器禁用，也不能打开购买演示。
+  // M02 P3：无货规格下即使合成数量事件，也不能重新显示普通可结算金额。
+  plus.dispatch('click');
+  minus.dispatch('click');
+  assert.doesNotMatch(byClass(body, 'jq-product__total')[0].textContent, /示例合计：¥/);
+  assert.match(byClass(body, 'jq-product__total')[0].textContent, /数量控件已停用/);
+
+  // 即使合成事件绕过浏览器禁用，也不能进入 M03。
   add.dispatch('click');
-  assert.equal(byClass(body, 'jq-product__action-panel')[0].hidden, true);
+  preview.dispatch('click');
+  assert.equal(byClass(body, 'jq-product__status')[0].textContent, '');
 
   specButton(body, 'standard').dispatch('click');
   assert.match(warning.textContent, /当前为正常示例状态/);
   assert.equal(add.disabled, false);
   assert.equal(preview.disabled, false);
+  assert.equal(plus.disabled, false);
   assert.match(byClass(body, 'jq-product__total')[0].textContent, /示例合计：¥211/);
 });
 
-test('cart / order entries stay honest M03 placeholders and can be cancelled', () => {
+test('cart / order entries hand the selected spec and quantity to M03', () => {
   const doc = createFakeDocument();
-  const body = renderProductDetailBody(doc, 'blood-pressure', () => {});
-  const add = byText(body, '加入购物车（示例入口）')[0];
-  const preview = byText(body, '查看订单预览（示例入口）')[0];
-  const panel = byClass(body, 'jq-product__action-panel')[0];
-  const cancel = byText(body, '取消演示')[0];
-  const status = byClass(body, 'jq-product__status')[0];
+  /** @type {Array<{ intent: string, selection: { productId: string, specId: string, quantity: number } }>} */
+  const calls = [];
+  const body = renderProductDetailBody(doc, 'blood-pressure', () => {}, {
+    onOpenCart: (intent, selection) => calls.push({ intent, selection }),
+  });
+  const add = byText(body, '加入购物车（示例）')[0];
+  const preview = byText(body, '查看订单预览（示例）')[0];
+  const plus = find(body, (node) => node.getAttribute('aria-label') === '增加演示数量')[0];
 
-  assert.equal(panel.hidden, true, 'the M03 placeholder starts closed');
+  plus.dispatch('click');
   add.dispatch('click');
-  assert.equal(panel.hidden, false);
-  assert.match(byClass(body, 'jq-product__action-title')[0].textContent, /M03 待实现/);
-  assert.match(byClass(body, 'jq-product__action-text')[0].textContent, /没有写入购物车/);
-  assert.match(byClass(body, 'jq-product__action-text')[0].textContent, /没有创建订单/);
-  assert.equal(doc.activeElement, cancel, 'the cancel action receives focus');
-
-  cancel.dispatch('click');
-  assert.equal(panel.hidden, true);
-  assert.match(status.textContent, /已取消演示/);
-  assert.match(status.textContent, /没有写入购物车/);
-  assert.equal(doc.activeElement, add, 'cancel returns focus to the triggering entry');
+  assert.equal(calls.length, 1);
+  assert.equal(calls[0].intent, 'cart');
+  assert.deepEqual(calls[0].selection, {
+    productId: 'blood-pressure',
+    specId: 'standard',
+    quantity: 2,
+  });
 
   preview.dispatch('click');
-  assert.equal(panel.hidden, false);
-  assert.match(byClass(body, 'jq-product__action-title')[0].textContent, /订单预览/);
-  assert.match(byClass(body, 'jq-product__action-text')[0].textContent, /没有生成订单预览/);
-  cancel.dispatch('click');
-  assert.equal(panel.hidden, true);
-  assert.match(status.textContent, /没有生成订单预览/);
-  assert.equal(doc.activeElement, preview);
+  assert.equal(calls.length, 2);
+  assert.equal(calls[1].intent, 'order');
+  assert.equal(calls[1].selection.quantity, 2);
+  assert.equal(byClass(body, 'jq-product__status')[0].textContent, '');
+});
+
+test('without a mounted M03 handoff the product page stays honest instead of pretending a cart exists', () => {
+  const doc = createFakeDocument();
+  const body = renderProductDetailBody(doc, 'blood-pressure', () => {});
+  byText(body, '加入购物车（示例）')[0].dispatch('click');
+
+  const status = byClass(body, 'jq-product__status')[0];
+  assert.match(status.textContent, /未装配 M03 购物车/);
+  assert.match(status.textContent, /没有写入购物车/);
+  assert.match(status.textContent, /没有生成订单/);
 });
 
 test('products without M02 detail data get an honest unavailable state, not invented facts', () => {
@@ -211,8 +230,8 @@ test('products without M02 detail data get an honest unavailable state, not inve
 
   assert.equal(byText(body, '大字阅读灯')[0].tagName, 'H1');
   assert.equal(byClass(body, 'jq-product__spec').length, 0);
-  assert.equal(byText(body, '加入购物车（示例入口）').length, 0);
-  assert.equal(byText(body, '查看订单预览（示例入口）').length, 0);
+  assert.equal(byText(body, '加入购物车（示例）').length, 0);
+  assert.equal(byText(body, '查看订单预览（示例）').length, 0);
   const fallback = byClass(body, 'jq-product__fallback')[0];
   const fallbackText = find(fallback, () => true)
     .map((node) => node.textContent)
@@ -307,8 +326,6 @@ test('product detail styles are theme-variable driven and cover its real states'
     '.jq-product__main {',
     ".jq-product__spec[aria-pressed='true'] {",
     ".jq-product__spec[data-availability='out-of-stock-example'] {",
-    '.jq-product__action-panel {',
-    '.jq-product__action-panel[hidden] {',
     '.jq-product__fulfillment-grid {',
     '.jq-product__boundary {',
   ]) {
