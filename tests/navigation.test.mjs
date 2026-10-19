@@ -226,7 +226,16 @@ test('a public-terminal launch cannot navigate to private routes or read persona
   assert.equal(find(shell.element, (node) => node.hasAttribute('data-open-settings')).length, 0);
   assert.equal(find(shell.element, (node) => node.classList.contains('jq-ai-fab'))[0].hidden, true);
 
-  for (const route of ['home', 'video', 'ai', 'course', 'mine', 'garbage']) {
+  for (const route of [
+    'home',
+    'video',
+    'ai',
+    'course',
+    'create',
+    'create-result',
+    'mine',
+    'garbage',
+  ]) {
     assert.equal(show(route), 'public', 'no synthetic route may cross the public boundary');
     shell.activate(route);
     assert.equal(shell.getMode(), 'public');

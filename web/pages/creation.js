@@ -4,19 +4,32 @@
  * 单套 DOM + 单套状态：A「日光客厅」/ B「暖夜剧场」只改 `tokens.css` 变量，不复制页面，
  * 也不为 A/B 各写一份流程；切换主题不重建本场景，因此选中的主题、素材与已写下的文字都保留。
  *
- * 边界（Issue #11 · C01 / design.md §5 的「AI 趣玩」组）：
- * - 只做到**生成前**：`模拟生成` 是一个明确标注「S1 演示、未接入真实模型」的入口，
- *   不产出、不保存、不分享任何作品；作品结果属于 C02。
+ * 边界（Issue #11 · C01 / design.md §5 的「AI 趣玩」组；Issue #12 · C02 续接）：
+ * - 做到**生成前**：`模拟生成` 是明确标注「S1 演示、未接入真实模型」的入口，点它把
+ *   最少演示数据（主题 + 来源类别，不含本机图片字节 / 文件名 / 对象地址）交给 C02 结果页
+ *   （`data/creation-draft.js`），由作品结果页继续「预生成示例作品 → 私密保存 → 分享确认」。
  * - 使用真实本机图片时只在浏览器内用对象地址预览：**不上传、不持久化**，
  *   授权被拒绝 / 撤销 / 更换素材 / 离开本页都会释放对象地址并清空素材，
  *   不会在页面缓存里悄悄保留私人素材。
  * - 三个素材来源都可用；示例素材与文字描述不需要任何本机文件，因此演示不依赖摄像头 / 真实 AI。
  */
 import { createMedia, createNode, createRouteButton } from '../components/kit.js';
+import { clearCreationDraft, setCreationDraft } from '../data/creation-draft.js';
 
 /** @typedef {import('../data/fixtures/creation.fixture.js').CreationFixture} CreationContent */
 /** @typedef {import('../data/fixtures/creation.fixture.js').CreationSample} CreationSample */
-/** @typedef {'theme' | 'source' | 'preview' | 'done'} CreationStepId */
+/** @typedef {'theme' | 'source' | 'preview'} CreationStepId */
+
+/** @type {WeakMap<HTMLElement, { reset: () => void }>} 供外壳「再做一次」重置本场景。 */
+const creationControls = new WeakMap();
+
+/**
+ * 外壳在切到「AI 趣玩」时按需调用：把本场景恢复到第 1 步，并清空素材与 C01→C02 交接数据。
+ * @param {HTMLElement} body
+ */
+export function resetCreationFlow(body) {
+  creationControls.get(body)?.reset();
+}
 
 /**
  * 构建 AI 趣玩正文（不含顶栏 / 设置 / 反馈），供共享壳渲染。返回单棵 DOM，不做全局副作用。
@@ -231,36 +244,21 @@ export function renderCreationBody(documentRef, content, activate) {
   });
   const generate = createButton(content.generate.cta, true);
   generate.setAttribute('data-action', 'generate');
-  generate.addEventListener('click', () => goTo('done'));
+  generate.addEventListener('click', () => {
+    // C02：把**不含私有媒体**的最少演示数据交给作品结果页，再切到 `create-result`。
+    // 主题之外只传来源类别与示例素材名；本机图片字节 / 文件名 / blob: 地址一律不传。
+    setCreationDraft({
+      themeId: state.themeId,
+      themeTitle: (content.themes.find((entry) => entry.id === state.themeId) ?? {}).title ?? '',
+      sourceKind: /** @type {'example' | 'local' | 'text' | null} */ (state.sourceId),
+      sampleTitle: selectedSample()?.title ?? '',
+    });
+    activate('create-result');
+  });
   previewPanel.append(
     previewBox,
     createNode(documentRef, 'p', 'jq-create__note', content.generate.note),
     createActions([revoke, generate]),
-  );
-
-  // ---------- 步骤 4：生成前 / 待衔接（不伪造生成完成） ----------
-  const donePanel = createPanel('done', content.generate.pendingTitle);
-  const again = createButton('再做一张', false);
-  again.setAttribute('data-action', 'reset');
-  again.addEventListener('click', () => {
-    resetFlow();
-    setFeedback(content.messages.reset);
-    goTo('theme');
-  });
-  donePanel.append(
-    createNode(documentRef, 'p', 'jq-scene__demo', 'S1 演示：未接入真实模型'),
-    createNode(documentRef, 'p', 'jq-create__note', content.generate.pendingText),
-    createActions([
-      // C02 的作品结果 / 保存 / 分享尚未实现：只给出诚实的下一步衔接入口。
-      createRouteButton(
-        documentRef,
-        'jq-btn jq-btn--ghost',
-        '查看作品（C02 待实现）',
-        content.generate.pendingRoute,
-        activate,
-      ),
-      again,
-    ]),
   );
 
   /** @type {Array<{ id: CreationStepId, panel: HTMLElement }>} */
@@ -268,9 +266,8 @@ export function renderCreationBody(documentRef, content, activate) {
     { id: 'theme', panel: themePanel },
     { id: 'source', panel: sourcePanel },
     { id: 'preview', panel: previewPanel },
-    { id: 'done', panel: donePanel },
   ];
-  stage.append(themePanel, sourcePanel, previewPanel, donePanel);
+  stage.append(themePanel, sourcePanel, previewPanel);
 
   /** @param {string} message */
   function setFeedback(message) {
@@ -516,9 +513,10 @@ export function renderCreationBody(documentRef, content, activate) {
     activate('home');
   }
 
-  /** 回到最初状态，用于「再做一张」。 */
+  /** 回到最初状态，用于「再做一次」与离开本页。 */
   function resetFlow() {
     clearMaterial();
+    clearCreationDraft();
     state.sourceId = null;
     state.themeId = initialTheme ? initialTheme.id : '';
     updateThemeSelection();
@@ -542,7 +540,6 @@ export function renderCreationBody(documentRef, content, activate) {
       else item.node.classList.remove('jq-create__step--done');
     });
     if (step === 'preview') renderPreview();
-    if (step === 'done') setFeedback(content.messages.generated);
     const active = panels.find((entry) => entry.id === step);
     if (active && typeof active.panel.focus === 'function') active.panel.focus();
   }
@@ -551,6 +548,14 @@ export function renderCreationBody(documentRef, content, activate) {
   updateSourceSelection();
   renderPicker();
   goTo('theme');
+
+  // 外壳「再做一次」通过这个受控入口重置本场景（回到第 1 步并清空素材 / 交接数据）。
+  creationControls.set(body, {
+    reset: () => {
+      resetFlow();
+      goTo('theme');
+    },
+  });
 
   return body;
 }

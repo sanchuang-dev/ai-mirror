@@ -5,7 +5,8 @@
  * 所有文案都如实标注「S1 演示 / 未接入真实模型」。素材复用 OpenDesign 原型（PR #1）
  * 已署名授权的氛围示意图片（见 `web/assets/img/CREDITS.md`），不冒充真实照片、作品或 AI 输出。
  *
- * 本卡（C01）只到「生成前 / 模拟发起」为止：作品结果、保存与分享属于 C02，不在这里伪造完成。
+ * 本卡（C01）只到「生成前 / 模拟发起」为止：点「模拟生成」把不含私有媒体的最少演示数据
+ * 交给 C02 作品结果页（`web/pages/creation-result.js`），由 C02 继续保存与分享演示。
  *
  * @typedef {object} CreationTheme
  * @property {string} id
@@ -41,7 +42,7 @@
  * @property {CreationSource[]} sources
  * @property {CreationSample[]} samples
  * @property {{ title: string, body: string, agree: string, refuse: string }} consent
- * @property {{ note: string, cta: string, pendingTitle: string, pendingText: string, pendingRoute: string }} generate
+ * @property {{ note: string, cta: string }} generate
  * @property {Record<string, string>} messages 流程反馈文案（唯一事实源，页面不另写一份）。
  */
 
@@ -57,7 +58,6 @@ export const creationFixture = {
     { id: 'theme', label: '1 · 选主题' },
     { id: 'source', label: '2 · 选素材' },
     { id: 'preview', label: '3 · 确认预览' },
-    { id: 'done', label: '4 · 模拟生成' },
   ],
   themes: [
     {
@@ -130,12 +130,8 @@ export const creationFixture = {
     refuse: '拒绝授权',
   },
   generate: {
-    note: 'S1 演示：这里尚未连接任何真实 AI 模型，点「模拟生成」不会真的产出作品。',
+    note: 'S1 演示：这里尚未连接任何真实 AI 模型；点「模拟生成」只会打开一张预生成的示例作品，不会真的产出。',
     cta: '模拟生成（S1 演示）',
-    pendingTitle: '等待真实模型接入',
-    pendingText:
-      '作品结果、保存与分享属于 C02，本卡（C01）只演示到「发起创作」之前，不会伪造生成完成。',
-    pendingRoute: 'create-result',
   },
   messages: {
     themeNext: '已选好主题，接着选素材来源。',
@@ -148,8 +144,6 @@ export const creationFixture = {
     agreed: '已确认授权：素材只用于本次本机演示，可以预览了。',
     refused: '已拒绝授权：你选的素材已经丢弃，没有保留。',
     revoked: '已撤销：素材与本机预览都已经清除，可以重新选择。',
-    generated: 'S1 演示：这里只停留在发起前的说明，没有真实生成结果。',
-    pending: '作品结果、保存与分享（C02）尚未实现：本卡不会伪造生成完成。',
     reset: '已清空本次演示，可以从头再选一次。',
   },
 };
