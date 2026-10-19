@@ -11,6 +11,7 @@
  * - 不携带原型调试球、不做整页 `scale()`，也不为 A/B 各写一份 DOM。
  */
 import { createNode, createRouteButton } from './kit.js';
+import { createPublicSessionEnd } from './public-session-end.js';
 
 /** @typedef {import('../data/preferences.js').ThemePreferences} ThemePreferences */
 
@@ -73,6 +74,7 @@ export const NO_PREFERENCES = { available: false, read: () => null, save: () => 
  * @property {(route: string) => string} describeRoute
  * @property {(route: string) => boolean} [isNavigable]
  * @property {(route: string) => void} [onNavigate]
+ * @property {(reason: 'manual' | 'timeout') => void} [onEndPublicSession]
  * @property {ShellPersonal} personal
  * @property {ShellPublic} publicConfig
  *
@@ -90,6 +92,9 @@ export const NO_PREFERENCES = { available: false, read: () => null, save: () => 
  * @property {(route: string) => string} activate
  * @property {() => void} openSettings
  * @property {() => void} closeSettings
+ * @property {() => void} clearToast
+ * @property {() => void} openPublicSessionEnd
+ * @property {() => boolean} isPublicSessionEndOpen
  * @property {(route: string) => void} setScene
  * @property {(mode: 'personal' | 'public') => void} setMode
  * @property {() => 'personal' | 'public'} getMode
@@ -206,6 +211,8 @@ export function createSceneShell(documentRef, config) {
         createNode(documentRef, 'span', 'jq-public-note', publicConfig.note),
         createNode(documentRef, 'span', 'jq-greeting', publicConfig.dateLabel),
         buildThemeGroup(),
+        // 顶栏在共享壳的滚动区之外，公共设备滚到任何场景都能看到并结束体验。
+        publicSessionEnd.entry,
       );
       if (config.canLeavePublicPreview) {
         // Real public terminals never expose a switch to personal space.
@@ -366,6 +373,14 @@ export function createSceneShell(documentRef, config) {
   settingsPanel.append(settingsHead, themeGroupSettings);
   settings.append(settingsPanel);
 
+  // ---------- 公共终端：结束体验并清除（X01） ----------
+  const publicSessionEnd = createPublicSessionEnd(documentRef, {
+    onOpenChange: (open) => setBackgroundInert(open),
+    onEnd: (reason) => {
+      if (config.onEndPublicSession) config.onEndPublicSession(reason);
+    },
+  });
+
   settings.addEventListener('keydown', (event) => {
     if (event.key === 'Escape') {
       event.preventDefault();
@@ -374,7 +389,7 @@ export function createSceneShell(documentRef, config) {
   });
 
   const root = createNode(documentRef, 'main', config.rootClass ?? 'jq-home');
-  root.append(header, scroll, fab, toast, settings);
+  root.append(header, scroll, fab, toast, settings, publicSessionEnd.overlay);
 
   /**
    * 更新主题选择态（不重建 DOM）。
@@ -459,7 +474,7 @@ export function createSceneShell(documentRef, config) {
    * @param {boolean} inert
    */
   function setBackgroundInert(inert) {
-    for (const node of [header, scroll, fab, toast]) {
+    for (const node of [header, scroll, fab, publicSessionEnd.entry, toast]) {
       if (inert) node.setAttribute('inert', '');
       else node.removeAttribute('inert');
     }
@@ -484,11 +499,25 @@ export function createSceneShell(documentRef, config) {
     mode = next;
     renderHeader();
     fab.hidden = mode !== 'personal';
+    publicSessionEnd.entry.hidden = mode !== 'public';
+    if (mode !== 'public') publicSessionEnd.close(false);
+  }
+
+  /** 结束面板只在公共上下文开放；个人模式不提供这条入口。 */
+  function openPublicSessionEnd() {
+    if (mode === 'public') publicSessionEnd.open();
+  }
+
+  /** 清除入口反馈，避免结束体验后仍留着上一条「未接入」提示。 */
+  function clearToast() {
+    toast.hidden = true;
+    toastText.textContent = '';
   }
 
   renderHeader();
   applyTheme(config.theme ?? 'a');
   fab.hidden = mode !== 'personal';
+  publicSessionEnd.entry.hidden = mode !== 'public';
   setScene(sceneRoute);
 
   return {
@@ -499,6 +528,9 @@ export function createSceneShell(documentRef, config) {
     activate,
     openSettings,
     closeSettings,
+    clearToast,
+    openPublicSessionEnd,
+    isPublicSessionEndOpen: publicSessionEnd.isOpen,
     setScene,
     setMode,
     getMode: () => mode,

@@ -1182,6 +1182,185 @@
   border-color: var(--accent);
 }
 
+/* ---------- 公共终端：结束体验并清除（X01 · Issue #19） ----------
+   入口放在公共顶栏：顶栏在滚动区之外，公共首页 / 活动目录 / 活动详情都能找到；
+   个人模式隐藏。确认面板是一套结构，A/B 只换 tokens.css 的语义变量。 */
+.jq-session-end-entry {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  padding: 0 20px;
+  border: 1px solid var(--accent);
+  border-radius: 999px;
+  background: var(--accent-strong);
+  color: var(--accent-ink);
+  font-size: 16px;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+}
+
+.jq-session-end-entry:hover {
+  border-color: var(--accent-soft-border);
+}
+
+.jq-session-end-entry[hidden] {
+  display: none;
+}
+
+.jq-public-session-notice {
+  margin-bottom: 18px;
+}
+
+.jq-session-end {
+  position: fixed;
+  inset: 0;
+  z-index: 9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--page-gutter);
+  background: rgba(14, 16, 24, 0.58);
+}
+
+.jq-session-end[hidden] {
+  display: none;
+}
+
+.jq-session-end__panel {
+  width: min(760px, 100%);
+  max-height: calc(100vh - 2 * var(--page-gutter));
+  overflow-y: auto;
+  padding: clamp(24px, 3vw, 40px);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: var(--shadow);
+}
+
+.jq-session-end__head {
+  padding-bottom: 18px;
+  border-bottom: 1px solid var(--border);
+}
+
+.jq-session-end__eyebrow {
+  margin: 0 0 6px;
+  color: var(--accent);
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+}
+
+.jq-session-end__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(28px, 3vw, 40px);
+  line-height: 1.2;
+}
+
+.jq-session-end__note {
+  margin: 12px 0 0;
+  color: var(--muted);
+  font-size: 17px;
+  line-height: 1.6;
+}
+
+.jq-session-end__section {
+  margin-top: 22px;
+}
+
+.jq-session-end__section-title {
+  margin: 0 0 10px;
+  font-size: 19px;
+}
+
+.jq-session-end__list {
+  margin: 0;
+  padding-left: 1.4em;
+  color: var(--ink);
+  font-size: 16px;
+  line-height: 1.75;
+}
+
+.jq-session-end__keep {
+  margin: 16px 0 0;
+  padding: 12px 16px;
+  border-left: 4px solid var(--ok);
+  border-radius: 0 10px 10px 0;
+  background: var(--surface-2);
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.jq-session-end__device {
+  margin: 12px 0 0;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.jq-session-end__demo {
+  margin-top: 22px;
+  padding-top: 18px;
+  border-top: 1px dashed var(--border);
+}
+
+.jq-session-end__timeout {
+  min-height: 48px;
+  padding: 0 20px;
+  font-size: 16px;
+}
+
+.jq-session-end__timeout-note {
+  margin: 8px 0 0;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.jq-session-end__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 26px;
+}
+
+.jq-session-end__cancel,
+.jq-session-end__confirm {
+  min-height: 52px;
+  font-size: 17px;
+}
+
+@media (max-width: 720px) {
+  .jq-session-end-entry {
+    min-height: 52px;
+    padding: 0 16px;
+    font-size: 15px;
+  }
+
+  .jq-session-end {
+    padding: 16px;
+  }
+
+  .jq-session-end__panel {
+    max-height: calc(100vh - 32px);
+    padding: 22px 18px;
+    border-radius: 18px;
+  }
+
+  .jq-session-end__actions {
+    flex-direction: column-reverse;
+  }
+
+  .jq-session-end__cancel,
+  .jq-session-end__confirm {
+    width: 100%;
+  }
+}
+
 /* 公共模式下常驻 AI 入口必须隐藏（CSS 覆盖 [hidden] 前需显式声明）。 */
 .jq-ai-fab[hidden] {
   display: none;

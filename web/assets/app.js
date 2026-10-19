@@ -27,6 +27,7 @@ import {
 } from '../data/api.js';
 import { createCart } from '../data/cart.js';
 import { createSceneShell, NO_PREFERENCES } from '../components/app-shell.js';
+import { PUBLIC_SESSION_END_COPY } from '../components/public-session-end.js';
 import { mountHome, renderHomeBody } from '../pages/home.js';
 import { applyVideoWatchSelection, renderVideoBody } from '../pages/video.js';
 import { renderAiBody } from '../pages/ai.js';
@@ -182,6 +183,10 @@ export function mountApp(documentRef, preferences, options = {}) {
   /** 需要进入目录后打开示例详情的节目（首页指向未接入片源的节目时使用）。 */
   /** @type {string | null} */
   let pendingProgramDetail = null;
+  /** 公共体验结束后的可见反馈；保留到下一次清理。 */
+  let publicSessionNotice = '';
+  /** @type {'cleared' | 'timeout'} */
+  let publicSessionNoticeKind = 'cleared';
 
   /** @type {import('../components/app-shell.js').SceneShell} */
   let shell;
@@ -246,7 +251,10 @@ export function mountApp(documentRef, preferences, options = {}) {
         },
       });
     } else if (route === PUBLIC_ROUTE) {
-      body = renderPublicBody(documentRef, publicContent, shell.activate);
+      body = renderPublicBody(documentRef, publicContent, shell.activate, {
+        notice: publicSessionNotice,
+        noticeKind: publicSessionNoticeKind,
+      });
     } else if (route === 'activity') {
       // L01 共用目录与详情：个人设备回首页，公共设备回公共首页；报名仍属 L02。
       body = renderActivitiesBody(documentRef, getActivityContent(), shell.activate, {
@@ -322,6 +330,36 @@ export function mountApp(documentRef, preferences, options = {}) {
     // 未接入片源（或目录中不存在该节目）：转到节目目录，随后打开对应示例详情。
     pendingProgramDetail = programId;
     return show('programs');
+  }
+
+  /**
+   * 公共体验的统一清理规则（X01）：「确认结束」与「模拟空闲超时」都只走这里。
+   *
+   * 页面里的场景 DOM 按路由缓存；结束后必须同时清掉缓存、滚动位置、C01 交接草稿、
+   * 示例购物车与会话内选择，再用 **新建的** G00 正文替换页面，确保上一位访客的
+   * 活动筛选 / 详情 / 报名接力、AI 趣玩展示和作品草稿都无法从返回操作中恢复。
+   * 这里只清理当前页面会话，不声称清理设备缓存或系统账号。
+   * @param {'manual' | 'timeout'} reason
+   * @returns {void}
+   */
+  function endPublicSession(reason) {
+    const creationBody = bodies.get('create');
+    if (creationBody) resetCreationFlow(creationBody);
+    clearCreationDraft();
+    cart.clear();
+    watch.setSelection(null);
+    bodies.clear();
+    scrollPositions.clear();
+    pendingProgramDetail = null;
+    publicSessionNotice =
+      reason === 'timeout'
+        ? PUBLIC_SESSION_END_COPY.timeoutNotice
+        : PUBLIC_SESSION_END_COPY.clearedNotice;
+    publicSessionNoticeKind = reason === 'timeout' ? 'timeout' : 'cleared';
+    // 强制重建 G00：activeRoute 置空后 show() 不会把当前 public 场景当成「已在原页」。
+    activeRoute = null;
+    shell.clearToast();
+    show(PUBLIC_ROUTE);
   }
 
   /**
@@ -412,6 +450,7 @@ export function mountApp(documentRef, preferences, options = {}) {
     describeRoute,
     isNavigable: isNavigableRoute,
     onNavigate: show,
+    onEndPublicSession: endPublicSession,
     personal: {
       brand: { logo: '见趣', sub: '闺蜜机 · 客厅里的好伙伴' },
       viewer: home.viewer,
