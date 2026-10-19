@@ -103,7 +103,8 @@ test('entry feedback is a viewport-fixed toast outside the scrolling area', () =
   assert.equal(collect(scroll, (node) => node === toast).length, 0);
 
   // 模拟页面已滚动到下方后点击活动「报名」：反馈必须立即可见，且仍是诚实的示例文案。
-  const signup = collect(view.element, (node) => node.getAttribute('data-route') === 'signup')[0];
+  // L01-A 起「报名」先进入示例目录（不显示报名成功），目录入口文案仍须如实标注示例。
+  const signup = collect(view.element, (node) => node.getAttribute('data-route') === 'activity')[0];
   signup.dispatch('click');
   assert.equal(toast.hidden, false, 'toast must appear right after a below-the-fold click');
   const status = collect(view.element, (node) => node.getAttribute('role') === 'status')[0];

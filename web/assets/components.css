@@ -3163,3 +3163,131 @@ button.jq-video-next__row:hover {
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+/* ---------- L01-A 本地活动与福利目录（Issue #13） ----------
+   复用既有 .jq-scene__head / .jq-programs-search / .jq-program-tab / .jq-programs__state
+   与 .jq-activity 的卡片层级，只补目录卡所需的事实列表；主题差异仍只来自 tokens.css。 */
+.jq-activity__open {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.jq-activity__open .jq-media {
+  aspect-ratio: 16 / 9;
+}
+
+.jq-activity__signup {
+  flex: none;
+}
+
+.jq-activities__results {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.jq-activities__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.jq-activity-card {
+  display: flex;
+  flex-direction: column;
+}
+
+.jq-activity-card .jq-media {
+  position: relative;
+  aspect-ratio: 16 / 9;
+}
+
+.jq-activity-card__badge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: var(--accent-strong);
+  color: var(--accent-ink);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.jq-activity-card__body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px 16px 16px;
+}
+
+.jq-activity-card__name {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.jq-activity-card__summary {
+  margin: 0;
+  color: var(--muted);
+  font-size: 15px;
+}
+
+.jq-activity-card__facts {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0;
+}
+
+.jq-activity-card__fact {
+  display: flex;
+  gap: 10px;
+  font-size: 14px;
+}
+
+.jq-activity-card__label {
+  flex: none;
+  width: 4em;
+  color: var(--muted);
+}
+
+.jq-activity-card__value {
+  margin: 0;
+  color: var(--ink);
+}
+
+.jq-activities__feedback {
+  margin: 16px 0 0;
+  padding: 12px 16px;
+  border: 1px dashed var(--border);
+  border-radius: 12px;
+  background: var(--surface-2);
+  color: var(--ink);
+  font-size: 15px;
+}
+
+.jq-activities__feedback:empty {
+  display: none;
+}
+
+@media (orientation: portrait) {
+  .jq-activities__grid {
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  }
+
+  .jq-activity-card__name {
+    font-size: 22px;
+  }
+
+  .jq-activity-card__fact,
+  .jq-activity-card__summary {
+    font-size: 17px;
+  }
+}

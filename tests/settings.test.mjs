@@ -118,7 +118,7 @@ test('opening settings states when no preference has been saved yet', () => {
 test('returning from settings keeps the home DOM, scroll area and pending feedback', () => {
   const { view } = setup();
   const scrollBefore = find(view, (node) => node.classList.contains('jq-scroll'))[0];
-  find(view, (node) => node.getAttribute('data-route') === 'signup')[0].dispatch('click');
+  find(view, (node) => node.getAttribute('data-route') === 'favorite')[0].dispatch('click');
   const toast = find(view, (node) => node.classList.contains('jq-toast'))[0];
   const toastText = find(view, (node) => node.getAttribute('role') === 'status')[0];
   const shown = toastText.textContent;

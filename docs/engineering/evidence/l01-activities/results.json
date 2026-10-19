@@ -1,0 +1,436 @@
+{
+  "a_home": {
+    "badges": [],
+    "cards": [],
+    "count": null,
+    "dir": "a",
+    "feedback": null,
+    "h1": "朝夕巷",
+    "homeVisible": true,
+    "horizontalOverflow": false,
+    "pressedCategory": null,
+    "scene": null,
+    "state": null,
+    "stateTitle": null
+  },
+  "a_directory": {
+    "badges": [
+      "活动 · 示例",
+      "活动 · 示例",
+      "活动 · 示例",
+      "福利 · 示例",
+      "福利 · 示例",
+      "福利 · 示例"
+    ],
+    "cards": [
+      "taiji",
+      "chayi",
+      "dubao",
+      "liangxueya",
+      "lifa",
+      "shoujike"
+    ],
+    "count": "「全部」共 6 条示例",
+    "dir": "a",
+    "feedback": "",
+    "h1": "本地活动与福利",
+    "homeVisible": false,
+    "horizontalOverflow": false,
+    "pressedCategory": "all",
+    "scene": "jq-scene jq-scene--activities",
+    "state": "ok",
+    "stateTitle": null
+  },
+  "a_welfare": {
+    "badges": [
+      "福利 · 示例",
+      "福利 · 示例",
+      "福利 · 示例"
+    ],
+    "cards": [
+      "liangxueya",
+      "lifa",
+      "shoujike"
+    ],
+    "count": "「福利」共 3 条示例",
+    "dir": "a",
+    "feedback": "",
+    "h1": "本地活动与福利",
+    "homeVisible": false,
+    "horizontalOverflow": false,
+    "pressedCategory": "welfare",
+    "scene": "jq-scene jq-scene--activities",
+    "state": "ok",
+    "stateTitle": null
+  },
+  "a_activity": {
+    "badges": [
+      "活动 · 示例",
+      "活动 · 示例",
+      "活动 · 示例"
+    ],
+    "cards": [
+      "taiji",
+      "chayi",
+      "dubao"
+    ],
+    "count": "「活动」共 3 条示例",
+    "dir": "a",
+    "feedback": "",
+    "h1": "本地活动与福利",
+    "homeVisible": false,
+    "horizontalOverflow": false,
+    "pressedCategory": "activity",
+    "scene": "jq-scene jq-scene--activities",
+    "state": "ok",
+    "stateTitle": null
+  },
+  "a_hit": {
+    "badges": [
+      "活动 · 示例"
+    ],
+    "cards": [
+      "taiji"
+    ],
+    "count": "在「活动」里找到 1 条与「太极」相关的示例",
+    "dir": "a",
+    "feedback": "",
+    "h1": "本地活动与福利",
+    "homeVisible": false,
+    "horizontalOverflow": false,
+    "pressedCategory": "activity",
+    "scene": "jq-scene jq-scene--activities",
+    "state": "ok",
+    "stateTitle": null
+  },
+  "a_miss": {
+    "badges": [],
+    "cards": [],
+    "count": null,
+    "dir": "a",
+    "feedback": "",
+    "h1": "本地活动与福利",
+    "homeVisible": false,
+    "horizontalOverflow": false,
+    "pressedCategory": "welfare",
+    "scene": "jq-scene jq-scene--activities",
+    "state": "empty",
+    "stateTitle": "「福利」里没有找到与「太极」相关的示例"
+  },
+  "a_reset": {
+    "badges": [
+      "活动 · 示例",
+      "活动 · 示例",
+      "活动 · 示例",
+      "福利 · 示例",
+      "福利 · 示例",
+      "福利 · 示例"
+    ],
+    "cards": [
+      "taiji",
+      "chayi",
+      "dubao",
+      "liangxueya",
+      "lifa",
+      "shoujike"
+    ],
+    "count": "「全部」共 6 条示例",
+    "dir": "a",
+    "feedback": "",
+    "h1": "本地活动与福利",
+    "homeVisible": false,
+    "horizontalOverflow": false,
+    "pressedCategory": "all",
+    "scene": "jq-scene jq-scene--activities",
+    "state": "ok",
+    "stateTitle": null
+  },
+  "a_back_home": {
+    "badges": [],
+    "cards": [],
+    "count": null,
+    "dir": "a",
+    "feedback": null,
+    "h1": "朝夕巷",
+    "homeVisible": true,
+    "horizontalOverflow": false,
+    "pressedCategory": null,
+    "scene": null,
+    "state": null,
+    "stateTitle": null
+  },
+  "a_home_card": {
+    "badges": [
+      "活动 · 示例",
+      "活动 · 示例",
+      "活动 · 示例",
+      "福利 · 示例",
+      "福利 · 示例",
+      "福利 · 示例"
+    ],
+    "cards": [
+      "taiji",
+      "chayi",
+      "dubao",
+      "liangxueya",
+      "lifa",
+      "shoujike"
+    ],
+    "count": "「全部」共 6 条示例",
+    "dir": "a",
+    "feedback": "",
+    "h1": "本地活动与福利",
+    "homeVisible": false,
+    "horizontalOverflow": false,
+    "pressedCategory": "all",
+    "scene": "jq-scene jq-scene--activities",
+    "state": "ok",
+    "stateTitle": null
+  },
+  "a_detail_notice": {
+    "badges": [
+      "活动 · 示例",
+      "活动 · 示例",
+      "活动 · 示例",
+      "福利 · 示例",
+      "福利 · 示例",
+      "福利 · 示例"
+    ],
+    "cards": [
+      "taiji",
+      "chayi",
+      "dubao",
+      "liangxueya",
+      "lifa",
+      "shoujike"
+    ],
+    "count": "「全部」共 6 条示例",
+    "dir": "a",
+    "feedback": "《晨练太极》的详情页将由 L01-B 衔接；当前只有示例目录，报名（L02）也尚未接入，不会产生报名凭证。",
+    "h1": "本地活动与福利",
+    "homeVisible": false,
+    "horizontalOverflow": false,
+    "pressedCategory": "all",
+    "scene": "jq-scene jq-scene--activities",
+    "state": "ok",
+    "stateTitle": null
+  },
+  "a_errors": [],
+  "b_home": {
+    "badges": [],
+    "cards": [],
+    "count": null,
+    "dir": "b",
+    "feedback": null,
+    "h1": "朝夕巷",
+    "homeVisible": true,
+    "horizontalOverflow": false,
+    "pressedCategory": null,
+    "scene": null,
+    "state": null,
+    "stateTitle": null
+  },
+  "b_directory": {
+    "badges": [
+      "活动 · 示例",
+      "活动 · 示例",
+      "活动 · 示例",
+      "福利 · 示例",
+      "福利 · 示例",
+      "福利 · 示例"
+    ],
+    "cards": [
+      "taiji",
+      "chayi",
+      "dubao",
+      "liangxueya",
+      "lifa",
+      "shoujike"
+    ],
+    "count": "「全部」共 6 条示例",
+    "dir": "b",
+    "feedback": "",
+    "h1": "本地活动与福利",
+    "homeVisible": false,
+    "horizontalOverflow": false,
+    "pressedCategory": "all",
+    "scene": "jq-scene jq-scene--activities",
+    "state": "ok",
+    "stateTitle": null
+  },
+  "b_welfare": {
+    "badges": [
+      "福利 · 示例",
+      "福利 · 示例",
+      "福利 · 示例"
+    ],
+    "cards": [
+      "liangxueya",
+      "lifa",
+      "shoujike"
+    ],
+    "count": "「福利」共 3 条示例",
+    "dir": "b",
+    "feedback": "",
+    "h1": "本地活动与福利",
+    "homeVisible": false,
+    "horizontalOverflow": false,
+    "pressedCategory": "welfare",
+    "scene": "jq-scene jq-scene--activities",
+    "state": "ok",
+    "stateTitle": null
+  },
+  "b_activity": {
+    "badges": [
+      "活动 · 示例",
+      "活动 · 示例",
+      "活动 · 示例"
+    ],
+    "cards": [
+      "taiji",
+      "chayi",
+      "dubao"
+    ],
+    "count": "「活动」共 3 条示例",
+    "dir": "b",
+    "feedback": "",
+    "h1": "本地活动与福利",
+    "homeVisible": false,
+    "horizontalOverflow": false,
+    "pressedCategory": "activity",
+    "scene": "jq-scene jq-scene--activities",
+    "state": "ok",
+    "stateTitle": null
+  },
+  "b_hit": {
+    "badges": [
+      "活动 · 示例"
+    ],
+    "cards": [
+      "taiji"
+    ],
+    "count": "在「活动」里找到 1 条与「太极」相关的示例",
+    "dir": "b",
+    "feedback": "",
+    "h1": "本地活动与福利",
+    "homeVisible": false,
+    "horizontalOverflow": false,
+    "pressedCategory": "activity",
+    "scene": "jq-scene jq-scene--activities",
+    "state": "ok",
+    "stateTitle": null
+  },
+  "b_miss": {
+    "badges": [],
+    "cards": [],
+    "count": null,
+    "dir": "b",
+    "feedback": "",
+    "h1": "本地活动与福利",
+    "homeVisible": false,
+    "horizontalOverflow": false,
+    "pressedCategory": "welfare",
+    "scene": "jq-scene jq-scene--activities",
+    "state": "empty",
+    "stateTitle": "「福利」里没有找到与「太极」相关的示例"
+  },
+  "b_reset": {
+    "badges": [
+      "活动 · 示例",
+      "活动 · 示例",
+      "活动 · 示例",
+      "福利 · 示例",
+      "福利 · 示例",
+      "福利 · 示例"
+    ],
+    "cards": [
+      "taiji",
+      "chayi",
+      "dubao",
+      "liangxueya",
+      "lifa",
+      "shoujike"
+    ],
+    "count": "「全部」共 6 条示例",
+    "dir": "b",
+    "feedback": "",
+    "h1": "本地活动与福利",
+    "homeVisible": false,
+    "horizontalOverflow": false,
+    "pressedCategory": "all",
+    "scene": "jq-scene jq-scene--activities",
+    "state": "ok",
+    "stateTitle": null
+  },
+  "b_back_home": {
+    "badges": [],
+    "cards": [],
+    "count": null,
+    "dir": "b",
+    "feedback": null,
+    "h1": "朝夕巷",
+    "homeVisible": true,
+    "horizontalOverflow": false,
+    "pressedCategory": null,
+    "scene": null,
+    "state": null,
+    "stateTitle": null
+  },
+  "b_home_card": {
+    "badges": [
+      "活动 · 示例",
+      "活动 · 示例",
+      "活动 · 示例",
+      "福利 · 示例",
+      "福利 · 示例",
+      "福利 · 示例"
+    ],
+    "cards": [
+      "taiji",
+      "chayi",
+      "dubao",
+      "liangxueya",
+      "lifa",
+      "shoujike"
+    ],
+    "count": "「全部」共 6 条示例",
+    "dir": "b",
+    "feedback": "",
+    "h1": "本地活动与福利",
+    "homeVisible": false,
+    "horizontalOverflow": false,
+    "pressedCategory": "all",
+    "scene": "jq-scene jq-scene--activities",
+    "state": "ok",
+    "stateTitle": null
+  },
+  "b_detail_notice": {
+    "badges": [
+      "活动 · 示例",
+      "活动 · 示例",
+      "活动 · 示例",
+      "福利 · 示例",
+      "福利 · 示例",
+      "福利 · 示例"
+    ],
+    "cards": [
+      "taiji",
+      "chayi",
+      "dubao",
+      "liangxueya",
+      "lifa",
+      "shoujike"
+    ],
+    "count": "「全部」共 6 条示例",
+    "dir": "b",
+    "feedback": "《晨练太极》的详情页将由 L01-B 衔接；当前只有示例目录，报名（L02）也尚未接入，不会产生报名凭证。",
+    "h1": "本地活动与福利",
+    "homeVisible": false,
+    "horizontalOverflow": false,
+    "pressedCategory": "all",
+    "scene": "jq-scene jq-scene--activities",
+    "state": "ok",
+    "stateTitle": null
+  },
+  "b_errors": []
+}
