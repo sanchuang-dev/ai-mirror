@@ -13,6 +13,7 @@ import { describeRoute } from '../data/notices.js';
 import {
   getAiContent,
   getCourseContent,
+  getCreationContent,
   getHomeContent,
   getProgramContent,
   getProgramDetail,
@@ -25,6 +26,7 @@ import { applyVideoWatchSelection, renderVideoBody } from '../pages/video.js';
 import { renderAiBody } from '../pages/ai.js';
 import { renderCourseBody } from '../pages/course.js';
 import { renderPublicBody } from '../pages/public.js';
+import { renderCreationBody } from '../pages/creation.js';
 import { createWatchLibrary } from '../data/watch.js';
 import {
   focusProgramsSearch,
@@ -69,6 +71,8 @@ const NAVIGABLE_ROUTES = new Set([
   'ai',
   'course',
   'public',
+  // 首页「随手玩点新花样」的 AI 趣玩入口：进入 C01 主题选择 / 素材授权演示页。
+  'create',
   SEARCH_ROUTE,
   // 首页「继续观看」是正式续播入口：按正确节目 / 集进入既有 V02 播放器，
   // 不再只是发出一条 Toast。
@@ -158,6 +162,9 @@ export function mountApp(documentRef, preferences, options = {}) {
     } else if (route === 'ai') body = renderAiBody(documentRef, getAiContent(), shell.activate);
     else if (route === 'course') {
       body = renderCourseBody(documentRef, getCourseContent(), shell.activate);
+    } else if (route === 'create') {
+      // 首页「随手玩点新花样」的 AI 趣玩入口（C01）：主题选择 + 素材授权 + 模拟生成说明。
+      body = renderCreationBody(documentRef, getCreationContent(), shell.activate);
     } else if (route === PUBLIC_ROUTE) {
       body = renderPublicBody(documentRef, publicContent, shell.activate);
     } else if (route === SEARCH_ROUTE) {

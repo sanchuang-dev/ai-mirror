@@ -2578,3 +2578,305 @@ button.jq-video-next__row:hover {
     min-height: 56px;
   }
 }
+
+/* ---------- AI 趣玩 C01：主题选择 / 素材授权 / 模拟生成入口 ----------
+   复用既有面板、卡片、按钮与背景 Token；这里只补这套流程缺的排布，
+   不新增品牌色、字体或第三套视觉语言（design.md §6）。 */
+.jq-create__steps {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin: 0 0 14px;
+  padding: 0;
+  list-style: none;
+}
+
+.jq-create__step {
+  padding: 6px 14px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--muted);
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.jq-create__step[aria-current='step'] {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--ink);
+}
+
+.jq-create__step--done {
+  color: var(--ok);
+  border-color: var(--ok);
+}
+
+.jq-create__feedback {
+  margin: 0 0 14px;
+  padding: 12px 16px;
+  border: 1px solid var(--accent-soft-border);
+  border-radius: 12px;
+  background: var(--accent-soft);
+  color: var(--ink);
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.jq-create__feedback[hidden] {
+  display: none;
+}
+
+.jq-create__panel:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 6px;
+}
+
+.jq-create__panel[hidden] {
+  display: none;
+}
+
+.jq-create__h2 {
+  margin: 0 0 14px;
+  font-family: var(--font-display);
+  font-size: clamp(22px, 2vw, 30px);
+}
+
+.jq-create__h3 {
+  margin: 0 0 6px;
+  font-size: 19px;
+}
+
+.jq-create__themes {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.jq-create__theme {
+  position: relative;
+  border-color: var(--border);
+}
+
+/* 主题卡沿用首页创作卡，但四个并排时用 4:3 画面，保证「下一步」在首屏内可见。 */
+.jq-create__theme .jq-media {
+  aspect-ratio: 4 / 3;
+}
+
+.jq-create__theme[aria-pressed='true'] {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.jq-create__badge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--accent-strong);
+  color: var(--accent-ink);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.jq-create__sources {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.jq-create__source {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-height: 72px;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface);
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+}
+
+.jq-create__source[aria-pressed='true'] {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.jq-create__source-name {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.jq-create__source-desc {
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.jq-create__picker {
+  margin-top: 16px;
+}
+
+.jq-create__samples {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.jq-create__sample {
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.jq-create__sample .jq-media {
+  aspect-ratio: 4 / 3;
+}
+
+.jq-create__sample[aria-pressed='true'] {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.jq-create__sample-name {
+  margin: 10px 12px 12px;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.jq-create__consent {
+  margin-top: 18px;
+  padding: 16px 18px 18px;
+  border: 1px solid var(--accent-soft-border);
+  border-radius: 14px;
+  background: var(--accent-soft);
+}
+
+.jq-create__note {
+  margin: 0;
+  color: var(--ink);
+  font-size: 15px;
+}
+
+.jq-create__hint {
+  margin: 8px 0 0;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.jq-create__empty {
+  margin: 0;
+  padding: 16px 18px;
+  border: 1px dashed var(--border);
+  border-radius: 14px;
+  color: var(--muted);
+  font-size: 16px;
+}
+
+.jq-create__actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 16px;
+}
+
+.jq-create__actions .jq-create__hint {
+  margin: 0;
+  margin-right: auto;
+}
+
+/* 本机图片：用 label 呈现可点击外观，原生 file 控件保持可用并接收焦点。 */
+.jq-create__file-label {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  min-height: 52px;
+  padding: 0 24px;
+  border: 1px dashed var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 17px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.jq-create__file-label:hover {
+  border-color: var(--accent);
+}
+
+.jq-create__file-label:focus-within {
+  outline: 3px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.jq-create__file {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  opacity: 0;
+}
+
+.jq-create__file-name {
+  margin: 10px 0 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.jq-create__thumb,
+.jq-create__preview-img {
+  display: block;
+  width: 100%;
+  max-width: 420px;
+  margin-top: 12px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+}
+
+.jq-create__text-field {
+  width: 100%;
+  min-height: 132px;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  font-size: 17px;
+}
+
+.jq-create__preview {
+  display: flex;
+  flex-direction: column;
+}
+
+.jq-create__preview .jq-media img,
+.jq-create__preview .jq-media {
+  max-width: 560px;
+}
+
+.jq-create__card {
+  max-width: 560px;
+  padding: 18px 20px;
+}
+
+.jq-create__text-quoted {
+  margin: 0;
+  font-size: 20px;
+  line-height: 1.5;
+}
+
+@media (max-width: 1100px) {
+  .jq-create__themes,
+  .jq-create__samples {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .jq-create__sources {
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+  }
+}
