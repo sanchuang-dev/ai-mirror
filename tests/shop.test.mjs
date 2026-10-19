@@ -49,13 +49,6 @@ const searchField = (body) => find(body, (node) => node.classList.contains('jq-s
 const searchForm = (body) => find(body, (node) => node.classList.contains('jq-programs-search'))[0];
 
 /** @param {import('./helpers/fake-dom.mjs').FakeNode} body */
-const detailNode = (body) => find(body, (node) => node.classList.contains('jq-shop-detail'))[0];
-
-/** @param {import('./helpers/fake-dom.mjs').FakeNode} body */
-const detailTitle = (body) =>
-  find(body, (node) => node.classList.contains('jq-shop-detail__title'))[0]?.textContent ?? null;
-
-/** @param {import('./helpers/fake-dom.mjs').FakeNode} body */
 const stateTitle = (body) =>
   find(body, (node) => node.classList.contains('jq-programs__state-title'))[0]?.textContent ?? '';
 
@@ -357,39 +350,28 @@ test('a failing mall adapter shows an explicit failure state that can retry', as
   assert.equal(stateOf(body), 'ok');
 });
 
-test('the product detail entry is honest about M02 and never offers a fake checkout', async () => {
+test('product cards enter the shared M02 detail route without a second inline detail view', async () => {
   const doc = createFakeDocument();
-  const body = renderShopBody(doc, content, () => {});
+  /** @type {string[]} */
+  const routes = [];
+  const body = renderShopBody(doc, content, (route) => routes.push(route));
   await flush();
 
-  const detail = detailNode(body);
-  assert.equal(detail.hidden, true, 'the detail entry starts closed');
+  // M01 不再内嵌详情：列表与 AI 商品卡只能走同一个 M02 路由。
+  assert.equal(find(body, (node) => node.classList.contains('jq-shop-detail')).length, 0);
+  assert.equal(find(body, (node) => node.textContent === '加入购物车').length, 0);
 
   const card = clickProduct(body, 'blood-pressure');
-  assert.equal(detail.hidden, false);
-  assert.equal(detailTitle(body), '上臂式电子血压计');
-  assert.equal(doc.activeElement, detail, 'opening moves focus into the detail entry');
+  assert.equal(card.getAttribute('data-product'), 'blood-pressure');
+  assert.deepEqual(routes, ['product:blood-pressure']);
 
-  const note = find(detail, (node) => node.classList.contains('jq-shop-detail__note'))[0];
-  assert.match(note.textContent, /M02/);
-  assert.match(note.textContent, /不能加入购物车、下单或付款/);
-  const storeValue = find(detail, (node) => node.classList.contains('jq-shop-detail__value'))[0];
-  assert.equal(storeValue.textContent, '云栖优选生活馆（虚构示例）');
-  assert.equal(find(detail, (node) => node.textContent === '加入购物车').length, 0);
-  assert.equal(find(detail, (node) => node.textContent === '去结算').length, 0);
-
-  find(detail, (node) => node.classList.contains('jq-shop-detail__close'))[0].dispatch('click');
-  assert.equal(detail.hidden, true);
-  assert.equal(doc.activeElement, card, 'returning hands focus back to the triggering card');
-
-  // 新的筛选会让旧商品入口失效，避免旧上下文留在新结果里。
   clickProduct(body, 'tea-set');
-  assert.equal(detail.hidden, false);
+  assert.deepEqual(routes, ['product:blood-pressure', 'product:tea-set']);
+
+  // 新的筛选不会留下旧商品上下文：列表页本身没有详情状态可残留。
   clickCategory(body, 'service');
   await flush();
-  assert.equal(detail.hidden, true);
-  assert.equal(detailTitle(body), null);
-  assert.equal(doc.activeElement, resultsNode(body));
+  assert.ok(productIds(body).every((id) => categoryOf(id) === 'service'));
 });
 
 test('H01 mall navigation opens M01, survives theme switching and returns home', async () => {
@@ -421,27 +403,43 @@ test('H01 mall navigation opens M01, survives theme switching and returns home',
   assert.equal(shell.body.childNodes[0], shopBody);
 });
 
-test('the AI product card enters M01 and its return path goes back to 小暖', async () => {
+test('the AI product card enters the same M02 detail route and its return path goes back to 小暖', async () => {
   const doc = createFakeDocument();
   const { shell } = mountApp(doc, undefined);
 
   clickRoute(shell, 'ai');
   const aiBody = shell.body.childNodes[0];
-  const productEntry = find(aiBody, (node) => node.getAttribute('data-route') === 'shop')[0];
-  assert.ok(productEntry, 'the AI product card must enter the platform mall');
-  assert.equal(productEntry.textContent, '去平台商城看看');
+  const productEntry = find(
+    aiBody,
+    (node) => node.getAttribute('data-route') === 'product:blood-pressure',
+  )[0];
+  assert.ok(productEntry, 'the AI product card must enter the shared M02 product detail');
+  assert.equal(productEntry.textContent, '查看示例商品详情');
+  assert.match(
+    find(aiBody, (node) => node.classList.contains('jq-svc-card__desc'))
+      .map((node) => node.textContent)
+      .join(' '),
+    /未做真实比价/,
+  );
 
   productEntry.dispatch('click');
   await flush();
-  const shopBody = shell.body.childNodes[0];
-  assert.equal(find(shell.element, (node) => node.classList.contains('jq-scene--shop')).length, 1);
-  const back = find(shopBody, (node) => node.classList.contains('jq-scene__back'))[0];
+  const productBody = shell.body.childNodes[0];
+  assert.equal(
+    find(shell.element, (node) => node.classList.contains('jq-scene--product')).length,
+    1,
+  );
+  assert.equal(
+    find(productBody, (node) => node.tagName === 'H1')[0].textContent,
+    '上臂式电子血压计',
+  );
+  const back = find(productBody, (node) => node.classList.contains('jq-scene__back'))[0];
   assert.equal(back.getAttribute('data-route'), 'ai');
   assert.match(back.textContent, /返回小暖/);
 
   back.dispatch('click');
   await flush();
-  assert.equal(shell.body.childNodes[0], aiBody, 'the mall must return to the AI source scene');
+  assert.equal(shell.body.childNodes[0], aiBody, 'the detail must return to the AI source scene');
 });
 
 test('a public terminal cannot navigate into the personal mall', async () => {
@@ -457,10 +455,11 @@ test('mall styles stay theme-variable driven with visible state styles', () => {
   assert.match(css, /\.jq-shop__grid \{/);
   assert.match(css, /\.jq-shop-featured \{/);
   assert.match(css, /\.jq-shop-stores \{/);
-  assert.match(css, /\.jq-shop-detail \{/);
   assert.match(css, /\.jq-programs__state--loading \{/);
   assert.match(css, /\.jq-programs__state--empty \{/);
   assert.match(css, /\.jq-programs__state--error \{/);
+  // M02 详情已移出列表页；M01 不再保留第二份内嵌详情样式。
+  assert.equal(/\.jq-shop-detail/.test(css), false, 'M01 must not keep an inline detail style');
   // 主题差异只允许来自 tokens 变量，不新增按主题分叉的页面类。
   assert.equal(/\.(a|b)-[a-z]/.test(css), false, 'no per-theme page classes may enter the styles');
 });

@@ -4,6 +4,7 @@
 > 采集环境：本 Worker runner，Chromium 155（`--headless=new`，ChromeDriver 155 WebDriver），安装 `fonts-noto-cjk` 渲染中文，窗口 1600×900（视口 1600×757）。
 > 这些是**评审证据快照**，不是产品源码；源码见 [`web/`](../../../../web/)，视觉契约见 [`design.md`](../../../../design.md)，主题 Token 见 [`web/assets/tokens.css`](../../../../web/assets/tokens.css)。
 > 本卡只交付 M01 商城首页；商品详情（含规格 / 运费 / 履约 / 售后）归 [M02 #16](https://github.com/sanchuang-dev/ai-mirror/issues/16)，购物车与订单确认归 [M03 #17](https://github.com/sanchuang-dev/ai-mirror/issues/17)。
+> **后续变更（M02 #16）**：AI 商品卡已改为直接进入统一 `product:blood-pressure` 详情路由；本文件保留为 M01 当次验收的历史证据。
 
 ## 交付内容
 

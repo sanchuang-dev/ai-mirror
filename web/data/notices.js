@@ -17,7 +17,9 @@ export const ROUTE_NOTICES = {
   activity:
     '本地活动与福利 L01 为示例目录与共用详情：分类、关键词筛选与资料查看可用；报名确认与手机接力为 S1 模拟。',
   course: '数字人课程 E01 为示例演示页：讲师形象与语音尚未真实接入。',
-  shop: '平台商城 M01 为示例目录：平台精选、类目、店铺来源与示例商品可浏览；商品详情（M02）与购物车 / 订单（M03）尚未接入。',
+  shop: '平台商城 M01 为示例目录：平台精选、类目、店铺来源与示例商品可浏览；购物车 / 订单（M03）尚未接入。',
+  product:
+    '商品详情 M02 为示例页：规格、数量、单价、运费、区域、履约方与售后均为虚构示例；库存与配送时效未接入，M03 购物车 / 订单 / 支付尚未实现。',
   mine: '个人中心 P01 尚未实现：本入口为示例演示。',
   search: '看节目 · 搜索：在示例节目库中按关键词查找（分类内搜索），未接入真实搜索服务。',
   continue: '续播 V02 为示例演示页：这里只演示入口，未接入真实播放。',
@@ -41,5 +43,6 @@ export const FALLBACK_NOTICE = '该入口尚未实现：此处为示例演示。
  * @returns {string}
  */
 export function describeRoute(route) {
+  if (route.startsWith('product:')) return ROUTE_NOTICES.product;
   return ROUTE_NOTICES[route] ?? FALLBACK_NOTICE;
 }
