@@ -14,6 +14,7 @@ import { programFixture } from './fixtures/programs.fixture.js';
 import { creationFixture } from './fixtures/creation.fixture.js';
 import { creationResultFixture } from './fixtures/creation-result.fixture.js';
 import { activityFixture } from './fixtures/activities.fixture.js';
+import { shopFixture } from './fixtures/shop.fixture.js';
 
 /** @typedef {import('./fixtures/home.fixture.js').HomeContent} HomeContent */
 /** @typedef {import('./fixtures/video.fixture.js').VideoFixture} VideoContent */
@@ -25,6 +26,8 @@ import { activityFixture } from './fixtures/activities.fixture.js';
 /** @typedef {import('./fixtures/creation.fixture.js').CreationFixture} CreationContent */
 /** @typedef {import('./fixtures/creation-result.fixture.js').CreationResultFixture} CreationResultContent */
 /** @typedef {import('./fixtures/activities.fixture.js').ActivityFixture} ActivityContent */
+/** @typedef {import('./fixtures/shop.fixture.js').ShopFixture} ShopContent */
+/** @typedef {import('./fixtures/shop.fixture.js').ShopProduct} ShopProduct */
 
 /**
  * H01 首页数据：在首页 fixture 之上，把「家门口的活动」接到 L01-A 的唯一活动事实源。
@@ -121,6 +124,82 @@ export function getCreationResultContent() {
  */
 export function getActivityContent() {
   return activityFixture;
+}
+
+/**
+ * M01 平台商城内容（平台精选 / 类目 / 入驻店铺 / 示例商品）。
+ * @returns {ShopContent} 单一结构的示例数据，A/B 主题共用。
+ */
+export function getShopContent() {
+  return shopFixture;
+}
+
+/**
+ * @typedef {object} ShopSearchResult
+ * @property {'ok' | 'empty'} status
+ * @property {string} keyword 规范化后的关键词（空串表示未按关键词过滤）。
+ * @property {string} category 生效的类目（`all` / 商品自身类目）。
+ * @property {string} store 生效的店铺来源（`all` / 店铺 id）。
+ * @property {ShopProduct[]} items
+ */
+
+/**
+ * 在示例商城中检索。异步契约与真实商城服务一致，页面据此展示加载 / 命中 /
+ * 无结果 / 失败状态；当前由本地 S1 样本数据实现，**不做真实网络请求**，
+ * 也不能被当成真实商城服务成功响应。接入真实后端时只替换本函数实现。
+ *
+ * 类目、店铺与关键词是**组合筛选**：三者同时生效，返回的每一项都满足当前类目、
+ * 当前店铺来源，且（若有关键词）命中该关键词。这样页面高亮的筛选条件与可见结果
+ * 永远一致，不会把其它类目或其它店铺的商品混进来。
+ *
+ * @param {{ keyword?: string, category?: string, store?: string }} [query]
+ * @returns {Promise<ShopSearchResult>}
+ */
+export function searchShopProducts(query = {}) {
+  const keyword = String(query.keyword ?? '').trim();
+  const category = query.category ?? 'all';
+  const store = query.store ?? 'all';
+  // 微任务即真实的异步数据适配边界，不伪造网络延迟或服务器成功响应。
+  return Promise.resolve().then(() => {
+    const items = matchShopProducts(keyword, category, store);
+    return {
+      status: items.length > 0 ? 'ok' : 'empty',
+      keyword,
+      category,
+      store,
+      items,
+    };
+  });
+}
+
+/**
+ * @param {string} keyword 已 trim 的关键词。
+ * @param {string} category
+ * @param {string} store
+ * @returns {ShopProduct[]}
+ */
+function matchShopProducts(keyword, category, store) {
+  /** @type {(id: string) => string} */
+  const categoryLabel = (id) =>
+    shopFixture.categories.find((entry) => entry.id === id)?.label ?? '';
+  /** @type {(id: string) => string} */
+  const storeName = (id) => shopFixture.stores.find((entry) => entry.id === id)?.name ?? '';
+  return shopFixture.products.filter((product) => {
+    if (category !== 'all' && product.category !== category) return false;
+    if (store !== 'all' && product.storeId !== store) return false;
+    if (!keyword) return true;
+    const haystack = [
+      product.title,
+      product.meta,
+      product.summary,
+      product.price,
+      product.priceNote,
+      product.tags,
+      categoryLabel(product.category),
+      storeName(product.storeId),
+    ].join(' ');
+    return haystack.includes(keyword);
+  });
 }
 
 /**

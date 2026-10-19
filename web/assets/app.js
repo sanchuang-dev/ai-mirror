@@ -20,6 +20,7 @@ import {
   getProgramContent,
   getProgramDetail,
   getPublicContent,
+  getShopContent,
   getVideoContent,
 } from '../data/api.js';
 import { createSceneShell, NO_PREFERENCES } from '../components/app-shell.js';
@@ -31,6 +32,7 @@ import { renderPublicBody } from '../pages/public.js';
 import { renderCreationBody, resetCreationFlow } from '../pages/creation.js';
 import { renderCreationResultBody } from '../pages/creation-result.js';
 import { renderActivitiesBody } from '../pages/activities.js';
+import { renderShopBody, setShopReturnRoute } from '../pages/shop.js';
 import { clearCreationDraft } from '../data/creation-draft.js';
 import { createWatchLibrary } from '../data/watch.js';
 import {
@@ -86,6 +88,8 @@ const NAVIGABLE_ROUTES = new Set([
   'continue',
   // L01-A 本地活动与福利示例目录（分类 + 关键词筛选 + 空状态）。
   'activity',
+  // M01 平台商城首页（平台精选 + 类目 + 店铺来源 + 商品列表 / 必要状态）。
+  'shop',
   ...Object.keys(PROGRAM_ROUTES),
 ]);
 
@@ -209,6 +213,9 @@ export function mountApp(documentRef, preferences, options = {}) {
         backLabel: deviceMode === 'public' ? '‹ 返回公共首页' : '‹ 返回首页',
         resolveBackRoute: () => (shell.getMode() === 'public' ? PUBLIC_ROUTE : 'home'),
       });
+    } else if (route === 'shop') {
+      // M01 平台商城：精选 / 类目 / 店铺 / 商品；详情归 M02、下单归 M03。
+      body = renderShopBody(documentRef, getShopContent(), shell.activate);
     } else if (route === SEARCH_ROUTE) {
       body = renderProgramsBody(documentRef, programContent, shell.activate, {
         category: 'all',
@@ -280,6 +287,10 @@ export function mountApp(documentRef, preferences, options = {}) {
     shell.setScene(target);
     const body = bodyFor(target);
     shell.body.replaceChildren(body);
+    if (target === 'shop') {
+      // 商城按入口来源返回首页或 AI 小暖场景，保留 L01-B 公共隔离逻辑。
+      setShopReturnRoute(body, previous ?? 'home');
+    }
     if (Object.hasOwn(PROGRAM_ROUTES, target)) {
       // External header navigation must also select the category on the cached scene.
       selectProgramsCategory(body, PROGRAM_ROUTES[target]);
