@@ -53,6 +53,21 @@ const searchForm = (body) => find(body, (node) => node.classList.contains('jq-pr
 const stateTitle = (body) =>
   find(body, (node) => node.classList.contains('jq-programs__state-title'))[0]?.textContent ?? '';
 
+/** @param {import('./helpers/fake-dom.mjs').FakeNode} body */
+const signupView = (body) => find(body, (node) => node.classList.contains('jq-activity-signup'))[0];
+
+/** @param {import('./helpers/fake-dom.mjs').FakeNode} root @param {string} action */
+function clickAction(root, action) {
+  const entry = find(root, (node) => node.getAttribute('data-action') === action)[0];
+  assert.ok(entry, 'expected a visible action for ' + action);
+  entry.dispatch('click');
+  return entry;
+}
+
+/** @param {import('./helpers/fake-dom.mjs').FakeNode} body */
+const detailMain = (body) =>
+  find(body, (node) => node.classList.contains('jq-activity-detail__main'))[0];
+
 /** @param {import('./helpers/fake-dom.mjs').FakeNode} body @param {string} id */
 function clickCategory(body, id) {
   const tab = find(body, (node) => node.getAttribute('data-category') === id)[0];
@@ -122,6 +137,14 @@ test('L01-A fixture is explicit sample data with stable ids and required fields'
   }
   assert.ok(activities >= 2, 'the directory needs activities');
   assert.ok(welfare >= 2, 'the directory needs welfare entries');
+
+  // L02 报名是显式 S1 演示：既有可报名样本，也有三种演示异常状态。
+  assert.match(content.signup.notice, /不提交真实身份/);
+  assert.match(content.signup.notice, /不占用真实名额/);
+  const states = content.items.map((item) => item.signupState ?? 'available');
+  for (const state of ['available', 'full', 'joined', 'cancelled']) {
+    assert.ok(states.includes(state), 'the sample needs a ' + state + ' signup state');
+  }
 });
 
 test('the directory renders one h1, three categories and all sample items by default', () => {
@@ -203,7 +226,7 @@ test('keyword filtering has a real hit, an explicit empty state and a way back',
   assert.equal(stateOf(body), 'ok');
 });
 
-test('a sample opens one shared detail with required facts and an honest L02 entry', () => {
+test('a sample opens one shared detail and its personal signup confirmation', () => {
   const doc = createFakeDocument();
   const body = renderActivitiesBody(doc, content, () => {});
   const first = content.items[0];
@@ -229,18 +252,32 @@ test('a sample opens one shared detail with required facts and an honest L02 ent
   assert.match(detailText, /活动 · 示例/);
   assert.match(detailText, /虚构示例/);
   assert.match(detailText, /未提供 \/ 演示待确认/);
-  assert.match(detailText, /(L02)/);
+  assert.match(detailText, /演示报名状态：可报名（演示）/);
 
-  // 报名入口只解释未接入：不产生已报名状态，也不显示报名成功。
+  // 个人设备：详情 → 大屏报名 → 确认摘要；取消不产生报名状态。
   const signup = find(detail, (node) => node.getAttribute('data-action') === 'activity-signup')[0];
-  assert.ok(signup, 'the detail may offer an L02 placeholder entry');
+  assert.ok(signup, 'the detail must offer a real signup entry');
+  assert.match(signup.textContent, /大屏报名/);
   signup.dispatch('click');
+  const view = signupView(detail);
+  assert.equal(view.hidden, false);
+  assert.equal(view.getAttribute('data-signup-stage'), 'confirm');
+  assert.equal(detailMain(detail).hidden, true, 'the summary replaces the detail body');
+  const confirmText = textOf(view);
+  assert.match(confirmText, /确认报名信息/);
+  assert.ok(confirmText.includes(first.title), 'the summary uses the same selected activity');
+  assert.match(confirmText, /模拟/);
+  assert.doesNotMatch(confirmText, /报名成功|真实报名回执/);
+
+  clickAction(view, 'signup-cancel');
   const detailFeedback = find(detail, (node) =>
     node.classList.contains('jq-activity-detail__feedback'),
   )[0];
-  assert.match(detailFeedback.textContent, /L02/);
-  assert.match(detailFeedback.textContent, /不会/);
-  assert.doesNotMatch(textOf(detail), /报名成功|已报名/);
+  assert.equal(view.hidden, true, 'cancelling closes the confirmation view');
+  assert.equal(detailMain(detail).hidden, false);
+  assert.match(detailFeedback.textContent, /取消模拟报名/);
+  assert.match(detailFeedback.textContent, /没有提交报名/);
+  assert.doesNotMatch(textOf(detail), /模拟报名结果/);
   assert.equal(resultsNode(body).getAttribute('data-state'), 'ok');
 
   // 返回目录：详情关闭，目录与列表状态仍在。
@@ -256,6 +293,81 @@ test('a sample opens one shared detail with required facts and an honest L02 ent
     itemIds(body),
     content.items.map((item) => item.id),
   );
+});
+
+test('personal confirmation reaches a simulated result and leaves no signup state behind', () => {
+  const doc = createFakeDocument();
+  const body = renderActivitiesBody(doc, content, () => {});
+  const first = content.items[0];
+
+  clickDetail(body);
+  const detail = detailNode(body);
+  clickAction(detail, 'activity-signup');
+  const view = signupView(detail);
+  clickAction(view, 'signup-confirm');
+
+  assert.equal(view.getAttribute('data-signup-stage'), 'result');
+  const resultText = textOf(view);
+  assert.match(resultText, /模拟报名结果/);
+  assert.match(resultText, /未接入真实报名/);
+  assert.match(resultText, /非真实报名回执/);
+  assert.match(resultText, /没有发送报名请求/);
+  assert.doesNotMatch(resultText, /报名成功|已生成核销凭证/);
+  assert.equal(resultsNode(body).getAttribute('data-state'), 'ok');
+
+  // 返回详情：模拟结果只是页面演示，不持久化任何报名状态。
+  clickAction(view, 'signup-result-back');
+  assert.equal(view.hidden, true);
+  assert.equal(detailMain(detail).hidden, false);
+  assert.match(
+    find(detail, (node) => node.classList.contains('jq-activity-detail__feedback'))[0].textContent,
+    /没有保存为报名记录/,
+  );
+
+  // 关闭再打开同一条活动：仍回到可报名的确认摘要，不残留上一次结果。
+  clickAction(detail, 'activity-detail-back');
+  clickDetail(body);
+  const reopened = detailNode(body);
+  assert.equal(signupView(reopened).hidden, true);
+  clickAction(reopened, 'activity-signup');
+  assert.equal(signupView(reopened).getAttribute('data-signup-stage'), 'confirm');
+  assert.match(textOf(signupView(reopened)), new RegExp(first.title));
+});
+
+test('full, already-joined and cancelled samples give explicit demo exceptions', () => {
+  const cases = [
+    ['chayi', 'full', /名额已满/],
+    ['dubao', 'joined', /已报名/],
+    ['liangxueya', 'cancelled', /活动已取消/],
+  ];
+  for (const [id, state, titlePattern] of cases) {
+    const doc = createFakeDocument();
+    const body = renderActivitiesBody(doc, content, () => {});
+    const index = content.items.findIndex((item) => item.id === id);
+    assert.ok(index >= 0, 'fixture must contain ' + id);
+
+    clickDetail(body, index);
+    const detail = detailNode(body);
+    assert.match(textOf(detail), titlePattern, id + ' must announce its demo state before signup');
+    clickAction(detail, 'activity-signup');
+
+    const view = signupView(detail);
+    assert.equal(view.getAttribute('data-signup-stage'), 'exception');
+    assert.equal(view.getAttribute('data-signup-exception'), state);
+    assert.match(textOf(view), titlePattern);
+    assert.match(textOf(view), /演示状态/);
+    assert.match(textOf(view), /未接入真实报名服务/);
+    assert.doesNotMatch(textOf(view), /报名成功/);
+    assert.equal(
+      find(view, (node) => node.getAttribute('data-action') === 'signup-confirm').length,
+      0,
+      'an exception sample must not reach the confirmation form',
+    );
+
+    clickAction(view, 'signup-back-detail');
+    assert.equal(view.hidden, true);
+    assert.equal(detailMain(detail).hidden, false);
+  }
 });
 
 test('returning from a detail keeps the selected category and keyword', () => {
@@ -360,6 +472,97 @@ test('a public terminal enters the same directory and detail inside the public s
     1,
   );
   assert.equal(find(shell.element, (node) => node.classList.contains('jq-home-body')).length, 0);
+});
+
+test('a public terminal only sees the phone handoff concept with demo feedback', () => {
+  const doc = createFakeDocument();
+  const { show, shell } = mountApp(doc, undefined, { deviceMode: 'public' });
+
+  assert.equal(show('activity'), 'activity');
+  const scene = find(shell.element, (node) => node.classList.contains('jq-scene--activities'))[0];
+  clickDetail(scene);
+  const detail = detailNode(scene);
+
+  // 公共设备不展示本人确认表单，只说明转到自有手机 H5。
+  const signup = find(detail, (node) => node.getAttribute('data-action') === 'activity-signup')[0];
+  assert.match(signup.textContent, /手机/);
+  assert.doesNotMatch(signup.textContent, /大屏报名/);
+  clickAction(detail, 'activity-signup');
+
+  const view = signupView(detail);
+  assert.equal(view.getAttribute('data-signup-stage'), 'handoff');
+  const handoffText = textOf(view);
+  assert.match(handoffText, /转到你自己的手机继续/);
+  assert.match(handoffText, /不采集姓名、手机号或身份会话/);
+  assert.match(handoffText, /本公共屏幕不收集手机号/);
+  assert.doesNotMatch(handoffText, /报名成功/);
+
+  // 示例二维码必须标明不可真实扫码，也不得采集手机号 / 姓名等隐私字段。
+  const qr = find(view, (node) => node.hasAttribute('data-qr-sample'))[0];
+  assert.ok(qr, 'the handoff must show a sample QR concept');
+  assert.match(qr.getAttribute('aria-label'), /不可真实扫码/);
+  assert.match(qr.getAttribute('aria-label'), /不会建立身份会话/);
+  assert.match(textOf(qr), /示例/);
+  assert.equal(
+    find(view, (node) => ['INPUT', 'TEXTAREA', 'FORM'].includes(node.tagName)).length,
+    0,
+  );
+
+  // 不可用 / 超时 / 失败反馈都能看到，并明确没有真实连接。
+  const status = find(view, (node) => node.hasAttribute('data-signup-feedback'))[0];
+  assert.match(status.textContent, /暂不可用/);
+  clickAction(view, 'signup-demo-timeout');
+  assert.equal(status.getAttribute('data-signup-feedback'), 'timeout');
+  assert.match(status.textContent, /超时/);
+  assert.match(status.textContent, /没有建立身份会话/);
+  clickAction(view, 'signup-demo-failure');
+  assert.equal(status.getAttribute('data-signup-feedback'), 'failure');
+  assert.match(status.textContent, /失败/);
+  assert.match(status.textContent, /没有保存手机号/);
+  clickAction(view, 'signup-demo-unavailable');
+  assert.equal(status.getAttribute('data-signup-feedback'), 'unavailable');
+
+  // 取消接力：回到详情，没有建立会话，也没有个人信息留在公共屏幕。
+  clickAction(view, 'signup-handoff-cancel');
+  assert.equal(view.hidden, true);
+  assert.equal(detailMain(detail).hidden, false);
+  assert.match(
+    find(detail, (node) => node.classList.contains('jq-activity-detail__feedback'))[0].textContent,
+    /没有建立身份会话/,
+  );
+  assert.equal(find(scene, (node) => node.classList.contains('jq-user')).length, 0);
+  assert.equal(find(scene, (node) => node.hasAttribute('data-open-settings')).length, 0);
+
+  // 离开公共场景再回来：详情收起，接力视图不会被下一位访客看到。
+  find(scene, (node) => node.classList.contains('jq-scene__back'))[0].dispatch('click');
+  assert.equal(show('activity'), 'activity');
+  const revisited = find(shell.element, (node) =>
+    node.classList.contains('jq-scene--activities'),
+  )[0];
+  assert.equal(detailNode(revisited).hidden, true);
+  clickDetail(revisited);
+  const freshDetail = detailNode(revisited);
+  assert.equal(signupView(freshDetail).hidden, true);
+  assert.equal(signupView(freshDetail).getAttribute('data-signup-stage'), null);
+});
+
+test('switching A/B theme keeps the open signup confirmation', () => {
+  const doc = createFakeDocument();
+  const { shell } = mountApp(doc, undefined);
+
+  clickRoute(shell, 'activity');
+  const scene = find(shell.element, (node) => node.classList.contains('jq-scene--activities'))[0];
+  clickDetail(scene);
+  const detail = detailNode(scene);
+  clickAction(detail, 'activity-signup');
+  const view = signupView(detail);
+  assert.equal(view.getAttribute('data-signup-stage'), 'confirm');
+
+  shell.applyTheme('b');
+  assert.equal(doc.documentElement.getAttribute('data-dir'), 'b');
+  assert.equal(signupView(detail), view, 'theme switching must not rebuild the signup view');
+  assert.equal(view.getAttribute('data-signup-stage'), 'confirm');
+  assert.equal(find(view, (node) => node.hasAttribute('data-dir')).length, 0);
 });
 
 test('leaving the scene from an open detail closes it for the next visit', () => {

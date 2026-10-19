@@ -1,5 +1,6 @@
 /**
- * L01 本地活动与福利目录 + 共用详情（L01-A #13 / L01-B #49）。
+ * L01 本地活动与福利目录 + 共用详情（L01-A #13 / L01-B #49）+
+ * L02 报名确认与公共设备手机接力（Issue #14）。
  *
  * 目录保留 L01-A 已交付的分类（全部 / 活动 / 福利）+ 关键词筛选 + 空状态；
  * L01-B 在同一份 DOM 内补齐一套活动 / 福利详情视图，个人模式与公共设备共用，
@@ -7,10 +8,11 @@
  *
  * 边界：
  * - 详情从 `web/data/api.js` 的活动事实源读取，返回目录时保留原分类与关键词；
- * - 报名确认 / 手机接力 / 二维码 / 核销归 L02（Issue #14）：详情只提供「L02 待实现」
- *   的示例入口与说明，不显示报名成功、不保存身份、不生成核销凭证；
- * - 公共设备（`?device=public`）进入同一目录与详情，但始终留在公共壳，不出现个人
- *   身份、私人数据、设置或「我的」入口；
+ * - 个人设备在详情里进入确认摘要，由本人确认或取消；结果只在本页标注为 S1 模拟，
+ *   不提交报名、不占用名额、不生成核销凭证；
+ * - 公共设备不展示个人确认表单，只给出「转到自有手机 H5 继续」的接力概念与
+ *   不可用 / 超时 / 失败演示反馈；不采集手机号、姓名或身份会话；
+ * - 名额满、已报名、活动取消都是显式 S1 演示状态，不伪装真实服务端返回；
  * - 所有活动、福利、提供方、时间、地点与价格均为虚构示例；名额、实时余量与到达
  *   时间未提供的一律标注「未提供 / 演示待确认」，不编造机构背书或真实余量。
  */
@@ -26,9 +28,8 @@ const MISSING_VALUE = '未提供 / 演示待确认';
 const DETAIL_NOTICE =
   '以上时间、地点、区域、参加资格、提供方与费用均为虚构示例；名额、实时余量与到达时间：未提供 / 演示待确认。';
 
-/** 报名入口的诚实说明：L02 尚未实现，不产生任何真实报名状态。 */
-const SIGNUP_NOTICE =
-  '报名（L02）尚未实现：这里不会提交真实身份、不会生成核销凭证，也不会记录任何报名状态。';
+/** 报名演示的默认状态；fixture 未声明时按可报名处理。 */
+const DEFAULT_SIGNUP_STATE = 'available';
 
 /**
  * @typedef {object} ActivitiesOptions
@@ -39,6 +40,8 @@ const SIGNUP_NOTICE =
  * @property {string} [backLabel] 场景「返回」按钮文案。
  * @property {() => string} [resolveBackRoute] 点击返回时解析目标路由；公共设备据此回到
  *   公共首页，而不是个人首页。
+ * @property {() => boolean} [isPublicMode] 打开报名时的动态公共 / 个人判断。公共设备与
+ *   个人设备上的「社区版预览」都只展示手机接力，不展示本人确认表单。
  */
 
 /**
@@ -50,6 +53,7 @@ const SIGNUP_NOTICE =
  */
 export function renderActivitiesBody(documentRef, content, activate, options = {}) {
   const body = createNode(documentRef, 'div', 'jq-scene jq-scene--activities');
+  const isPublicMode = options.isPublicMode ?? (() => false);
 
   // ---------- 场景子头：返回 + 标题 + 示例边界 ----------
   const head = createNode(documentRef, 'header', 'jq-scene__head');
@@ -285,25 +289,256 @@ export function renderActivitiesBody(documentRef, content, activate, options = {
     detailFeedback.setAttribute('role', 'status');
     detailFeedback.setAttribute('aria-live', 'polite');
 
-    // L02 的示例入口：点击只解释未接入，不写入身份、不改变报名状态。
+    const signupContent = content.signup;
+    const signupState = item.signupState ?? DEFAULT_SIGNUP_STATE;
+
+    // 报名确认与手机接力共用这一条活动对象；公共模式只给接力概念，不给本人确认表单。
     const signup = createNode(
       documentRef,
       'button',
-      'jq-btn jq-btn--ghost jq-btn--sm',
-      '报名（L02 待实现）',
+      'jq-btn jq-btn--primary jq-btn--sm',
+      isPublicMode() ? '报名 · 转到手机继续' : '大屏报名',
     );
     signup.setAttribute('type', 'button');
     signup.setAttribute('data-action', 'activity-signup');
-    signup.addEventListener('click', () => {
-      detailFeedback.textContent = SIGNUP_NOTICE;
-    });
+    signup.addEventListener('click', openSignup);
     const actions = createNode(documentRef, 'div', 'jq-activity-detail__actions');
     actions.append(signup);
-    info.append(actions, detailFeedback);
+
+    const stateNote = createNode(
+      documentRef,
+      'p',
+      'jq-activity-detail__state',
+      signupContent.stateLabel + '：' + signupContent.stateLabels[signupState],
+    );
+    stateNote.setAttribute('data-signup-state-note', signupState);
+    info.append(actions, stateNote, detailFeedback);
+
+    const signupView = createNode(documentRef, 'div', 'jq-activity-signup');
+    signupView.setAttribute('role', 'region');
+    signupView.setAttribute('aria-label', '报名确认与模拟结果');
+    signupView.setAttribute('tabindex', '-1');
+    signupView.hidden = true;
 
     main.append(media, info);
-    card.append(detailHead, main);
+    card.append(detailHead, main, signupView);
     detail.replaceChildren(card);
+
+    /**
+     * 进入报名子视图。个人设备显示确认摘要；公共设备只显示手机接力；
+     * 名额满 / 已报名 / 活动取消在进入前就以显式演示状态拦下。
+     */
+    function openSignup() {
+      detailFeedback.textContent = '';
+      main.hidden = true;
+      signupView.hidden = false;
+      signupView.replaceChildren();
+      if (signupState !== DEFAULT_SIGNUP_STATE) renderSignupException(signupState);
+      else if (isPublicMode()) renderSignupHandoff();
+      else renderSignupConfirm();
+      if (typeof signupView.focus === 'function') signupView.focus();
+    }
+
+    /**
+     * 从报名子视图回到详情；取消文案来自同一份 fixture。
+     * @param {string} [message]
+     */
+    function backToDetail(message) {
+      signupView.hidden = true;
+      signupView.replaceChildren();
+      signupView.removeAttribute('data-signup-stage');
+      main.hidden = false;
+      detailFeedback.textContent = message ?? '';
+      if (typeof signup.focus === 'function') signup.focus();
+    }
+
+    /** 个人设备：核对同一条活动后由本人确认，或取消且不产生报名状态。 */
+    function renderSignupConfirm() {
+      signupView.setAttribute('data-signup-stage', 'confirm');
+      const personal = signupContent.personal;
+      const confirm = createNode(
+        documentRef,
+        'button',
+        'jq-btn jq-btn--primary',
+        personal.confirmCta,
+      );
+      confirm.setAttribute('type', 'button');
+      confirm.setAttribute('data-action', 'signup-confirm');
+      confirm.addEventListener('click', renderSignupResult);
+      const cancel = createNode(documentRef, 'button', 'jq-btn jq-btn--ghost', personal.cancelCta);
+      cancel.setAttribute('type', 'button');
+      cancel.setAttribute('data-action', 'signup-cancel');
+      cancel.addEventListener('click', () => backToDetail(personal.cancelled));
+      const controls = createNode(documentRef, 'div', 'jq-signup__actions');
+      controls.append(confirm, cancel);
+      signupView.append(
+        signupHead(personal.title, signupContent.demoLabel),
+        createNode(documentRef, 'p', 'jq-signup__intro', personal.intro),
+        renderSignupSummary(personal.summaryTitle),
+        createNode(documentRef, 'p', 'jq-signup__notice', signupContent.notice),
+        controls,
+      );
+    }
+
+    /** 模拟结果：只在本页显示，明确不是报名回执，也不持久化。 */
+    function renderSignupResult() {
+      signupView.replaceChildren();
+      signupView.setAttribute('data-signup-stage', 'result');
+      const personal = signupContent.personal;
+      const back = createNode(
+        documentRef,
+        'button',
+        'jq-btn jq-btn--primary',
+        personal.resultBackCta,
+      );
+      back.setAttribute('type', 'button');
+      back.setAttribute('data-action', 'signup-result-back');
+      back.addEventListener('click', () => backToDetail(personal.resultClosed));
+      signupView.append(
+        signupHead(personal.resultTitle, personal.resultBadge),
+        createNode(
+          documentRef,
+          'p',
+          'jq-signup__result-activity',
+          item.title + ' · ' + item.time + ' · ' + item.place,
+        ),
+        createNode(documentRef, 'p', 'jq-signup__result-text', personal.resultText),
+        createNode(documentRef, 'p', 'jq-signup__notice', signupContent.notice),
+        back,
+      );
+    }
+
+    /**
+     * 演示异常：名额满 / 已报名 / 活动取消都不是真实服务端结果。
+     * @param {'full' | 'joined' | 'cancelled'} state
+     */
+    function renderSignupException(state) {
+      signupView.setAttribute('data-signup-stage', 'exception');
+      signupView.setAttribute('data-signup-exception', state);
+      const exception = signupContent.exceptions[state];
+      const back = createNode(
+        documentRef,
+        'button',
+        'jq-btn jq-btn--ghost',
+        signupContent.backToDetailCta,
+      );
+      back.setAttribute('type', 'button');
+      back.setAttribute('data-action', 'signup-back-detail');
+      back.addEventListener('click', () => backToDetail(''));
+      const directory = createNode(
+        documentRef,
+        'button',
+        'jq-btn jq-btn--ghost',
+        signupContent.backToDirectoryCta,
+      );
+      directory.setAttribute('type', 'button');
+      directory.setAttribute('data-action', 'signup-back-directory');
+      directory.addEventListener('click', closeDetail);
+      const controls = createNode(documentRef, 'div', 'jq-signup__actions');
+      controls.append(back, directory);
+      signupView.append(
+        signupHead(exception.title, signupContent.stateLabels[state]),
+        createNode(documentRef, 'p', 'jq-signup__result-text', exception.text),
+        createNode(documentRef, 'p', 'jq-signup__notice', signupContent.notice),
+        renderSignupSummary(signupContent.personal.summaryTitle),
+        controls,
+      );
+    }
+
+    /** 公共设备：只呈现「转到自己的手机 H5」概念、示例二维码与演示反馈。 */
+    function renderSignupHandoff() {
+      signupView.setAttribute('data-signup-stage', 'handoff');
+      const handoff = signupContent.handoff;
+
+      const qr = createNode(documentRef, 'div', 'jq-signup__qr');
+      qr.setAttribute('data-qr-sample', 'true');
+      qr.setAttribute('role', 'img');
+      qr.setAttribute('aria-label', handoff.qrLabel);
+      qr.append(createNode(documentRef, 'span', 'jq-signup__qr-mark', '示例'));
+
+      const relayBody = createNode(documentRef, 'div', 'jq-signup__relay-body');
+      relayBody.append(
+        createNode(documentRef, 'p', 'jq-signup__qr-label', handoff.qrLabel),
+        createNode(documentRef, 'p', 'jq-signup__qr-hint', handoff.qrHint),
+      );
+      const steps = createNode(documentRef, 'ol', 'jq-signup__steps');
+      for (const step of handoff.steps) steps.append(createNode(documentRef, 'li', '', step));
+      relayBody.append(steps);
+      const relay = createNode(documentRef, 'div', 'jq-signup__relay');
+      relay.append(qr, relayBody);
+
+      const status = createNode(documentRef, 'p', 'jq-signup__status', handoff.unavailable);
+      status.setAttribute('aria-label', handoff.statusLabel);
+      status.setAttribute('role', 'status');
+      status.setAttribute('aria-live', 'polite');
+      status.setAttribute('data-signup-feedback', 'unavailable');
+
+      const demo = createNode(documentRef, 'div', 'jq-signup__demo');
+      demo.append(createNode(documentRef, 'p', 'jq-signup__demo-label', handoff.demoLabel));
+      const demoActions = createNode(documentRef, 'div', 'jq-signup__actions');
+      for (const [action, label, message, key] of [
+        ['signup-demo-timeout', handoff.timeoutCta, handoff.timeout, 'timeout'],
+        ['signup-demo-failure', handoff.failureCta, handoff.failure, 'failure'],
+        ['signup-demo-unavailable', handoff.unavailableCta, handoff.unavailable, 'unavailable'],
+      ]) {
+        const button = createNode(documentRef, 'button', 'jq-btn jq-btn--ghost jq-btn--sm', label);
+        button.setAttribute('type', 'button');
+        button.setAttribute('data-action', action);
+        button.addEventListener('click', () => {
+          status.textContent = message;
+          status.setAttribute('data-signup-feedback', key);
+        });
+        demoActions.append(button);
+      }
+      demo.append(demoActions);
+
+      const cancel = createNode(documentRef, 'button', 'jq-btn jq-btn--ghost', handoff.cancelCta);
+      cancel.setAttribute('type', 'button');
+      cancel.setAttribute('data-action', 'signup-handoff-cancel');
+      cancel.addEventListener('click', () => backToDetail(handoff.cancelled));
+
+      signupView.append(
+        signupHead(handoff.title, signupContent.demoLabel),
+        createNode(documentRef, 'p', 'jq-signup__intro', handoff.intro),
+        createNode(documentRef, 'p', 'jq-signup__notice', handoff.privacy),
+        renderSignupSummary(handoff.summaryTitle),
+        relay,
+        status,
+        demo,
+        cancel,
+      );
+    }
+
+    /**
+     * @param {string} title
+     * @param {string} badgeText
+     * @returns {HTMLElement}
+     */
+    function signupHead(title, badgeText) {
+      const head = createNode(documentRef, 'header', 'jq-signup__head');
+      head.append(
+        createNode(documentRef, 'h2', 'jq-signup__title', title),
+        createNode(documentRef, 'span', 'jq-signup__badge', badgeText),
+      );
+      return head;
+    }
+
+    /**
+     * 同一条活动对象的确认摘要；不另建第二份报名数据。
+     * @param {string} title
+     * @returns {HTMLElement}
+     */
+    function renderSignupSummary(title) {
+      const summary = createNode(documentRef, 'section', 'jq-signup__summary');
+      summary.append(
+        createNode(documentRef, 'h3', 'jq-signup__h3', title),
+        createNode(documentRef, 'p', 'jq-signup__summary-name', item.title),
+      );
+      const facts = renderFacts(documentRef, item);
+      facts.classList.add('jq-signup__facts');
+      summary.append(facts);
+      return summary;
+    }
   }
 
   form.addEventListener('submit', (event) => {

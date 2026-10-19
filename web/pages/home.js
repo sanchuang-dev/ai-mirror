@@ -304,7 +304,7 @@ function renderActivity(documentRef, activity, onActivate) {
   const foot = createNode(documentRef, 'div', 'jq-activity__foot');
   const chip = createNode(documentRef, 'span', 'jq-chip', activity.price);
   if (activity.free) chip.classList.add('jq-chip--free');
-  // 「报名」先进入示例目录：L02 未接入，不显示报名成功。
+  // 「报名」先进入示例目录，再在详情中选择大屏报名或公共设备手机接力（S1 模拟）。
   foot.append(
     chip,
     createRouteButton(

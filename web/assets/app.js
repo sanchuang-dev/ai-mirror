@@ -212,6 +212,8 @@ export function mountApp(documentRef, preferences, options = {}) {
         backRoute: deviceMode === 'public' ? PUBLIC_ROUTE : 'home',
         backLabel: deviceMode === 'public' ? '‹ 返回公共首页' : '‹ 返回首页',
         resolveBackRoute: () => (shell.getMode() === 'public' ? PUBLIC_ROUTE : 'home'),
+        // 公共终端与个人设备上的「社区版预览」都只展示手机接力，不展示本人确认表单。
+        isPublicMode: () => shell.getMode() === 'public',
       });
     } else if (route === 'shop') {
       // M01 平台商城：精选 / 类目 / 店铺 / 商品；详情归 M02、下单归 M03。
