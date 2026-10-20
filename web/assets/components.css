@@ -80,37 +80,25 @@
   font-size: 15px;
 }
 
-.jq-theme {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  padding: 3px 4px 3px 12px;
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  background: var(--surface-2);
-}
-
-.jq-theme__label {
-  color: var(--muted);
-  font-size: 13px;
-  font-weight: 700;
-}
-
-.jq-theme__option {
-  min-height: 48px;
-  padding: 0 14px;
+.jq-theme-toggle {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 48px;
+  height: 48px;
+  padding: 0;
   border: 0;
-  border-radius: 999px;
+  border-radius: 50%;
   background: transparent;
-  color: var(--muted);
-  font-size: 14px;
-  font-weight: 700;
+  color: var(--ink);
+  font-family: 'Segoe UI Symbol', 'Noto Sans Symbols 2', sans-serif;
+  font-size: 30px;
+  line-height: 1;
   cursor: pointer;
 }
 
-.jq-theme__option[aria-pressed='true'] {
-  background: var(--accent-strong);
-  color: var(--accent-ink);
+.jq-theme-toggle:hover {
+  background: var(--surface-2);
 }
 
 .jq-search {
@@ -733,8 +721,7 @@
     grid-template-columns: 1fr;
   }
 
-  .jq-greeting,
-  .jq-theme__label {
+  .jq-greeting {
     display: none;
   }
 }
@@ -792,8 +779,7 @@
     font-size: 20px;
   }
 
-  .jq-search,
-  .jq-theme__option {
+  .jq-search {
     min-height: 52px;
     font-size: 16px;
   }
@@ -961,24 +947,8 @@
 }
 
 /* ---------- 设置 → 外观与主题（T02 · Issue #7） ----------
-   正式用户入口，与顶部「演示主题」试点控件区分。全屏覆盖层默认隐藏；
+   从「我的」进入设置；全屏覆盖层默认隐藏；
    主题差异仍只来自 tokens.css 的变量，这里不复制 A/B 页面，也不新造第三套风格。 */
-.jq-settings-entry {
-  min-height: 48px;
-  padding: 0 18px;
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  background: var(--surface);
-  color: var(--ink);
-  font-size: 16px;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.jq-settings-entry:hover {
-  border-color: var(--accent);
-}
-
 .jq-settings {
   position: fixed;
   inset: 0;
