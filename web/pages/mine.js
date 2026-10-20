@@ -24,7 +24,7 @@ const SECTION_ORDER = ['history', 'works', 'favorites', 'signups', 'orders'];
 
 /**
  * @typedef {object} MineOptions
- * @property {() => void} [openSettings] 打开共享壳里的 T02「外观与主题」设置面板。
+ * @property {(returnFocus?: HTMLElement) => void} [openSettings] 打开共享壳里的 T02「外观与主题」设置面板。
  */
 
 /**
@@ -145,8 +145,9 @@ export function renderMineBody(documentRef, content, activate, options = {}) {
   );
   settingsButton.setAttribute('type', 'button');
   settingsButton.setAttribute('data-action', 'mine-open-settings');
-  if (typeof options.openSettings === 'function') {
-    settingsButton.addEventListener('click', options.openSettings);
+  const openSettings = options.openSettings;
+  if (typeof openSettings === 'function') {
+    settingsButton.addEventListener('click', () => openSettings(settingsButton));
   } else {
     settingsButton.disabled = true;
   }
