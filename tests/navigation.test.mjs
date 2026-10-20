@@ -35,10 +35,11 @@ test('mountApp mounts one shared shell whose initial scene is H01', () => {
   assert.equal(shell.element.tagName, 'MAIN');
   assert.equal(shell.element.className, 'jq-home');
 
-  // 共享壳：一个 h1（首页标题）、一个导航、一套设置入口。
+  // 共享壳：一个 h1、一个导航、一个紧凑主题切换按钮；顶部不再放设置入口。
   assert.equal(find(shell.element, (node) => node.tagName === 'H1').length, 1);
   assert.equal(find(shell.element, (node) => node.classList.contains('jq-nav')).length, 1);
-  assert.equal(find(shell.element, (node) => node.hasAttribute('data-open-settings')).length, 1);
+  assert.equal(find(shell.element, (node) => node.hasAttribute('data-theme-toggle')).length, 1);
+  assert.equal(find(shell.element, (node) => node.hasAttribute('data-open-settings')).length, 0);
   // 主题只落在根元素上，场景 DOM 不携带 data-dir。
   assert.equal(doc.documentElement.getAttribute('data-dir'), 'a');
   assert.equal(
@@ -114,7 +115,7 @@ test('personal-device public preview hides private surfaces and can exit the pre
   assert.equal(doc.documentElement.getAttribute('data-dir'), 'b');
 
   clickRoute(shell.element, 'home');
-  assert.equal(find(shell.element, (node) => node.hasAttribute('data-open-settings')).length, 1);
+  assert.equal(find(shell.element, (node) => node.hasAttribute('data-theme-toggle')).length, 1);
   assert.equal(find(shell.element, (node) => node.classList.contains('jq-user')).length, 1);
   assert.equal(
     find(shell.element, (node) => node.classList.contains('jq-ai-fab'))[0].hidden,
@@ -146,8 +147,8 @@ test('switching theme never rebuilds the active scene nor resets its local state
   assert.equal(note.hidden, false, 'theme switch must not collapse the local note');
   assert.equal(episode.getAttribute('aria-pressed'), 'true', 'theme switch must keep selection');
   // 主题控件反映新状态，且没有第二份主题状态。
-  const themeB = find(shell.element, (node) => node.getAttribute('data-dir-option') === 'b')[0];
-  assert.equal(themeB.getAttribute('aria-pressed'), 'true');
+  const toggle = find(shell.element, (node) => node.hasAttribute('data-theme-toggle'))[0];
+  assert.equal(toggle.getAttribute('data-theme-current'), 'b');
 });
 
 test('navigating away and back preserves the cached scene state', () => {

@@ -3,7 +3,7 @@
  *
  * 关系与边界（design.md §4、frontend-baseline §2/§3）：
  * - H01 / V02 / A01 / E01 / G00 五个既有场景共用这一个壳：
- *   同一份顶栏、导航、演示主题控件、设置面板与入口反馈；场景只向 `body` 注入内容。
+ *   同一份顶栏、导航、主题图标切换、设置面板与入口反馈；场景只向 `body` 注入内容。
  * - 主题只有一份状态（`data-dir`）且只落在 `tokens.css` 的变量上；切换主题不重建
  *   业务 DOM，因此场景里已选的集数、已输入的话、正在讲的一节都不会被重置。
  * - 个人 / 公共是两个显式模式：公共模式不读取个人主题偏好、不显示个人姓名、设置入口
@@ -90,7 +90,7 @@ export const NO_PREFERENCES = { available: false, read: () => null, save: () => 
  * @property {ShellController} controller
  * @property {(dir: string, options?: { persist?: boolean }) => 'a' | 'b'} applyTheme
  * @property {(route: string) => string} activate
- * @property {() => void} openSettings
+ * @property {(returnFocus?: HTMLElement) => void} openSettings
  * @property {() => void} closeSettings
  * @property {() => void} clearToast
  * @property {() => void} openPublicSessionEnd
@@ -148,54 +148,30 @@ export function createSceneShell(documentRef, config) {
   const header = createNode(documentRef, 'header', 'jq-header');
   /** @type {Array<{ route: string, node: HTMLButtonElement }>} */
   let navButtons = [];
-  /** @type {Array<{ dir: 'a' | 'b', node: HTMLButtonElement }>} */
-  let themeButtons = [];
   /** @type {HTMLButtonElement | null} */
-  let settingsEntry = null;
+  let themeToggle = null;
+  /** @type {HTMLElement | null} */
+  let settingsReturnFocus = null;
 
-  /**
-   * 演示主题控件（评审用的试点控件，不写存储；个人与公共都保留，供对照 A/B）。
-   * @returns {HTMLElement}
-   */
-  function buildThemeGroup() {
-    const group = createNode(documentRef, 'div', 'jq-theme');
-    group.setAttribute('role', 'group');
-    group.setAttribute('aria-label', '演示主题切换（试点控件，非正式设置）');
-    group.append(createNode(documentRef, 'span', 'jq-theme__label', '演示主题'));
-    for (const dir of THEMES) {
-      const label = dir === 'a' ? 'A · 日光客厅' : 'B · 暖夜剧场';
-      const node = /** @type {HTMLButtonElement} */ (
-        createNode(documentRef, 'button', 'jq-theme__option', label)
-      );
-      node.setAttribute('type', 'button');
-      node.setAttribute('data-dir-option', dir);
-      node.addEventListener('click', () => applyTheme(dir));
-      themeButtons.push({ dir, node });
-      group.append(node);
-    }
-    return group;
-  }
-
-  /**
-   * 正式用户入口：设置。它打开真实的设置面板（外观与主题），只出现在个人模式。
-   * @returns {HTMLButtonElement}
-   */
-  function buildSettingsEntry() {
-    const entry = /** @type {HTMLButtonElement} */ (
-      createNode(documentRef, 'button', 'jq-settings-entry', '设置')
+  /** 一枚阴阳图标，直接切换 A/B；个人偏好持久化，公共模式只临时切换。 */
+  function buildThemeToggle() {
+    const node = /** @type {HTMLButtonElement} */ (
+      createNode(documentRef, 'button', 'jq-theme-toggle', '☯')
     );
-    entry.setAttribute('type', 'button');
-    entry.setAttribute('data-open-settings', '');
-    entry.addEventListener('click', openSettings);
-    return entry;
+    node.setAttribute('type', 'button');
+    node.setAttribute('data-theme-toggle', '');
+    node.addEventListener('click', () => {
+      applyTheme(theme === 'a' ? 'b' : 'a', { persist: mode === 'personal' });
+    });
+    themeToggle = node;
+    return node;
   }
 
   /** 依据当前模式重建顶栏；不触碰场景 body，因此导航/返回不丢业务内容。 */
   function renderHeader() {
     header.replaceChildren();
     navButtons = [];
-    themeButtons = [];
-    settingsEntry = null;
+    themeToggle = null;
     header.className = mode === 'public' ? 'jq-header jq-header--public' : 'jq-header';
 
     const brand = createNode(documentRef, 'div', 'jq-brand');
@@ -210,7 +186,7 @@ export function createSceneShell(documentRef, config) {
       headerEnd.append(
         createNode(documentRef, 'span', 'jq-public-note', publicConfig.note),
         createNode(documentRef, 'span', 'jq-greeting', publicConfig.dateLabel),
-        buildThemeGroup(),
+        buildThemeToggle(),
         // 顶栏在共享壳的滚动区之外，公共设备滚到任何场景都能看到并结束体验。
         publicSessionEnd.entry,
       );
@@ -241,7 +217,6 @@ export function createSceneShell(documentRef, config) {
         nav.append(link);
       }
 
-      settingsEntry = buildSettingsEntry();
       const user = createNode(documentRef, 'div', 'jq-user');
       const avatar = createNode(documentRef, 'span', 'jq-avatar', personal.viewer.avatarText);
       avatar.setAttribute('aria-hidden', 'true');
@@ -258,11 +233,10 @@ export function createSceneShell(documentRef, config) {
             '，' +
             personal.viewer.name,
         ),
-        buildThemeGroup(),
+        buildThemeToggle(),
         createRouteButton(documentRef, 'jq-search', '搜一搜', 'search', activate),
         // 正式演示入口：从个人设备进入公共（社区）模式；公共模式不再提供任何个人入口。
         createRouteButton(documentRef, 'jq-public-entry', '社区版预览 ›', 'public', activate),
-        settingsEntry,
         user,
       );
       header.append(brand, nav, headerEnd);
@@ -395,8 +369,12 @@ export function createSceneShell(documentRef, config) {
    * 更新主题选择态（不重建 DOM）。
    */
   function updateThemeState() {
-    for (const entry of themeButtons) {
-      entry.node.setAttribute('aria-pressed', entry.dir === theme ? 'true' : 'false');
+    if (themeToggle) {
+      const next = theme === 'a' ? 'b' : 'a';
+      const label = '切换至' + THEME_META[next].name;
+      themeToggle.setAttribute('aria-label', label);
+      themeToggle.setAttribute('title', label);
+      themeToggle.setAttribute('data-theme-current', theme);
     }
     for (const choice of themeChoices) {
       const selected = choice.dir === theme;
@@ -408,7 +386,7 @@ export function createSceneShell(documentRef, config) {
   /**
    * 应用主题：只改根元素 token 标记与选择状态，不重建业务 DOM，
    * 因此当前滚动位置与场景状态都不会丢。
-   * `persist` 仅在用户于设置面板显式选择时为真；顶部「演示主题」是评审试点控件，不写存储。
+   * 个人模式的顶部切换与设置面板会保存偏好；公共模式不写个人存储。
    * @param {string} dir
    * @param {{ persist?: boolean }} [options]
    * @returns {'a' | 'b'}
@@ -452,8 +430,12 @@ export function createSceneShell(documentRef, config) {
     return PREFERENCE_MESSAGES.noPreference;
   }
 
-  /** 打开设置：显示覆盖层、说明偏好状态，并把焦点移到当前选中项。 */
-  function openSettings() {
+  /**
+   * 打开设置：调用方可提供返回焦点位置（例如「我的」中的设置入口）。
+   * @param {HTMLElement} [returnFocus]
+   */
+  function openSettings(returnFocus) {
+    settingsReturnFocus = returnFocus ?? themeToggle;
     settingsStatus.textContent = describePreferenceState();
     settings.hidden = false;
     setBackgroundInert(true);
@@ -462,11 +444,14 @@ export function createSceneShell(documentRef, config) {
     if (typeof focusTarget.focus === 'function') focusTarget.focus();
   }
 
-  /** 关闭设置并返回首页，把焦点交回「设置」入口。 */
+  /** 关闭设置，将焦点交还给打开面板的入口。 */
   function closeSettings() {
     settings.hidden = true;
     setBackgroundInert(false);
-    if (settingsEntry && typeof settingsEntry.focus === 'function') settingsEntry.focus();
+    if (settingsReturnFocus && typeof settingsReturnFocus.focus === 'function') {
+      settingsReturnFocus.focus();
+    }
+    settingsReturnFocus = null;
   }
 
   /**
