@@ -161,6 +161,10 @@ test('我的 appearance entry opens the same T02 settings panel and theme state 
   assert.equal(doc.documentElement.getAttribute('data-dir'), 'b');
   assert.equal(shell.body.childNodes[0], before);
   assert.equal(find(before, (node) => node.hasAttribute('data-dir')).length, 0);
+
+  find(shell.element, (node) => node.classList.contains('jq-settings__back'))[0].dispatch('click');
+  assert.equal(panel.hidden, true);
+  assert.equal(settingsEntry.focused, true, 'focus must return to the 我的 settings entry');
 });
 
 test('公共终端不能进入我的，也不会渲染私人记录入口', () => {

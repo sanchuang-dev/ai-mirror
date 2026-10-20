@@ -24,11 +24,10 @@ function setup(options = {}) {
   return { doc, storage, preferences, view };
 }
 
-test('settings entry opens a real 外观与主题 panel, not the demo quick buttons', () => {
+test('settings panel remains available without a top-bar settings entry', () => {
   const { view } = setup();
-  const entry = find(view, (node) => node.hasAttribute('data-open-settings'))[0];
-  assert.ok(entry, 'a 设置 entry must exist');
-  assert.equal(entry.hasAttribute('data-route'), false, '设置 is a real feature, not a demo route');
+  assert.equal(find(view, (node) => node.hasAttribute('data-open-settings')).length, 0);
+  assert.equal(find(view, (node) => node.hasAttribute('data-theme-toggle')).length, 1);
 
   const panel = find(view, (node) => node.classList.contains('jq-settings'))[0];
   assert.ok(panel, 'settings panel must exist');
@@ -55,7 +54,7 @@ test('settings entry opens a real 外观与主题 panel, not the demo quick butt
     ['日光客厅', '暖夜剧场'],
   );
 
-  entry.dispatch('click');
+  view.openSettings();
   assert.equal(panel.hidden, false, '设置 must open the panel');
   assert.equal(find(view, (node) => node.classList.contains('jq-settings__back')).length, 1);
 });
@@ -63,7 +62,7 @@ test('settings entry opens a real 外观与主题 panel, not the demo quick butt
 test('choosing a theme applies instantly, marks selection and persists it', () => {
   const { doc, storage, view } = setup();
   const panel = find(view, (node) => node.classList.contains('jq-settings'))[0];
-  find(view, (node) => node.hasAttribute('data-open-settings'))[0].dispatch('click');
+  view.openSettings();
   assert.equal(panel.hidden, false);
 
   const themeB = find(view, (node) => node.getAttribute('data-theme-choice') === 'b')[0];
@@ -87,7 +86,7 @@ test('choosing a theme applies instantly, marks selection and persists it', () =
 
 test('a failed save is reported while the choice still applies this session', () => {
   const { doc, storage, view } = setup({ storage: { failWrites: true } });
-  find(view, (node) => node.hasAttribute('data-open-settings'))[0].dispatch('click');
+  view.openSettings();
   find(view, (node) => node.getAttribute('data-theme-choice') === 'a')[0].dispatch('click');
 
   assert.equal(doc.documentElement.getAttribute('data-dir'), 'a');
@@ -98,7 +97,7 @@ test('a failed save is reported while the choice still applies this session', ()
 
 test('no storage permission is stated plainly and never blanks the page', () => {
   const { doc, view } = setup({ noStorage: true });
-  find(view, (node) => node.hasAttribute('data-open-settings'))[0].dispatch('click');
+  view.openSettings();
   const status = find(view, (node) => node.classList.contains('jq-settings__status'))[0];
   assert.equal(status.textContent, NO_STORAGE_MESSAGE);
 
@@ -110,7 +109,7 @@ test('no storage permission is stated plainly and never blanks the page', () => 
 
 test('opening settings states when no preference has been saved yet', () => {
   const { view } = setup();
-  find(view, (node) => node.hasAttribute('data-open-settings'))[0].dispatch('click');
+  view.openSettings();
   const status = find(view, (node) => node.classList.contains('jq-settings__status'))[0];
   assert.equal(status.textContent, NO_PREFERENCE_MESSAGE);
 });
@@ -124,7 +123,7 @@ test('returning from settings keeps the home DOM, scroll area and pending feedba
   const shown = toastText.textContent;
   assert.equal(toast.hidden, false);
 
-  find(view, (node) => node.hasAttribute('data-open-settings'))[0].dispatch('click');
+  view.openSettings();
   find(view, (node) => node.getAttribute('data-theme-choice') === 'b')[0].dispatch('click');
   find(view, (node) => node.classList.contains('jq-settings__back'))[0].dispatch('click');
 
@@ -141,7 +140,7 @@ test('settings modal makes the background inert while open and restores it on re
   const header = find(view, (node) => node.classList.contains('jq-header'))[0];
   const scroll = find(view, (node) => node.classList.contains('jq-scroll'))[0];
 
-  find(view, (node) => node.hasAttribute('data-open-settings'))[0].dispatch('click');
+  view.openSettings();
   assert.equal(header.hasAttribute('inert'), true);
   assert.equal(scroll.hasAttribute('inert'), true);
 
@@ -152,26 +151,30 @@ test('settings modal makes the background inert while open and restores it on re
 
 test('Escape closes settings and hands focus back to the entry', () => {
   const { view } = setup();
-  const entry = find(view, (node) => node.hasAttribute('data-open-settings'))[0];
-  entry.dispatch('click');
+  const toggle = find(view, (node) => node.hasAttribute('data-theme-toggle'))[0];
+  view.openSettings();
   const panel = find(view, (node) => node.classList.contains('jq-settings'))[0];
   assert.equal(panel.hidden, false);
 
   panel.dispatch('keydown', { key: 'Escape' });
   assert.equal(panel.hidden, true);
-  assert.equal(entry.focused, true, 'focus must return to the 设置 entry');
+  assert.equal(toggle.focused, true, 'programmatic settings entry falls back to theme toggle');
 });
 
-test('the demo quick buttons stay a session-only pilot control', () => {
+test('one yin-yang toggle switches both ways and saves personal theme preference', () => {
   const { doc, storage, view } = setup();
-  const demoB = find(view, (node) => node.getAttribute('data-dir-option') === 'b')[0];
-  demoB.dispatch('click');
+  const toggle = find(view, (node) => node.hasAttribute('data-theme-toggle'))[0];
+  assert.equal(toggle.textContent, '☯');
+  assert.equal(toggle.getAttribute('aria-label'), '切换至暖夜剧场');
+
+  toggle.dispatch('click');
   assert.equal(doc.documentElement.getAttribute('data-dir'), 'b');
-  assert.equal(
-    storage.getItem('jianqu.theme-preference'),
-    null,
-    'demo control must not impersonate the persisted user setting',
-  );
+  assert.equal(toggle.getAttribute('aria-label'), '切换至日光客厅');
+  assert.equal(storage.getItem('jianqu.theme-preference'), 'b');
+
+  toggle.dispatch('click');
+  assert.equal(doc.documentElement.getAttribute('data-dir'), 'a');
+  assert.equal(storage.getItem('jianqu.theme-preference'), 'a');
 });
 
 test('settings panel adds no per-theme page classes and no second h1', () => {

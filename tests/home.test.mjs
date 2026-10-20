@@ -77,10 +77,9 @@ test('theme switch only swaps the root token marker and keeps the home state', (
 
   view.applyTheme('b');
   assert.equal(doc.documentElement.getAttribute('data-dir'), 'b');
-  const themeB = collect(view.element, (node) => node.getAttribute('data-dir-option') === 'b')[0];
-  const themeA = collect(view.element, (node) => node.getAttribute('data-dir-option') === 'a')[0];
-  assert.equal(themeB.getAttribute('aria-pressed'), 'true');
-  assert.equal(themeA.getAttribute('aria-pressed'), 'false');
+  const toggle = collect(view.element, (node) => node.hasAttribute('data-theme-toggle'))[0];
+  assert.equal(toggle.getAttribute('data-theme-current'), 'b');
+  assert.equal(toggle.getAttribute('aria-label'), '切换至日光客厅');
 
   // Switching a theme changes no business DOM and no interaction state.
   assert.equal(collect(view.element, (node) => node.tagName === 'BUTTON').length, buttonsBefore);
