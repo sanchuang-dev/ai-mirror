@@ -145,8 +145,9 @@ export function renderMineBody(documentRef, content, activate, options = {}) {
   );
   settingsButton.setAttribute('type', 'button');
   settingsButton.setAttribute('data-action', 'mine-open-settings');
-  if (typeof options.openSettings === 'function') {
-    settingsButton.addEventListener('click', () => options.openSettings(settingsButton));
+  const openSettings = options.openSettings;
+  if (typeof openSettings === 'function') {
+    settingsButton.addEventListener('click', () => openSettings(settingsButton));
   } else {
     settingsButton.disabled = true;
   }
