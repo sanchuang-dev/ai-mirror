@@ -1,0 +1,171 @@
+{
+  "issue": 8,
+  "captured": "2026-10-17T04:30:09.420Z",
+  "scenes": {
+    "home-a": {
+      "dir": "a",
+      "fabHidden": false,
+      "h1": "朝夕巷",
+      "h1Count": 1,
+      "homeBody": true,
+      "horizontalOverflow": false,
+      "innerWidth": 1600,
+      "publicNote": null,
+      "scene": "home",
+      "settingsEntry": 1,
+      "user": true
+    },
+    "video-a": {
+      "dir": "a",
+      "fabHidden": false,
+      "h1": "朝夕巷第 8 集 · 一碗阳春面",
+      "h1Count": 1,
+      "homeBody": false,
+      "horizontalOverflow": false,
+      "innerWidth": 1600,
+      "publicNote": null,
+      "scene": "jq-scene jq-scene--video",
+      "settingsEntry": 1,
+      "user": true
+    },
+    "ai-a": {
+      "dir": "a",
+      "fabHidden": false,
+      "h1": "小暖",
+      "h1Count": 1,
+      "homeBody": false,
+      "horizontalOverflow": false,
+      "innerWidth": 1600,
+      "publicNote": null,
+      "scene": "jq-scene jq-scene--ai",
+      "settingsEntry": 1,
+      "user": true
+    },
+    "course-a": {
+      "dir": "a",
+      "fabHidden": false,
+      "h1": "手机拍好照 · 第 3 讲",
+      "h1Count": 1,
+      "homeBody": false,
+      "horizontalOverflow": false,
+      "innerWidth": 1600,
+      "publicNote": null,
+      "scene": "jq-scene jq-scene--course",
+      "settingsEntry": 1,
+      "user": true
+    },
+    "public-a": {
+      "dir": "a",
+      "fabHidden": true,
+      "h1": "重阳节·邻里敬老周",
+      "h1Count": 1,
+      "homeBody": false,
+      "horizontalOverflow": false,
+      "innerWidth": 1600,
+      "publicNote": "本机为公共终端，不含个人内容",
+      "scene": "jq-scene jq-scene--public",
+      "settingsEntry": 0,
+      "user": false
+    },
+    "home-b": {
+      "dir": "b",
+      "fabHidden": false,
+      "h1": "朝夕巷",
+      "h1Count": 1,
+      "homeBody": true,
+      "horizontalOverflow": false,
+      "innerWidth": 1600,
+      "publicNote": null,
+      "scene": "home",
+      "settingsEntry": 1,
+      "user": true
+    },
+    "video-b": {
+      "dir": "b",
+      "fabHidden": false,
+      "h1": "朝夕巷第 8 集 · 一碗阳春面",
+      "h1Count": 1,
+      "homeBody": false,
+      "horizontalOverflow": false,
+      "innerWidth": 1600,
+      "publicNote": null,
+      "scene": "jq-scene jq-scene--video",
+      "settingsEntry": 1,
+      "user": true
+    },
+    "ai-b": {
+      "dir": "b",
+      "fabHidden": false,
+      "h1": "小暖",
+      "h1Count": 1,
+      "homeBody": false,
+      "horizontalOverflow": false,
+      "innerWidth": 1600,
+      "publicNote": null,
+      "scene": "jq-scene jq-scene--ai",
+      "settingsEntry": 1,
+      "user": true
+    },
+    "course-b": {
+      "dir": "b",
+      "fabHidden": false,
+      "h1": "手机拍好照 · 第 3 讲",
+      "h1Count": 1,
+      "homeBody": false,
+      "horizontalOverflow": false,
+      "innerWidth": 1600,
+      "publicNote": null,
+      "scene": "jq-scene jq-scene--course",
+      "settingsEntry": 1,
+      "user": true
+    },
+    "public-b": {
+      "dir": "b",
+      "fabHidden": true,
+      "h1": "重阳节·邻里敬老周",
+      "h1Count": 1,
+      "homeBody": false,
+      "horizontalOverflow": false,
+      "innerWidth": 1600,
+      "publicNote": "本机为公共终端，不含个人内容",
+      "scene": "jq-scene jq-scene--public",
+      "settingsEntry": 0,
+      "user": false
+    }
+  },
+  "consoles": [
+    {
+      "label": "home-a",
+      "level": "SEVERE",
+      "message": "http://127.0.0.1:4173/favicon.ico - Failed to load resource: the server responded with a status of 404 (Not Found)"
+    }
+  ],
+  "returnPath": {
+    "enteredVideo": true,
+    "afterReturn": {
+      "dir": "a",
+      "fabHidden": false,
+      "h1": "朝夕巷",
+      "h1Count": 1,
+      "homeBody": true,
+      "horizontalOverflow": false,
+      "innerWidth": 1600,
+      "publicNote": null,
+      "scene": "home",
+      "settingsEntry": 1,
+      "user": true
+    }
+  },
+  "themeSwitchKeepsState": {
+    "beforeSwitch": {
+      "dir": "a",
+      "noteOpen": true
+    },
+    "afterSwitch": {
+      "dir": "b",
+      "h1": "朝夕巷第 8 集 · 一碗阳春面",
+      "noteOpen": true,
+      "sameBody": true
+    }
+  }
+}

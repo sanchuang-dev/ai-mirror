@@ -1,6 +1,6 @@
 # 见趣 ENG-02 · 最小 Web 工程启动说明
 
-工作项：[Issue #5](https://github.com/sanchuang-dev/ai-mirror/issues/5)。本任务实现 [ENG-01 工程基线](frontend-baseline.md)，只提供开发骨架，**不是完成的闺蜜机 UI**。
+工作项：[Issue #5](https://github.com/sanchuang-dev/ai-mirror/issues/5)。本任务实现 [ENG-01 工程基线](frontend-baseline.md)，只提供开发骨架；H01 个人首页试点见 [Issue #6](https://github.com/sanchuang-dev/ai-mirror/issues/6)。当前只有 H01 首页，**不是完成的闺蜜机 UI**。
 
 ## 从新检出到本地运行
 
@@ -18,15 +18,35 @@
 
 | 位置 | 职责 |
 | --- | --- |
-| `web/index.html` | 唯一正式前端入口，明确展示业务尚未接入 |
-| `web/assets/tokens.css` | 从 `design.md`、OpenDesign CSS 逐项提取的 A/B 颜色与字体 |
-| `web/assets/base.css` | 工程占位页的最小排版，不是新的 UI 语言 |
-| `web/assets/app.js` | 可测试的原生 ES Module 挂载入口 |
+| `web/index.html` | 唯一正式前端入口 |
+| `web/assets/tokens.css` | 从 `design.md`、OpenDesign CSS 逐项提取的 A/B 颜色与字体（主题唯一事实源） |
+| `web/assets/base.css` | 重置与基础排版 |
+| `web/assets/components.css` | H01 首页组件样式（`jq-` 前缀，不按 A/B 分叉页面） |
+| `web/assets/app.js` | 可测试的原生 ES Module 入口，挂载 H01 |
+| `web/pages/home.js` | H01 个人首页：单套语义 DOM、单一事件与主题切换逻辑 |
+| `web/assets/img/` | 复用 OpenDesign 原型（PR #1）的开放授权示例影像；署名与授权见同目录 `CREDITS.md` |
+| `web/data/api.js` | 数据访问唯一出口（ENG-01 §4） |
+| `web/data/preferences.js` | 个人外观主题偏好的本地持久化唯一出口（T02）；不承载业务数据 |
+| `web/data/fixtures/*.fixture.js` | 显式命名的示例数据（当前为 H01） |
 | `scripts/preview.mjs` | 开发期 Node 静态文件服务 |
 | `tests/*.test.mjs` | 检查实际挂载、错误分支和真实 HTTP 资源访问 |
 | `.github/workflows/web-baseline.yml` | `dev` PR / push 的只读质量检查 |
 
-后续在有真实业务需求时才建立 `web/pages/`、`web/components/`、`web/data/api.js` 和 `web/data/fixtures/`；不为目录完整性提前造空壳。后续页面的数据访问须统一经 `data/api.js` 适配，Mock 与真实行为分隔。演示订单、AI、报名必须明确标识，不得伪装真实结果。
+## H01 试点（Issue #6）
+
+`web/pages/home.js` 是个人首页 H01 的首版：继续观看、今日精选、家门口的活动、AI 趣玩入口与 AI 伙伴入口共用**一份** DOM 与事件逻辑，A/B 只切换 `data-dir` 与 `tokens.css` 变量（[design.md](../../design.md) §4、ENG-01 §3）。
+
+- 页面顶部「演示主题」是**试点控件**，方便评审即时对照 A/B；它只做当前会话预览，不写存储。
+- 正式的「设置 → 外观与主题」入口已由 [T02（Issue #7）](https://github.com/sanchuang-dev/ai-mirror/issues/7) 补出：顶栏「设置」打开覆盖层，选 A/B 立即生效并写入本地偏好，返回首页不丢滚动与已显示的反馈；无存储权限或保存失败时给出清晰回退提示（不白屏）。
+- 初始主题优先级（T02 契约）：个人已保存偏好 > `?dir=a|b` 评审参数 > 默认 A。因此用户显式选择后，即使 URL 仍带旧参数，刷新也不会跳回旧主题；评审在无个人偏好时仍可用参数直接对照。
+- 个人偏好只保存外观选择，不涉及内容/记忆；公共设备默认主题与访客权限尚未确定，设置面板如实标注该边界，不提供管理员设置（design.md §4、frontend-baseline §3）。
+- `http://127.0.0.1:4173/?dir=b` 可直接以暖夜剧场主题预览，供截图与评审。
+- A/B 的差异不只换底色：留白、英雄区图文关系、画面比例、影像遮罩与处理都由 `tokens.css` 的主题变量驱动（数值取自 OpenDesign 原型），DOM 与交互仍是一份。
+- 入口反馈是**视口内可见**的固定轻提示（`jq-toast`）：滚动后点「报名」/「问小暖」也能立刻看到，可关闭、键盘可达、`role=status` 播报；切换主题不清空已发生的反馈。
+- 其它业务路由（V01/V02/L01/M01/E01/A01/C01…）尚未实现：首页入口均可操作，但只给出明确的「示例 / 未接入」反馈，不伪造结果。
+- 内容、进度与活动都是标注过的示例数据；画面影像**原样复用** OpenDesign 原型的开放授权素材（`web/assets/img/`，署名见 `CREDITS.md`），`alt` 一律标注「示例画面」，不冒充真实剧照 / 商品图。
+
+后续在有真实业务需求时才建立 `web/components/` 等复用层；不为目录完整性提前造空壳。后续页面的数据访问须统一经 `data/api.js` 适配，Mock 与真实行为分隔。演示订单、AI、报名必须明确标识，不得伪装真实结果。
 
 ## 分支与 Pages
 
