@@ -1,0 +1,103 @@
+/* Original OpenDesign values from design.md §3 and design/prototypes/jianqu-v02/assets/app.css.
+   No new theme, third-party tokens or duplicated A/B markup.
+   The A/B block is the single source of theme truth: switching `data-dir` on the root only
+   swaps these variables and never touches the page DOM (design.md §4, ENG-01 §3). */
+:root {
+  /* Theme-independent decorative tints for the sample-media placeholders.
+     Colours are taken from the OpenDesign palette (accent #e4572e, accent-2 #1f9e8f,
+     gold #e9b25c) — no new brand colour is introduced. */
+  --media-warm: linear-gradient(150deg, rgba(228, 87, 46, 0.38), rgba(233, 178, 92, 0.28));
+  --media-calm: linear-gradient(150deg, rgba(31, 158, 143, 0.34), rgba(79, 195, 181, 0.26));
+  --media-gold: linear-gradient(150deg, rgba(233, 178, 92, 0.42), rgba(228, 87, 46, 0.22));
+  --media-cool: linear-gradient(150deg, rgba(31, 158, 143, 0.3), rgba(233, 178, 92, 0.3));
+}
+
+:root,
+[data-dir='a'] {
+  --bg: #f5f6f8;
+  --surface: #ffffff;
+  --surface-2: #eceff3;
+  --ink: #1b1e23;
+  --muted: #5c6470;
+  --border: #e3e6eb;
+  --accent: #e4572e;
+  --accent-strong: #c9401b;
+  --accent-ink: #ffffff;
+  --accent-2: #1f9e8f;
+  /* Free/available state colour, extracted from the prototype `.a-chip-free` text. */
+  --ok: #0f7a6b;
+  --orb-core: #ffd9c9;
+  --orb-edge: #e4572e;
+  /* Derived from the OpenDesign prototype (app.css) so theme differences stay in tokens. */
+  --orb-ring: rgba(228, 87, 46, 0.14);
+  --orb-glow: rgba(228, 87, 46, 0.32);
+  --accent-soft: #fde9e2;
+  --accent-soft-border: #f6d3c5;
+  --shadow: 0 12px 34px rgba(20, 24, 32, 0.07);
+  --shadow-sm: 0 4px 14px rgba(20, 24, 32, 0.06);
+  --media-scrim: linear-gradient(90deg, rgba(20, 24, 32, 0.08), rgba(20, 24, 32, 0));
+  /* Layout emphasis tokens — A「日光客厅」: airy magazine layout, values taken from the
+     OpenDesign prototype `.a-main` / `.a-hero`. Same DOM, only these values change per theme. */
+  --page-gutter: 44px;
+  --page-pad-top: 28px;
+  --section-gap: 34px;
+  --hero-columns: 1.34fr 1fr;
+  --hero-media-min: 372px;
+  --hero-body-pad: 30px 32px;
+  --hero-title-size: clamp(34px, 3.4vw, 54px);
+  --continue-ratio: 3 / 4;
+  --media-filter: none;
+  --font-body:
+    'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans CJK SC', system-ui,
+    -apple-system, sans-serif;
+  --font-display: 'Songti SC', 'STSong', 'Noto Serif CJK SC', 'Source Han Serif SC', serif;
+}
+
+[data-dir='b'] {
+  --bg: #16141c;
+  --surface: #211e2a;
+  --surface-2: #2a2635;
+  --ink: #f3efe8;
+  --muted: #a9a2b5;
+  --border: #35303f;
+  --accent: #e9b25c;
+  --accent-strong: #e9b25c;
+  --accent-ink: #1a1520;
+  --accent-2: #4fc3b5;
+  /* Free/available state colour, extracted from the prototype `[data-dir="b"] .is-signed`. */
+  --ok: #7fe0d2;
+  --orb-core: #fff3d8;
+  --orb-edge: #e9b25c;
+  --orb-ring: rgba(233, 178, 92, 0.16);
+  --orb-glow: rgba(233, 178, 92, 0.4);
+  --accent-soft: rgba(233, 178, 92, 0.16);
+  --accent-soft-border: rgba(233, 178, 92, 0.3);
+  --shadow: 0 18px 50px rgba(0, 0, 0, 0.5);
+  --shadow-sm: 0 10px 30px rgba(0, 0, 0, 0.4);
+  /* Extracted from the prototype `.b-hero-grad`: strong left/bottom wash so the copy can sit
+     directly on the still, exactly like the OpenDesign B hero. */
+  --media-scrim:
+    linear-gradient(
+      90deg,
+      rgba(22, 20, 28, 0.94) 8%,
+      rgba(22, 20, 28, 0.6) 46%,
+      rgba(22, 20, 28, 0.15) 100%
+    ),
+    linear-gradient(0deg, rgba(22, 20, 28, 0.9), transparent 55%);
+  /* Layout emphasis tokens — B「暖夜剧场」: values taken from the OpenDesign prototype
+     `.b-main` / `.b-hero` (immersive full-bleed still, landscape continue cards). */
+  --page-gutter: 48px;
+  --page-pad-top: 8px;
+  --section-gap: 34px;
+  --hero-columns: 1fr;
+  --hero-media-min: 400px;
+  --hero-body-pad: 46px 48px 40px;
+  --hero-title-size: clamp(38px, 4vw, 66px);
+  --continue-ratio: 16 / 10;
+  --media-filter: saturate(1.06) brightness(0.94);
+  --font-body:
+    'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans CJK SC', system-ui,
+    -apple-system, sans-serif;
+  --font-display:
+    'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans CJK SC', system-ui, sans-serif;
+}

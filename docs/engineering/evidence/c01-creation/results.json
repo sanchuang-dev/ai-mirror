@@ -1,0 +1,165 @@
+{
+  "checks": [
+    {
+      "name": "home entry opens the AI 趣玩 scene",
+      "ok": true,
+      "detail": "{\"scene\":true,\"h1\":1,\"h1text\":\"AI 趣玩\",\"steps\":4}"
+    },
+    {
+      "name": "exactly one h1 on the C01 page",
+      "ok": true,
+      "detail": "{\"scene\":true,\"h1\":1,\"h1text\":\"AI 趣玩\",\"steps\":4}"
+    },
+    {
+      "name": "the C01 h1 names the page",
+      "ok": true,
+      "detail": "AI 趣玩"
+    },
+    {
+      "name": "four steps are rendered",
+      "ok": true,
+      "detail": "4"
+    },
+    {
+      "name": "selected theme is marked pressed",
+      "ok": true,
+      "detail": "{\"pressed\":\"true\",\"current\":\"source\",\"visible\":[\"source\"]}"
+    },
+    {
+      "name": "next moves to the source step",
+      "ok": true,
+      "detail": "{\"pressed\":\"true\",\"current\":\"source\",\"visible\":[\"source\"]}"
+    },
+    {
+      "name": "refusal reports dropped material",
+      "ok": true,
+      "detail": "已拒绝授权：你选的素材已经丢弃，没有保留。"
+    },
+    {
+      "name": "refusal clears the selected sample",
+      "ok": true,
+      "detail": "{\"feedback\":\"已拒绝授权：你选的素材已经丢弃，没有保留。\",\"pressed\":0,\"visible\":[\"source\"]}"
+    },
+    {
+      "name": "refusal stays on the source step",
+      "ok": true,
+      "detail": "{\"feedback\":\"已拒绝授权：你选的素材已经丢弃，没有保留。\",\"pressed\":0,\"visible\":[\"source\"]}"
+    },
+    {
+      "name": "agree without material explains why",
+      "ok": true,
+      "detail": "还没有选好素材：先挑一张示例图、选一张本地图片，或写一句描述。"
+    },
+    {
+      "name": "agree without material does not advance",
+      "ok": true,
+      "detail": "{\"feedback\":\"还没有选好素材：先挑一张示例图、选一张本地图片，或写一句描述。\",\"visible\":[\"source\"]}"
+    },
+    {
+      "name": "local file is previewed in-browser",
+      "ok": true,
+      "detail": "{\"feedback\":\"已在本机预览选中的图片；不会上传，也不会保存。\",\"named\":\"已选：wo-de-zhaopian.png\",\"thumb\":\"blob:http://127.0.0.1:4173/429f2d9d-42c1-4391-9447-232a31b6b720\"}"
+    },
+    {
+      "name": "local file name is shown",
+      "ok": true,
+      "detail": "已选：wo-de-zhaopian.png"
+    },
+    {
+      "name": "local preview uses a blob object URL",
+      "ok": true,
+      "detail": "blob:http://127.0.0.1:4173/429f2d9d-42c1-4391-9447-232a31b6b720"
+    },
+    {
+      "name": "authorised local picture reaches the preview",
+      "ok": true,
+      "detail": "{\"visible\":[\"preview\"],\"img\":\"blob:http://127.0.0.1:4173/429f2d9d-42c1-4391-9447-232a31b6b720\",\"note\":\"S1 演示：这里尚未连接任何真实 AI 模型，点「模拟生成」不会真的产出作品。\"}"
+    },
+    {
+      "name": "preview shows the local blob image",
+      "ok": true,
+      "detail": "blob:http://127.0.0.1:4173/429f2d9d-42c1-4391-9447-232a31b6b720"
+    },
+    {
+      "name": "preview states S1 / no real model",
+      "ok": true,
+      "detail": "S1 演示：这里尚未连接任何真实 AI 模型，点「模拟生成」不会真的产出作品。"
+    },
+    {
+      "name": "revoke reports the material was cleared",
+      "ok": true,
+      "detail": "已撤销：素材与本机预览都已经清除，可以重新选择。"
+    },
+    {
+      "name": "revoke drops the local thumbnail",
+      "ok": true,
+      "detail": "0"
+    },
+    {
+      "name": "revoke returns to the source step",
+      "ok": true,
+      "detail": "{\"feedback\":\"已撤销：素材与本机预览都已经清除，可以重新选择。\",\"thumbs\":0,\"visible\":[\"source\"]}"
+    },
+    {
+      "name": "example material previews an existing image",
+      "ok": true,
+      "detail": "./assets/img/art-living.jpg"
+    },
+    {
+      "name": "mock generation reports no real result",
+      "ok": true,
+      "detail": "S1 演示：这里只停留在发起前的说明，没有真实生成结果。"
+    },
+    {
+      "name": "mock generation lands on the pending step",
+      "ok": true,
+      "detail": "{\"previewImg\":\"./assets/img/art-living.jpg\",\"feedback\":\"S1 演示：这里只停留在发起前的说明，没有真实生成结果。\",\"visible\":[\"done\"],\"pending\":\"作品结果、保存与分享属于 C02，本卡（C01）只演示到「发起创作」之前，不会伪造生成完成。\",\"c02\":true}"
+    },
+    {
+      "name": "pending step points at C02, not a fake result",
+      "ok": true,
+      "detail": "作品结果、保存与分享属于 C02，本卡（C01）只演示到「发起创作」之前，不会伪造生成完成。"
+    },
+    {
+      "name": "flow can be re-run after reset",
+      "ok": true,
+      "detail": "{\"pressed\":\"true\",\"visible\":[\"preview\"]}"
+    },
+    {
+      "name": "B theme applies on the root",
+      "ok": true,
+      "detail": "{\"dir\":\"b\",\"visible\":[\"preview\"],\"pressed\":\"true\",\"theme\":\"portrait\"}"
+    },
+    {
+      "name": "theme switch keeps the preview step",
+      "ok": true,
+      "detail": "{\"dir\":\"b\",\"visible\":[\"preview\"],\"pressed\":\"true\",\"theme\":\"portrait\"}"
+    },
+    {
+      "name": "theme switch keeps the chosen sample",
+      "ok": true,
+      "detail": "{\"dir\":\"b\",\"visible\":[\"preview\"],\"pressed\":\"true\",\"theme\":\"portrait\"}"
+    },
+    {
+      "name": "theme switch keeps the chosen theme",
+      "ok": true,
+      "detail": "{\"dir\":\"b\",\"visible\":[\"preview\"],\"pressed\":\"true\",\"theme\":\"portrait\"}"
+    },
+    {
+      "name": "portrait viewport has no horizontal overflow",
+      "ok": true,
+      "detail": "{\"overflow\":true,\"buttons\":[80,80,80]}"
+    },
+    {
+      "name": "source buttons are touch sized (>=48px)",
+      "ok": true,
+      "detail": "{\"overflow\":true,\"buttons\":[80,80,80]}"
+    },
+    {
+      "name": "no JavaScript errors or application resource errors during the run",
+      "ok": true,
+      "detail": ""
+    }
+  ],
+  "problems": []
+}

@@ -1,0 +1,169 @@
+{
+  "date": "2026-10-19",
+  "chromium": "Chrome/155.0.8059.0",
+  "viewport": "1600x900",
+  "base": "?device=public",
+  "report": [
+    {
+      "name": "G00 shows the always-visible end entry",
+      "ok": true,
+      "detail": "结束体验并清除"
+    },
+    {
+      "name": "G00 has no private identity or settings entry",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "G00 guest sample is visibly marked as a pre-generated sample",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "public mode writes no localStorage on boot",
+      "ok": true,
+      "detail": "0"
+    },
+    {
+      "name": "activity directory opens with all sample cards",
+      "ok": true,
+      "detail": "6"
+    },
+    {
+      "name": "a guest can leave a real keyword-filtered directory state",
+      "ok": true,
+      "detail": "{\"value\":\"太极\",\"state\":\"ok\",\"cards\":1,\"count\":\"在「全部」里找到 1 条与「太极」相关的示例\"}"
+    },
+    {
+      "name": "a guest can leave an open activity detail",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "the end entry stays visible inside the activity detail",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "the end dialog names the confirmation action",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "the end dialog offers a clear cancel path",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "the end dialog offers a simulated idle-timeout entry",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "the end dialog lists guest draft categories",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "the end dialog states the device-level cleanup boundary",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "all three end-dialog actions are visible",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "the background is inert while the confirmation is open",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "cancel closes the panel and keeps the guest session",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "B theme applies to the public terminal",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "the confirmation panel keeps one DOM under B theme",
+      "ok": true,
+      "detail": ""
+    },
+    {
+      "name": "confirm returns to G00 with a visible cleared notice",
+      "ok": true,
+      "detail": "{\"kind\":\"cleared\",\"text\":\"已结束本次公共体验并清除临时内容。下一位使用者将从干净的公共首页重新开始。\",\"publicScene\":true,\"activityScene\":false,\"guest\":true,\"entry\":true,\"dialog\":true,\"user\":0,\"settings\":0}"
+    },
+    {
+      "name": "confirm detaches the old guest scene and restores a fresh guest sample",
+      "ok": true,
+      "detail": "{\"kind\":\"cleared\",\"text\":\"已结束本次公共体验并清除临时内容。下一位使用者将从干净的公共首页重新开始。\",\"publicScene\":true,\"activityScene\":false,\"guest\":true,\"entry\":true,\"dialog\":true,\"user\":0,\"settings\":0}"
+    },
+    {
+      "name": "the cleaned public shell still has no private identity or settings",
+      "ok": true,
+      "detail": "{\"kind\":\"cleared\",\"text\":\"已结束本次公共体验并清除临时内容。下一位使用者将从干净的公共首页重新开始。\",\"publicScene\":true,\"activityScene\":false,\"guest\":true,\"entry\":true,\"dialog\":true,\"user\":0,\"settings\":0}"
+    },
+    {
+      "name": "the next visit starts from the clean directory",
+      "ok": true,
+      "detail": "{\"value\":\"\",\"state\":\"ok\",\"cards\":6,\"detailHidden\":true,\"signup\":false}"
+    },
+    {
+      "name": "no previous detail or signup view can be recovered",
+      "ok": true,
+      "detail": "{\"value\":\"\",\"state\":\"ok\",\"cards\":6,\"detailHidden\":true,\"signup\":false}"
+    },
+    {
+      "name": "simulated idle timeout returns to G00 with its own visible reason",
+      "ok": true,
+      "detail": "{\"kind\":\"timeout\",\"text\":\"已模拟空闲超时：按同一清理规则清除临时内容，并回到公共首页。\",\"activityScene\":false,\"entry\":true}"
+    },
+    {
+      "name": "simulated timeout clears the guest scene exactly like confirm",
+      "ok": true,
+      "detail": "{\"kind\":\"timeout\",\"text\":\"已模拟空闲超时：按同一清理规则清除临时内容，并回到公共首页。\",\"activityScene\":false,\"entry\":true}"
+    },
+    {
+      "name": "the timeout cleanup also leaves a clean next visit",
+      "ok": true,
+      "detail": "{\"value\":\"\",\"state\":\"ok\",\"cards\":6,\"detailHidden\":true}"
+    },
+    {
+      "name": "no uncaught JavaScript exceptions",
+      "ok": true,
+      "detail": "0"
+    },
+    {
+      "name": "no console.error",
+      "ok": true,
+      "detail": "0"
+    },
+    {
+      "name": "no browser log errors",
+      "ok": true,
+      "detail": "[]"
+    },
+    {
+      "name": "no external network requests",
+      "ok": true,
+      "detail": "[]"
+    },
+    {
+      "name": "no private route was mounted during the public flow",
+      "ok": true,
+      "detail": ""
+    }
+  ],
+  "console": {
+    "exceptions": 0,
+    "consoleErrors": 0,
+    "logErrors": 0,
+    "externalRequests": []
+  }
+}

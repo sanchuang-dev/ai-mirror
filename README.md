@@ -19,6 +19,8 @@
 - [**设计基线与主题规范（design.md）**](design.md) — OpenDesign 视觉继承、单页面双主题、扩展规则和验收边界。
 
 - [前端与工程基线契约（ENG-01）](docs/engineering/frontend-baseline.md) — 首期唯一前端技术选择、文件/组件/命名边界、主题 Token、Mock/API 边界、基础可访问性与 Lint/Format/类型要求，以及 bootstrap-only 分支/环境/Pages 权限策略。
+- [ENG-02 最小 Web 工程启动说明](docs/engineering/web-bootstrap.md) — 工程初始化、安装/预览命令、CI 与检查证据；已包含 H01 个人首页试点（单套 DOM + A/B 主题）。
+- [三创付费 Worker 接入（OpenCode Go）](https://github.com/sanchuang-dev/.github/blob/main/docs/engineering/paid-worker-onboarding.md) — 组织级付费执行器说明；调用器需经 GitHub Actions 手工 opt-in，不替代免费 `/worker run` 路由。
 
 - [产品功能设计 V0.1](docs/product/elder-companion-v0.1.md) — 已确认的业务边界、八大功能域与待验证技术假设。
 - [功能评审与两周原型裁剪 V0.2](docs/product/elder-companion-functional-review-v0.2.md) — 原型优先级、风险与验收标准。

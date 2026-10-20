@@ -1,0 +1,375 @@
+/**
+ * 见趣 Web 基线唯一数据出口（ENG-01 §4）。
+ *
+ * 页面与组件不得直接 import fixtures，也不得散落 fetch / 硬编码业务数据。
+ * 真实后端接入前，这里的适配器返回显式标注的 S1 示例数据；
+ * 真实与示例的切换将来集中在这一个配置点，不由各页面自行判断。
+ */
+import { homeFixture } from './fixtures/home.fixture.js';
+import { videoFixture } from './fixtures/video.fixture.js';
+import { aiFixture } from './fixtures/ai.fixture.js';
+import { courseFixture } from './fixtures/course.fixture.js';
+import { publicFixture } from './fixtures/public.fixture.js';
+import { programFixture } from './fixtures/programs.fixture.js';
+import { creationFixture } from './fixtures/creation.fixture.js';
+import { creationResultFixture } from './fixtures/creation-result.fixture.js';
+import { activityFixture } from './fixtures/activities.fixture.js';
+import { shopFixture } from './fixtures/shop.fixture.js';
+import { mineFixture } from './fixtures/mine.fixture.js';
+
+/** @typedef {import('./fixtures/home.fixture.js').HomeContent} HomeContent */
+/** @typedef {import('./fixtures/video.fixture.js').VideoFixture} VideoContent */
+/** @typedef {import('./fixtures/ai.fixture.js').AiFixture} AiContent */
+/** @typedef {import('./fixtures/course.fixture.js').CourseFixture} CourseContent */
+/** @typedef {import('./fixtures/public.fixture.js').PublicFixture} PublicContent */
+/** @typedef {import('./fixtures/programs.fixture.js').ProgramFixture} ProgramContent */
+/** @typedef {import('./fixtures/programs.fixture.js').ProgramItem} ProgramItem */
+/** @typedef {import('./fixtures/creation.fixture.js').CreationFixture} CreationContent */
+/** @typedef {import('./fixtures/creation-result.fixture.js').CreationResultFixture} CreationResultContent */
+/** @typedef {import('./fixtures/activities.fixture.js').ActivityFixture} ActivityContent */
+/** @typedef {import('./fixtures/shop.fixture.js').ShopFixture} ShopContent */
+/** @typedef {import('./fixtures/shop.fixture.js').ShopProduct} ShopProduct */
+/** @typedef {import('./fixtures/shop.fixture.js').ShopStore} ShopStore */
+/** @typedef {import('./fixtures/shop.fixture.js').ShopProductDetail} ShopProductDetail */
+/** @typedef {import('./fixtures/mine.fixture.js').MineFixture} MineContent */
+
+/**
+ * H01 首页数据：在首页 fixture 之上，把「家门口的活动」接到 L01-A 的唯一活动事实源。
+ * 首页只取目录条目中的活动（不含福利），字段与目录卡片保持一致。
+ * @type {HomeContent}
+ */
+const homeContent = {
+  ...homeFixture,
+  activities: activityFixture.items
+    .filter((item) => item.category === 'activity')
+    .map((item) => ({
+      id: item.id,
+      title: item.title,
+      time: item.time,
+      place: item.place,
+      price: item.price,
+      free: item.free,
+      tone: item.tone,
+      image: item.image,
+      imageAlt: item.imageAlt,
+    })),
+};
+/**
+ * H01 个人首页内容。
+ *
+ * 「家门口的活动」不再在首页 fixture 里维护第二份：它由 L01-A 的活动数据
+ * （`activities.fixture.js`）组合成首页需要的精简字段，因此首页卡片与本地生活目录
+ * 永远指向同一批示例条目。
+ * @returns {HomeContent} 单一结构的首页数据，A/B 主题共用。
+ */
+export function getHomeContent() {
+  return homeContent;
+}
+
+/**
+ * V02 视频观看内容。
+ * @returns {VideoContent} 单一结构的示例数据，A/B 主题共用。
+ */
+export function getVideoContent() {
+  return videoFixture;
+}
+
+/**
+ * A01 AI 伙伴内容。
+ * @returns {AiContent} 单一结构的示例数据，A/B 主题共用。
+ */
+export function getAiContent() {
+  return aiFixture;
+}
+
+/**
+ * E01 数字人课程内容。
+ * @returns {CourseContent} 单一结构的示例数据，A/B 主题共用。
+ */
+export function getCourseContent() {
+  return courseFixture;
+}
+
+/**
+ * G00 公共服务首页内容（公共终端，不含个人内容）。
+ * @returns {PublicContent} 单一结构的示例数据，A/B 主题共用。
+ */
+export function getPublicContent() {
+  return publicFixture;
+}
+
+/**
+ * 「看节目」节目目录内容（分类 + 节目海报）。
+ * @returns {ProgramContent} 单一结构的示例数据，A/B 主题共用。
+ */
+export function getProgramContent() {
+  return programFixture;
+}
+
+/**
+ * AI 趣玩 C01 内容（主题 / 素材来源 / 授权与模拟生成文案）。
+ * @returns {CreationContent} 单一结构的示例数据，A/B 主题共用。
+ */
+export function getCreationContent() {
+  return creationFixture;
+}
+
+/**
+ * AI 趣玩 C02 作品结果内容（预生成示例作品 / 私密保存 / 主动分享确认文案）。
+ * @returns {CreationResultContent} 单一结构的示例数据，A/B 主题共用。
+ */
+export function getCreationResultContent() {
+  return creationResultFixture;
+}
+
+/**
+ * L01-A 本地活动与福利目录内容（分类 + 示例条目）。
+ * @returns {ActivityContent} 单一结构的示例数据，A/B 主题共用。
+ */
+export function getActivityContent() {
+  return activityFixture;
+}
+
+/**
+ * M01 平台商城内容（平台精选 / 类目 / 入驻店铺 / 示例商品）。
+ * @returns {ShopContent} 单一结构的示例数据，A/B 主题共用。
+ */
+export function getShopContent() {
+  return shopFixture;
+}
+
+/**
+ * P01「我的」个人中心内容：样例身份、记录、示例订单与会员权益说明。
+ *
+ * 只有这一份示例事实源；页面不自行维护第二份记录，也不把示例状态当成
+ * 真实登录、报名、订单或会员订阅。真实后端接入时只替换本函数实现。
+ * @returns {MineContent} 单一结构的示例数据，A/B 主题共用。
+ */
+export function getMineContent() {
+  return mineFixture;
+}
+
+/**
+ * @typedef {object} ShopProductDetailEntry
+ * @property {ShopProduct} product
+ * @property {ShopStore} store 商品来源店铺。
+ * @property {string} categoryLabel 类目显示名。
+ * @property {ShopProductDetail | null} detail 完整示例详情；未补充时为 null。
+ */
+
+/**
+ * 读取单个商品详情所需的同一批商城事实。
+ *
+ * M02 不另建商品数据：商品、店铺与类目都来自 `shopFixture`，详情资料只补在
+ * `details` 上。找不到商品返回 null，由详情页给出明确「找不到」状态；
+ * 商品存在但未补充详情时返回 `detail: null`，由详情页如实说明，而不是伪造
+ * 规格、库存或配送条件。真实后端接入时只替换本函数实现。
+ *
+ * @param {string} productId
+ * @returns {ShopProductDetailEntry | null}
+ */
+export function getShopProductDetail(productId) {
+  const product = shopFixture.products.find((entry) => entry.id === productId);
+  if (!product) return null;
+  const store = shopFixture.stores.find((entry) => entry.id === product.storeId) ?? {
+    id: product.storeId,
+    name: '示例店铺（未登记）',
+    kind: '示例',
+  };
+  return {
+    product,
+    store,
+    categoryLabel:
+      shopFixture.categories.find((entry) => entry.id === product.category)?.label ??
+      product.category,
+    detail: shopFixture.details.find((entry) => entry.productId === productId) ?? null,
+  };
+}
+
+/**
+ * @typedef {object} ShopSearchResult
+ * @property {'ok' | 'empty'} status
+ * @property {string} keyword 规范化后的关键词（空串表示未按关键词过滤）。
+ * @property {string} category 生效的类目（`all` / 商品自身类目）。
+ * @property {string} store 生效的店铺来源（`all` / 店铺 id）。
+ * @property {ShopProduct[]} items
+ */
+
+/**
+ * 在示例商城中检索。异步契约与真实商城服务一致，页面据此展示加载 / 命中 /
+ * 无结果 / 失败状态；当前由本地 S1 样本数据实现，**不做真实网络请求**，
+ * 也不能被当成真实商城服务成功响应。接入真实后端时只替换本函数实现。
+ *
+ * 类目、店铺与关键词是**组合筛选**：三者同时生效，返回的每一项都满足当前类目、
+ * 当前店铺来源，且（若有关键词）命中该关键词。这样页面高亮的筛选条件与可见结果
+ * 永远一致，不会把其它类目或其它店铺的商品混进来。
+ *
+ * @param {{ keyword?: string, category?: string, store?: string }} [query]
+ * @returns {Promise<ShopSearchResult>}
+ */
+export function searchShopProducts(query = {}) {
+  const keyword = String(query.keyword ?? '').trim();
+  const category = query.category ?? 'all';
+  const store = query.store ?? 'all';
+  // 微任务即真实的异步数据适配边界，不伪造网络延迟或服务器成功响应。
+  return Promise.resolve().then(() => {
+    const items = matchShopProducts(keyword, category, store);
+    return {
+      status: items.length > 0 ? 'ok' : 'empty',
+      keyword,
+      category,
+      store,
+      items,
+    };
+  });
+}
+
+/**
+ * @param {string} keyword 已 trim 的关键词。
+ * @param {string} category
+ * @param {string} store
+ * @returns {ShopProduct[]}
+ */
+function matchShopProducts(keyword, category, store) {
+  /** @type {(id: string) => string} */
+  const categoryLabel = (id) =>
+    shopFixture.categories.find((entry) => entry.id === id)?.label ?? '';
+  /** @type {(id: string) => string} */
+  const storeName = (id) => shopFixture.stores.find((entry) => entry.id === id)?.name ?? '';
+  return shopFixture.products.filter((product) => {
+    if (category !== 'all' && product.category !== category) return false;
+    if (store !== 'all' && product.storeId !== store) return false;
+    if (!keyword) return true;
+    const haystack = [
+      product.title,
+      product.meta,
+      product.summary,
+      product.price,
+      product.priceNote,
+      product.tags,
+      categoryLabel(product.category),
+      storeName(product.storeId),
+    ].join(' ');
+    return haystack.includes(keyword);
+  });
+}
+
+/**
+ * @typedef {object} ProgramEpisode
+ * @property {string} id 集号（两位数字）。
+ * @property {string} label 选集按钮显示文本。
+ * @property {string} [title] 示例集名（仅示例可播放范围内的集有）。
+ * @property {string} [image] 该集示例画面（复用授权素材，非真实剧照）。
+ * @property {string} [imageAlt] 该集示例画面说明。
+ * @property {string} [aiNote] 该集示例解说文本（S1 演示，非真实 AI）。
+ * @property {boolean} available 是否在示例可播放范围内（可进入 V02 示例播放器）。
+ *
+ * @typedef {object} ProgramDetail
+ * @property {ProgramItem} program
+ * @property {ProgramEpisode[]} episodes 全部集（含未接入片源的集）；无集数标注时为空。
+ * @property {boolean} playable 是否存在示例可播放资源。
+ * @property {{ from: string, to: string } | null} sampleRange 示例可播放集号范围。
+ */
+
+/**
+ * 单个节目的示例详情（简介 / 全集 / 示例可播放范围）。
+ *
+ * 同步组合本地 S1 数据：节目与集数来自节目目录，示例可播放范围来自 `video.fixture`，
+ * 两者只在这里汇合，页面不再自行拼接。接入真实详情服务时应把本函数改为异步，
+ * 并在页面补加载 / 失败态；当前不伪造异步与网络成功。
+ *
+ * @param {string} programId
+ * @returns {ProgramDetail | null} 未找到该节目时返回 null，由界面给出明确反馈。
+ */
+export function getProgramDetail(programId) {
+  const program = programFixture.programs.find((item) => item.id === programId) ?? null;
+  if (!program) return null;
+
+  const sample = program.demoRoute === 'video' ? videoFixture.episodes : [];
+  const total = typeof program.episodeCount === 'number' ? program.episodeCount : 0;
+  /** @type {ProgramEpisode[]} */
+  const episodes = [];
+  for (let index = 0; index < total; index += 1) {
+    const id = String(index + 1).padStart(2, '0');
+    const match = sample.find((episode) => episode.id === id);
+    episodes.push({
+      id,
+      label: id,
+      ...(match?.title ? { title: match.title } : {}),
+      ...(match?.image ? { image: match.image } : {}),
+      ...(match?.imageAlt ? { imageAlt: match.imageAlt } : {}),
+      ...(match?.aiNote ? { aiNote: match.aiNote } : {}),
+      available: Boolean(match),
+    });
+  }
+
+  const playable = sample.length > 0 && episodes.some((episode) => episode.available);
+  return {
+    program,
+    episodes,
+    playable,
+    sampleRange:
+      sample.length > 0 ? { from: sample[0].id, to: sample[sample.length - 1].id } : null,
+  };
+}
+
+/**
+ * @typedef {object} ProgramSearchResult
+ * @property {'ok' | 'empty'} status
+ * @property {string} keyword 规范化后的关键词（空串表示未按关键词过滤）。
+ * @property {string} category 生效的分类（`all` / `recommend` / 节目自身分类）。
+ * @property {ProgramItem[]} items
+ */
+
+/**
+ * 在示例节目库中检索。异步契约与真实搜索服务一致，页面据此展示加载 / 命中 /
+ * 无结果 / 失败状态；当前由本地 S1 样本数据实现，**不做真实网络请求**，
+ * 也不能被当成真实服务器成功响应。接入真实后端时只替换本函数实现。
+ *
+ * 分类与搜索是**组合筛选**：`category` 与 `keyword` 同时生效，返回的每一项都满足
+ * 当前分类，且（若有关键词）命中该关键词。`category: 'all'` 表示不做分类限制。
+ * 这样页面高亮的分类与可见结果永远一致（Review PR #38 Finding 1）。
+ *
+ * @param {{ keyword?: string, category?: string }} [query]
+ * @returns {Promise<ProgramSearchResult>}
+ */
+export function searchPrograms(query = {}) {
+  const keyword = String(query.keyword ?? '').trim();
+  const category = query.category ?? 'all';
+  // 微任务即真实的异步数据适配边界，不伪造网络延迟或服务器成功响应。
+  return Promise.resolve().then(() => {
+    const items = matchPrograms(keyword, category);
+    return {
+      status: items.length > 0 ? 'ok' : 'empty',
+      keyword,
+      category,
+      items,
+    };
+  });
+}
+
+/**
+ * @param {string} keyword 已 trim 的关键词。
+ * @param {string} category
+ * @returns {ProgramItem[]}
+ */
+function matchPrograms(keyword, category) {
+  /** @type {(id: string) => string} */
+  const label = (id) => programFixture.categories.find((entry) => entry.id === id)?.label ?? '';
+  return programFixture.programs.filter((program) => {
+    if (category === 'recommend') {
+      if (!program.recommended) return false;
+    } else if (category !== 'all' && program.category !== category) {
+      return false;
+    }
+    if (!keyword) return true;
+    const haystack = [
+      program.title,
+      program.meta,
+      program.summary,
+      program.keywords,
+      label(program.category),
+    ].join(' ');
+    return haystack.includes(keyword);
+  });
+}
