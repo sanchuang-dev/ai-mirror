@@ -28,12 +28,11 @@
 
 > 三份文档有不同职责：功能基线记产品已确认决策；评审稿定义原型深度；信息架构定义页面去向与流程；HTML 仅作为可视化评审工件。
 
-## 预览入口
+## 原型演示入口
 
-- [OpenDesign 视觉原型](https://sanchuang-dev.github.io/ai-mirror/)：站点根目录，继续使用独立设计分支 `feat/jianqu-opendesign-v02`；不等于工程 `dev`。
-- [dev 工程预览 · H01](https://sanchuang-dev.github.io/ai-mirror/dev/)：从 `dev/web` 发布 H01 首页，支持页面内 A/B 演示主题切换及 `?dir=b`。只展示已合入 `dev` 的示例内容，并不代表 `test` / `prod` 发布。
-
-两条路径共用现有 GitHub Pages 部署，但**来源独立**。Pages 工作流在 `dev` 的 `Jianqu Web baseline checks` **push 检查成功后**自动重建两条路径；仅静态复制 `web/` 所需公开文件，不发布仓库其它文件。当前是否已生效，以 Pages 最新成功运行及访问烟测为准。
+- [公司演示入口 · 见趣闺蜜机](https://ai-mirror.proto.3cgroup.cn/)：阿里云独立静态原型，需提供该产品的专属访问密码。
+- 本仓库保留 `dev/web` 工程预览源码及 `feat/jianqu-opendesign-v02` 视觉评审素材。它们与公司站当前冻结的 `prod` 静态快照并不相同，不能冒充已同步发布。
+- GitHub Pages 的旧 `/`（OpenDesign）和 `/dev/`（H01）两个公开预览将按公司原型访问控制迁移计划退役。**删除 Pages 发布工作流不会自动撤掉历史站点，旧网址须在 GitHub Pages 设置中单独 Unpublish 并验证。**
 
 ## 工作边界
 
